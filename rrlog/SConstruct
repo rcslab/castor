@@ -1,0 +1,9 @@
+
+Import('env')
+
+src = [
+    "rrlog.c"
+]
+
+env.Program("rrlog", src, CPPPATH=['../librr/'])
+

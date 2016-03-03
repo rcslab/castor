@@ -1,0 +1,11 @@
+
+Import('env')
+
+src = [
+    "runtime.c",
+    "ft.c",
+    "events.c"
+]
+
+env.ObjectLibrary("librr.o", src, CPPPATH=[env["RR"]])
+

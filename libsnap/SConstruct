@@ -1,0 +1,10 @@
+
+Import('env')
+
+src = [
+    "process.cc",
+    "snapshot.cc",
+]
+
+env.ObjectLibrary("libsnap.o", src, CPPPATH=[env["RR"]])
+
