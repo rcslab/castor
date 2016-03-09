@@ -7,5 +7,6 @@ src = [
     "events.c"
 ]
 
-env.ObjectLibrary("librr.o", src, CPPPATH=[env["RR"]])
+env.ObjectLibrary("librr.o", src,
+        CPPPATH=[env["RR"], "#system/libc/include"])
 

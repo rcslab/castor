@@ -14,6 +14,8 @@
 
 #include <sys/syscall.h>
 
+#include <libc_private.h>
+
 #include "rrevent.h"
 #include "rrlog.h"
 #include "rrplay.h"
@@ -255,5 +257,51 @@ ssize_t
 _read(int fd, void *buf, size_t nbytes)
 {
     return read(fd, buf, nbytes);
+}
+
+ssize_t
+__sys_write(int fd, const void *buf, size_t nbytes)
+{
+    ssize_t result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_write, fd, buf, nbytes);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_write, fd, buf, nbytes);
+
+	e = RRLog_Alloc(&rrlog, threadId);
+	e->event = RREVENT_WRITE;
+	e->threadId = threadId;
+	e->objectId = fd;
+	e->value[0] = result;
+	RRLog_Append(&rrlog, e);
+    } else {
+	int result = 0;
+
+	e = RRPlay_Dequeue(&rrlog, threadId);
+	result = e->value[0];
+	RRPlay_Free(&rrlog, e);
+	return result;
+    }
+
+    return result;
+}
+
+ssize_t
+_write(int fd, const void *buf, size_t nbytes)
+{
+    return write(fd, buf, nbytes);
+}
+
+extern interpos_func_t __libc_interposing[] __hidden;
+
+void
+Events_Init()
+{
+    __libc_interposing[INTERPOS_read] = (interpos_func_t)&__sys_read;
+    __libc_interposing[INTERPOS_write] = (interpos_func_t)&__sys_write;
 }
 

@@ -43,6 +43,18 @@ thread_local int threadId = 0; //-1;
  * CASTOR_HOST		Fault-Tolerance Master Hostname
  */
 
+int
+SystemRead(int fd, void *buf, size_t nbytes)
+{
+    return syscall(SYS_read, fd, buf, nbytes);
+}
+
+int
+SystemWrite(int fd, const void *buf, size_t nbytes)
+{
+    return syscall(SYS_write, fd, buf, nbytes);
+}
+
 void *
 DrainQueue(void *arg)
 {
@@ -83,7 +95,7 @@ TXGQProc(void *arg)
 	if (ftMode) {
 	    RRFT_Send(numEntries, entry);
 	} else {
-	    write(logfd, entry, numEntries * sizeof(RRLogEntry));
+	    SystemWrite(logfd, entry, numEntries * sizeof(RRLogEntry));
 	}
 
 	for (i = 0; i < numEntries; i++) {
@@ -136,7 +148,7 @@ RXGQProc(void *arg)
 	if (ftMode) {
 	    numEntries = RRFT_Recv(numEntries, (RRLogEntry *)&entries);
 	} else {
-	    int result = read(logfd, &entries, numEntries * sizeof(RRLogEntry));
+	    int result = SystemRead(logfd, &entries, numEntries * sizeof(RRLogEntry));
 	    if (result < 0) {
 		perror("read");
 		abort();
@@ -207,6 +219,8 @@ log_init()
     globalLog = malloc(GLOBALLOG_LENGTH);
     if (!globalLog) {
 	fprintf(stderr, "Could not allocate global log\n");
+	abort();
+	return;
     }
 
     // Ensure memory is mapped
@@ -214,6 +228,7 @@ log_init()
 
     RRLog_Init(&rrlog);
     RRGlobalQueue_Init(&rrgq);
+    Events_Init();
 
     if (ftMode) {
 	if (rrMode == RRMODE_RECORD) {
