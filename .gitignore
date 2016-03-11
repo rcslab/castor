@@ -1,0 +1,7 @@
+*.rr
+*.core
+*.record
+*.replay
+build
+Local.sc
+.sconsign.dblite
