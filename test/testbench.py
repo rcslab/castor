@@ -14,7 +14,7 @@ NORMAL = "\033[0;39m"
 
 FORMAT = "%-32s [ %s%-9s"+ NORMAL + " ]"
 
-tests = [ "helloworld", "time" ]
+tests = [ "helloworld", "read", "time" ]
 failed = [ ]
 
 def write(str):
