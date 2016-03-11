@@ -21,6 +21,8 @@
 #include "runtime.h"
 #include "ft.h"
 
+extern void Events_Init();
+
 #define GLOBALLOG_LENGTH	(4*1024*1024)
 
 static RRLogEntry *globalLog;
@@ -78,7 +80,7 @@ DrainQueue(void *arg)
 	RRLog_Free(&rrlog, entry);
     }
 
-    printf("Consumer Done\n");
+    //printf("Consumer Done\n");
     return NULL;
 }
 
@@ -100,7 +102,7 @@ TXGQProc(void *arg)
 
 	for (i = 0; i < numEntries; i++) {
 	    if (entry[i].event == RREVENT_EXIT) {
-		printf("TXGQ Done\n");
+		//printf("TXGQ Done\n");
 		return NULL;
 	    }
 	}
@@ -126,7 +128,7 @@ FeedQueue(void *arg)
 	for (i = 0; i < numEntries; i++) {
 	    RRPlay_AppendThread(&rrlog, &entry[i]);
 	    if (entry[i].event == RREVENT_EXIT) {
-		printf("Feed Done\n");
+		//printf("Feed Done\n");
 		return NULL;
 	    }
 	}
@@ -160,7 +162,7 @@ RXGQProc(void *arg)
 	for (i = 0; i < numEntries; i++) {
 	    RRGlobalQueue_Append(&rrgq, &entries[i]);
 	    if (entries[i].event == RREVENT_EXIT) {
-		printf("RXGQ Done\n");
+		//printf("RXGQ Done\n");
 		return NULL;
 	    }
 	}

@@ -15,6 +15,7 @@ objlib = Builder(action = 'ld -r -o $TARGET $SOURCES',
 
 env = Environment(options = opts, BUILDERS = {'ObjectLibrary' : objlib})
 env.Append(CXXFLAGS = "-std=c++11")
+env.Append(CPPFLAGS = "-g")
 
 Export('env')
 

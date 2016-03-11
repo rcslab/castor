@@ -12,6 +12,7 @@
 #include <fcntl.h>
 #include <pthread.h>
 
+#include <sys/cdefs.h>
 #include <sys/syscall.h>
 
 #include <libc_private.h>
@@ -22,6 +23,86 @@
 #include "rrgq.h"
 #include "runtime.h"
 #include "ft.h"
+
+extern int __vdso_clock_gettime(clockid_t clock_id, struct timespec *tp);
+extern interpos_func_t __libc_interposing[] __hidden;
+
+ssize_t __sys_read(int fd, void *buf, size_t nbytes);
+ssize_t __sys_write(int fd, const void *buf, size_t nbytes);
+int __clock_gettime(clockid_t clock_id, struct timespec *tp);
+
+__strong_reference(__clock_gettime, clock_gettime);
+
+void
+Events_Init()
+{
+    __libc_interposing[INTERPOS_read] = (interpos_func_t)&__sys_read;
+    __libc_interposing[INTERPOS_write] = (interpos_func_t)&__sys_write;
+}
+
+#if 1
+void
+AssertEvent(RRLogEntry *e, int evt)
+{
+    if (e->event != evt) {
+	rrMode = RRMODE_NORMAL;
+	printf("Expected %08x, Encountered %08x\n", evt, e->event);
+	printf("Event #%lu, Thread #%d\n", e->eventId, e->threadId);
+	printf("NextEvent #%lu, LastEvent #%lu\n", rrlog.nextEvent, rrlog.lastEvent);
+	abort();
+    }
+}
+#else
+#define AssertEvent(_e, _evt)
+#endif
+
+#define RREVENT_DATA_LEN	32
+#define RREVENT_DATA_OFFSET	32
+
+void
+logData(uint8_t *buf, size_t len)
+{
+    int32_t i;
+    int32_t recs = len / RREVENT_DATA_LEN;
+    int32_t rlen = len % RREVENT_DATA_LEN;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_RECORD) {
+	for (i = 0; i < recs; i++) {
+	    e = RRLog_Alloc(&rrlog, threadId);
+	    e->event = RREVENT_DATA;
+	    uint8_t *dst = ((uint8_t *)e) + RREVENT_DATA_OFFSET;
+	    memcpy(dst, buf, RREVENT_DATA_LEN);
+	    RRLog_Append(&rrlog, e);
+	    buf += RREVENT_DATA_LEN;
+	}
+	if (rlen) {
+	    e = RRLog_Alloc(&rrlog, threadId);
+	    e->event = RREVENT_DATA;
+	    uint8_t *dst = ((uint8_t *)e) + RREVENT_DATA_OFFSET;
+	    memcpy(dst, buf, rlen);
+	    RRLog_Append(&rrlog, e);
+	    buf += rlen;
+	}
+    } else {
+	for (i = 0; i < recs; i++) {
+	    e = RRPlay_Dequeue(&rrlog, threadId);
+	    AssertEvent(e, RREVENT_DATA);
+	    uint8_t *src = ((uint8_t *)e) + RREVENT_DATA_OFFSET;
+	    memcpy(buf, src, RREVENT_DATA_LEN);
+	    RRPlay_Free(&rrlog, e);
+	    buf += RREVENT_DATA_LEN;
+	}
+	if (rlen) {
+	    e = RRPlay_Dequeue(&rrlog, threadId);
+	    AssertEvent(e, RREVENT_DATA);
+	    uint8_t *src = ((uint8_t *)e) + RREVENT_DATA_OFFSET;
+	    memcpy(buf, src, rlen);
+	    RRPlay_Free(&rrlog, e);
+	    buf += rlen;
+	}
+    }
+}
 
 int
 RRMutex_Init(pthread_mutex_t *mtx, pthread_mutexattr_t *attr)
@@ -205,48 +286,31 @@ __sys_read(int fd, void *buf, size_t nbytes)
     ssize_t result;
     RRLogEntry *e;
 
-    //fprintf(stderr, "Hello\n");
-
     if (rrMode == RRMODE_NORMAL) {
-	return syscall(SYS_read, fd, buf, nbytes);
-    }
-
-    if (fd != 0) {
 	return syscall(SYS_read, fd, buf, nbytes);
     }
 
     if (rrMode == RRMODE_RECORD) {
 	int left;
 	result = syscall(SYS_read, fd, buf, nbytes);
-	//fprintf(stderr, "RECORD\n");
 
-	// write log entry
-	left = result;
-	// XXX: check result is positive
-	while (left > 0) {
-	    e = RRLog_Alloc(&rrlog, threadId);
-	    e->event = left <= 32 ? RREVENT_READEND : RREVENT_READ;
-	    e->threadId = threadId;
-	    memcpy((void *)&e->value[1], buf, left < 32 ? left : 32);
-	    e->value[0] = left < 32 ? left : 32;
-	    RRLog_Append(&rrlog, e);
-	    left -= 32;
-	    buf += 32;
+	e = RRLog_Alloc(&rrlog, threadId);
+	e->event = RREVENT_READ;
+	e->threadId = threadId;
+	e->value[0] = result;
+	RRLog_Append(&rrlog, e);
+
+	if (result > 0) {
+	    logData(buf, result);
 	}
     } else {
-	int result = 0;
-	//fprintf(stderr, "REPLAY\n");
+	e = RRPlay_Dequeue(&rrlog, threadId);
+	result = e->value[0];
+	AssertEvent(e, RREVENT_READ);
+	RRPlay_Free(&rrlog, e);
 
-	// read log entry
-	while (1) {
-	    e = RRPlay_Dequeue(&rrlog, threadId);
-	    memcpy(buf, (void *)&e->value[1], e->value[0]);
-	    result += e->value[0];
-	    if (e->event == RREVENT_READEND) {
-		RRPlay_Free(&rrlog, e);
-		return result;
-	    }
-	    RRPlay_Free(&rrlog, e);
+	if (result > 0) {
+	    logData(buf, result);
 	}
     }
 
@@ -262,7 +326,7 @@ _read(int fd, void *buf, size_t nbytes)
 ssize_t
 __sys_write(int fd, const void *buf, size_t nbytes)
 {
-    ssize_t result;
+    int result;
     RRLogEntry *e;
 
     if (rrMode == RRMODE_NORMAL) {
@@ -279,12 +343,15 @@ __sys_write(int fd, const void *buf, size_t nbytes)
 	e->value[0] = result;
 	RRLog_Append(&rrlog, e);
     } else {
-	int result = 0;
+	if (fd == 1) {
+	    // Print console output
+	    syscall(SYS_write, fd, buf, nbytes);
+	}
 
 	e = RRPlay_Dequeue(&rrlog, threadId);
+	AssertEvent(e, RREVENT_WRITE);
 	result = e->value[0];
 	RRPlay_Free(&rrlog, e);
-	return result;
     }
 
     return result;
@@ -296,12 +363,36 @@ _write(int fd, const void *buf, size_t nbytes)
     return write(fd, buf, nbytes);
 }
 
-extern interpos_func_t __libc_interposing[] __hidden;
-
-void
-Events_Init()
+int
+__clock_gettime(clockid_t clock_id, struct timespec *tp)
 {
-    __libc_interposing[INTERPOS_read] = (interpos_func_t)&__sys_read;
-    __libc_interposing[INTERPOS_write] = (interpos_func_t)&__sys_write;
+    int result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return __vdso_clock_gettime(clock_id, tp);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = __vdso_clock_gettime(clock_id, tp);
+
+	e = RRLog_Alloc(&rrlog, threadId);
+	e->event = RREVENT_GETTIME;
+	e->threadId = threadId;
+	e->objectId = clock_id;
+	e->value[0] = tp->tv_sec;
+	e->value[1] = tp->tv_nsec;
+	e->value[2] = result;
+	RRLog_Append(&rrlog, e);
+    } else {
+	e = RRPlay_Dequeue(&rrlog, threadId);
+	AssertEvent(e, RREVENT_GETTIME);
+	tp->tv_sec = e->value[0];
+	tp->tv_nsec = e->value[1];
+	result = e->value[2];
+	RRPlay_Free(&rrlog, e);
+    }
+
+    return result;
 }
 
