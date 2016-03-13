@@ -157,6 +157,9 @@ RXGQProc(void *arg)
 		perror("read");
 		abort();
 	    }
+	    if (result == 0) {
+		return NULL;
+	    }
 
 	    numEntries = result / sizeof(RRLogEntry);
 	}
