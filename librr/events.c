@@ -14,6 +14,7 @@
 
 #include <sys/cdefs.h>
 #include <sys/syscall.h>
+#include <sys/sysctl.h>
 
 #include <libc_private.h>
 
@@ -39,8 +40,11 @@ extern interpos_func_t __libc_interposing[] __hidden;
 ssize_t __sys_read(int fd, void *buf, size_t nbytes);
 ssize_t __sys_write(int fd, const void *buf, size_t nbytes);
 int __clock_gettime(clockid_t clock_id, struct timespec *tp);
+int __rr_sysctl(const int *name, u_int namelen, void *oldp,
+	     size_t *oldlenp, const void *newp, size_t newlen);
 
 __strong_reference(__clock_gettime, clock_gettime);
+__strong_reference(__rr_sysctl, __sysctl);
 
 void
 Events_Init()
@@ -445,6 +449,47 @@ __clock_gettime(clockid_t clock_id, struct timespec *tp)
 	tp->tv_nsec = e->value[1];
 	result = e->value[2];
 	RRPlay_Free(&rrlog, e);
+    }
+
+    return result;
+}
+
+int __rr_sysctl(const int *name, u_int namelen, void *oldp,
+	     size_t *oldlenp, const void *newp, size_t newlen)
+{
+    ssize_t result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS___sysctl, name, namelen, oldp, oldlenp, newp, newlen);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	int left;
+	result = syscall(SYS___sysctl, name, namelen, oldp, oldlenp, newp, newlen);
+
+	e = RRLog_Alloc(&rrlog, threadId);
+	e->event = RREVENT_SYSCTL;
+	e->threadId = threadId;
+	e->value[0] = result;
+	e->value[1] = *oldlenp;
+	RRLog_Append(&rrlog, e);
+
+	if (oldp) {
+	    logData(oldp, *oldlenp);
+	}
+    } else {
+	e = RRPlay_Dequeue(&rrlog, threadId);
+	result = e->value[0];
+	if (oldp) {
+	    *oldlenp = e->value[1];
+	}
+	AssertEvent(e, RREVENT_SYSCTL);
+	RRPlay_Free(&rrlog, e);
+
+	if (oldp) {
+	    logData(oldp, *oldlenp);
+	}
     }
 
     return result;
