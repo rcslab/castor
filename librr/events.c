@@ -24,6 +24,9 @@
 #include "runtime.h"
 #include "ft.h"
 
+extern int
+_pthread_create(pthread_t * thread, const pthread_attr_t * attr,
+	       void *(*start_routine) (void *), void *arg);
 extern int __vdso_clock_gettime(clockid_t clock_id, struct timespec *tp);
 extern interpos_func_t __libc_interposing[] __hidden;
 
@@ -52,8 +55,21 @@ AssertEvent(RRLogEntry *e, int evt)
 	abort();
     }
 }
+
+void
+AssertReplay(RRLogEntry *e, bool test)
+{
+    if (!test) {
+	rrMode = RRMODE_NORMAL;
+	printf("Encountered %08x\n", e->event);
+	printf("Event #%lu, Thread #%d\n", e->eventId, e->threadId);
+	printf("NextEvent #%lu, LastEvent #%lu\n", rrlog.nextEvent, rrlog.lastEvent);
+	abort();
+    }
+}
 #else
 #define AssertEvent(_e, _evt)
+#define AssertReplay(_e, _tst)
 #endif
 
 #define RREVENT_DATA_LEN	32
@@ -102,6 +118,35 @@ logData(uint8_t *buf, size_t len)
 	    buf += rlen;
 	}
     }
+}
+
+int
+pthread_create(pthread_t * thread, const pthread_attr_t * attr,
+	       void *(*start_routine) (void *), void *arg)
+{
+    int result;
+    RRLogEntry *e;
+
+    result = _pthread_create(thread, attr, start_routine, arg);
+
+    if (rrMode == RRMODE_NORMAL) {
+	return result;
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	e = RRLog_Alloc(&rrlog, threadId);
+	e->event = RREVENT_THREAD_CREATE;
+	e->threadId = threadId;
+	e->value[0] = result;
+	RRLog_Append(&rrlog, e);
+    } else {
+	e = RRPlay_Dequeue(&rrlog, threadId);
+	AssertReplay(e, result == e->value[0]);
+	AssertEvent(e, RREVENT_THREAD_CREATE);
+	RRPlay_Free(&rrlog, e);
+    }
+
+    return result;
 }
 
 int

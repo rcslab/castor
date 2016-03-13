@@ -169,6 +169,34 @@ RXGQProc(void *arg)
     }
 }
 
+bool
+PrimeQ()
+{
+    int numEntries = 32;
+    RRLogEntry entries[32];
+
+    if (ftMode) {
+	numEntries = RRFT_Recv(numEntries, (RRLogEntry *)&entries);
+    } else {
+	int result = SystemRead(logfd, &entries, numEntries * sizeof(RRLogEntry));
+	if (result < 0) {
+	    perror("read");
+	    abort();
+	}
+
+	numEntries = result / sizeof(RRLogEntry);
+    }
+
+    for (int i = 0; i < numEntries; i++) {
+	RRPlay_AppendThread(&rrlog, &entries[i]);
+	if (entries[i].event == RREVENT_EXIT) {
+	    return true;
+	}
+    }
+
+    return false;
+}
+
 void
 LogDone()
 {
@@ -264,6 +292,7 @@ log_init()
 	pthread_create(&rrthr, NULL, DrainQueue, NULL);
 	pthread_create(&gqthr, NULL, TXGQProc, NULL);
     } else if (rrMode == RRMODE_REPLAY) {
+	PrimeQ();
 	pthread_create(&rrthr, NULL, FeedQueue, NULL);
 	pthread_create(&gqthr, NULL, RXGQProc, NULL);
     }
