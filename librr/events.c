@@ -27,6 +27,12 @@
 extern int
 _pthread_create(pthread_t * thread, const pthread_attr_t * attr,
 	       void *(*start_routine) (void *), void *arg);
+extern int
+_pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr);
+extern int _pthread_mutex_trylock(pthread_mutex_t *mutex);
+extern int _pthread_mutex_lock(pthread_mutex_t *mutex);
+extern int _pthread_mutex_unlock(pthread_mutex_t *mutex);
+extern int _pthread_mutex_destroy(pthread_mutex_t *mutex);
 extern int __vdso_clock_gettime(clockid_t clock_id, struct timespec *tp);
 extern interpos_func_t __libc_interposing[] __hidden;
 
@@ -150,7 +156,7 @@ pthread_create(pthread_t * thread, const pthread_attr_t * attr,
 }
 
 int
-RRMutex_Init(pthread_mutex_t *mtx, pthread_mutexattr_t *attr)
+pthread_mutex_init(pthread_mutex_t *mtx, const pthread_mutexattr_t *attr)
 {
     RRLogEntry *e;
 
@@ -170,11 +176,11 @@ RRMutex_Init(pthread_mutex_t *mtx, pthread_mutexattr_t *attr)
 	case RRMODE_FASTREPLAY:
 	    break;
     }
-    return pthread_mutex_init(mtx, attr);
+    return _pthread_mutex_init(mtx, attr);
 }
 
 int
-RRMutex_Destroy(pthread_mutex_t *mtx)
+pthread_mutex_destroy(pthread_mutex_t *mtx)
 {
     RRLogEntry *e;
 
@@ -194,18 +200,19 @@ RRMutex_Destroy(pthread_mutex_t *mtx)
 	case RRMODE_FASTREPLAY:
 	    break;
     }
-    return pthread_mutex_destroy(mtx);
+
+    return _pthread_mutex_destroy(mtx);
 }
 
 int
-RRMutex_Lock(pthread_mutex_t *mtx)
+pthread_mutex_lock(pthread_mutex_t *mtx)
 {
     int result = 0;
     RRLogEntry *e;
 
     switch (rrMode) {
 	case RRMODE_NORMAL: {
-	    result = pthread_mutex_lock(mtx);
+	    result = _pthread_mutex_lock(mtx);
 	    break;
 	}
 	case RRMODE_RECORD: {
@@ -213,7 +220,7 @@ RRMutex_Lock(pthread_mutex_t *mtx)
 	    e->event = RREVENT_MUTEX_LOCK;
 	    e->objectId = (uint64_t)mtx;
 	    e->threadId = threadId;
-	    result = pthread_mutex_lock(mtx);
+	    result = _pthread_mutex_lock(mtx);
 	    RRLog_Append(&rrlog, e);
 	    break;
 	}
@@ -226,13 +233,13 @@ RRMutex_Lock(pthread_mutex_t *mtx)
 	    e = RRLog_Alloc(&rrlog, threadId);
 	    e->objectId = 1;
 	    e->threadId = threadId;
-	    result = pthread_mutex_lock(mtx);
+	    result = _pthread_mutex_lock(mtx);
 	    RRLog_Append(&rrlog, e);
 	    break;
 	}
 	case RRMODE_FASTREPLAY: {
 	    e = RRPlay_Dequeue(&rrlog, threadId);
-	    result = pthread_mutex_lock(mtx);
+	    result = _pthread_mutex_lock(mtx);
 	    RRPlay_Free(&rrlog, e);
 	    break;
 	}
@@ -242,14 +249,16 @@ RRMutex_Lock(pthread_mutex_t *mtx)
 }
 
 int
-RRMutex_TryLock(pthread_mutex_t *mtx)
+pthread_mutex_trylock(pthread_mutex_t *mtx)
 {
     int result = 0;
     RRLogEntry *e;
 
+    abort();
+
     switch (rrMode) {
 	case RRMODE_NORMAL: {
-	    result = pthread_mutex_lock(mtx);
+	    result = _pthread_mutex_trylock(mtx);
 	    break;
 	}
 	case RRMODE_RECORD: {
@@ -257,7 +266,7 @@ RRMutex_TryLock(pthread_mutex_t *mtx)
 	    e->event = RREVENT_MUTEX_LOCK;
 	    e->objectId = (uint64_t)mtx;
 	    e->threadId = threadId;
-	    result = pthread_mutex_trylock(mtx);
+	    result = _pthread_mutex_trylock(mtx);
 	    e->value[0] = result;
 	    RRLog_Append(&rrlog, e);
 	    break;
@@ -272,13 +281,13 @@ RRMutex_TryLock(pthread_mutex_t *mtx)
 	    e = RRLog_Alloc(&rrlog, threadId);
 	    e->objectId = 1;
 	    e->threadId = threadId;
-	    result = pthread_mutex_lock(mtx);
+	    result = _pthread_mutex_trylock(mtx);
 	    RRLog_Append(&rrlog, e);
 	    break;
 	}
 	case RRMODE_FASTREPLAY: {
 	    e = RRPlay_Dequeue(&rrlog, threadId);
-	    result = pthread_mutex_trylock(mtx);
+	    result = _pthread_mutex_trylock(mtx);
 	    RRPlay_Free(&rrlog, e);
 	    break;
 	}
@@ -288,14 +297,14 @@ RRMutex_TryLock(pthread_mutex_t *mtx)
 }
 
 int
-RRMutex_Unlock(pthread_mutex_t *mtx)
+pthread_mutex_unlock(pthread_mutex_t *mtx)
 {
     int result = 0;
     RRLogEntry *e;
 
     switch (rrMode) {
 	case RRMODE_NORMAL: {
-	    result = pthread_mutex_unlock(mtx);
+	    result = _pthread_mutex_unlock(mtx);
 	    break;
 	}
 	case RRMODE_RECORD: {
@@ -303,7 +312,7 @@ RRMutex_Unlock(pthread_mutex_t *mtx)
 	    e->event = RREVENT_MUTEX_UNLOCK;
 	    e->objectId = (uint64_t)mtx;
 	    e->threadId = threadId;
-	    result = pthread_mutex_unlock(mtx);
+	    result = _pthread_mutex_unlock(mtx);
 	    RRLog_Append(&rrlog, e);
 	    break;
 	}
@@ -313,11 +322,11 @@ RRMutex_Unlock(pthread_mutex_t *mtx)
 	    break;
 	}
 	case RRMODE_FASTRECORD: {
-	    result = pthread_mutex_unlock(mtx);
+	    result = _pthread_mutex_unlock(mtx);
 	    break;
 	}
 	case RRMODE_FASTREPLAY: {
-	    result = pthread_mutex_unlock(mtx);
+	    result = _pthread_mutex_unlock(mtx);
 	    break;
 	}
     }
