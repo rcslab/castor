@@ -5,6 +5,7 @@
 build
 Local.sc
 .sconsign.dblite
+test/rand
 test/read
 test/time
 test/helloworld

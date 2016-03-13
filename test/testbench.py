@@ -14,7 +14,7 @@ NORMAL = "\033[0;39m"
 
 FORMAT = "%-32s [ %s%-9s"+ NORMAL + " ]"
 
-tests = [ "helloworld", "read", "time" ]
+tests = [ "helloworld", "read", "rand", "time" ]
 failed = [ ]
 
 def write(str):
@@ -104,6 +104,7 @@ def RunTest(name):
             t.kill()
             ReportTimeout(name)
             return
+
     write(CLEAR)
     write(FORMAT % (name, GREEN, "Completed") + "\n")
 
