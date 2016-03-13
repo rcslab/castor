@@ -94,10 +94,12 @@ TXGQProc(void *arg)
     while (1) {
 	entry = RRGlobalQueue_Dequeue(&rrgq, &numEntries);
 
-	if (ftMode) {
-	    RRFT_Send(numEntries, entry);
-	} else {
-	    SystemWrite(logfd, entry, numEntries * sizeof(RRLogEntry));
+	if (numEntries) {
+	    if (ftMode) {
+		RRFT_Send(numEntries, entry);
+	    } else {
+		SystemWrite(logfd, entry, numEntries * sizeof(RRLogEntry));
+	    }
 	}
 
 	for (i = 0; i < numEntries; i++) {
@@ -109,7 +111,7 @@ TXGQProc(void *arg)
 
 	RRGlobalQueue_Free(&rrgq, numEntries);
 
-	sleep(0);
+	usleep(100000);
     }
 }
 
