@@ -21,7 +21,7 @@ void
 RRFT_InitMaster()
 {
     int lsock;
-    int clilen;
+    socklen_t clilen;
     int yes = 1;
     struct sockaddr_in srvaddr;
     struct sockaddr_in cliaddr;

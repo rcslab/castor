@@ -42,9 +42,11 @@ ssize_t __sys_write(int fd, const void *buf, size_t nbytes);
 int __clock_gettime(clockid_t clock_id, struct timespec *tp);
 int __rr_sysctl(const int *name, u_int namelen, void *oldp,
 	     size_t *oldlenp, const void *newp, size_t newlen);
+void _rr_exit(int status);
 
 __strong_reference(__clock_gettime, clock_gettime);
 __strong_reference(__rr_sysctl, __sysctl);
+__strong_reference(_rr_exit, _exit);
 
 void
 Events_Init()
@@ -493,5 +495,32 @@ int __rr_sysctl(const int *name, u_int namelen, void *oldp,
     }
 
     return result;
+}
+
+void
+_rr_exit(int status)
+{
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	syscall(SYS_exit, status);
+	__builtin_unreachable();
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	e = RRLog_Alloc(&rrlog, threadId);
+	e->event = RREVENT_EXIT;
+	e->threadId = threadId;
+	RRLog_Append(&rrlog, e);
+    } else {
+	e = RRPlay_Dequeue(&rrlog, threadId);
+	AssertEvent(e, RREVENT_EXIT);
+	RRPlay_Free(&rrlog, e);
+    }
+
+    // Drain log
+    LogDone();
+
+    syscall(SYS_exit, status);
 }
 

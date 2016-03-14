@@ -33,6 +33,7 @@ static int logfd;
 pthread_t rrthr;
 pthread_t gqthr;
 
+bool primeSawExit = false;
 bool ftMode = false;
 enum RRMODE rrMode = RRMODE_NORMAL;
 static volatile int nextThreadId = 1;
@@ -122,6 +123,9 @@ FeedQueue(void *arg)
     uint64_t numEntries;
     RRLogEntry *entry;
 
+    if (primeSawExit)
+	pthread_exit(NULL);
+
     while (1) {
 	do {
 	    entry = RRGlobalQueue_Dequeue(&rrgq, &numEntries);
@@ -131,7 +135,8 @@ FeedQueue(void *arg)
 	    RRPlay_AppendThread(&rrlog, &entry[i]);
 	    if (entry[i].event == RREVENT_EXIT) {
 		//printf("Feed Done\n");
-		return NULL;
+		pthread_exit(NULL);
+		__builtin_unreachable();
 	    }
 	}
 
@@ -205,19 +210,6 @@ PrimeQ()
 void
 LogDone()
 {
-    RRLogEntry *e;
-
-    if (rrMode == RRMODE_RECORD) {
-	e = RRLog_Alloc(&rrlog, threadId);
-	e->event = RREVENT_EXIT;
-	e->threadId = threadId;
-	RRLog_Append(&rrlog, e);
-    } else {
-	e = RRPlay_Dequeue(&rrlog, threadId);
-	assert(e->event == RREVENT_EXIT);
-	RRPlay_Free(&rrlog, e);
-    }
-
     pthread_join(rrthr, NULL);
     pthread_join(gqthr, NULL);
 }
@@ -292,12 +284,10 @@ log_init()
     }
 
     if (rrMode == RRMODE_RECORD) {
-	atexit(LogDone);
-
 	pthread_create(&rrthr, NULL, DrainQueue, NULL);
 	pthread_create(&gqthr, NULL, TXGQProc, NULL);
     } else if (rrMode == RRMODE_REPLAY) {
-	PrimeQ();
+	primeSawExit = PrimeQ();
 	pthread_create(&rrthr, NULL, FeedQueue, NULL);
 	pthread_create(&gqthr, NULL, RXGQProc, NULL);
     }
