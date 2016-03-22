@@ -1,5 +1,6 @@
 *.rr
 *.core
+*.normal
 *.record
 *.replay
 build
@@ -9,3 +10,4 @@ test/rand
 test/read
 test/time
 test/helloworld
+test/thread_basic
