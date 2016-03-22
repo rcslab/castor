@@ -11,10 +11,21 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <sys/types.h>
 
 #include <sys/cdefs.h>
 #include <sys/syscall.h>
+
+// sysctl
 #include <sys/sysctl.h>
+
+// socket
+#include <sys/socket.h>
+
+// poll/kqueue
+#include <poll.h>
+#include <sys/event.h>
+#include <sys/time.h>
 
 #include <libc_private.h>
 
@@ -43,10 +54,28 @@ int __clock_gettime(clockid_t clock_id, struct timespec *tp);
 int __rr_sysctl(const int *name, u_int namelen, void *oldp,
 	     size_t *oldlenp, const void *newp, size_t newlen);
 void _rr_exit(int status);
+int __socket(int domain, int type, int protocol);
+int __bind(int s, const struct sockaddr *addr, socklen_t addrlen);
+int __listen(int s, int backlog);
+int __accept(int s, struct sockaddr *addr, socklen_t *addrlen);
+int __connect(int s, const struct sockaddr *name, socklen_t namelen);
+int __poll(struct pollfd fds[], nfds_t nfds, int timeout);
+int __kqueue();
+int __kevent(int kq, const struct kevent *changelist, int nchanges,
+	struct kevent *eventlist, int nevents,
+	const struct timespec *timeout);
 
 __strong_reference(__clock_gettime, clock_gettime);
 __strong_reference(__rr_sysctl, __sysctl);
 __strong_reference(_rr_exit, _exit);
+__strong_reference(__socket, socket);
+__strong_reference(__bind, bind);
+__strong_reference(__listen, listen);
+__strong_reference(__accept, accept);
+__strong_reference(__connect, connect);
+__strong_reference(__poll, poll);
+__strong_reference(__kqueue, kqueue);
+__strong_reference(__kevent, kevent);
 
 void
 Events_Init()
@@ -522,5 +551,233 @@ _rr_exit(int status)
     LogDone();
 
     syscall(SYS_exit, status);
+}
+
+int
+__socket(int domain, int type, int protocol)
+{
+    int result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_socket, domain, type, protocol);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_socket, domain, type, protocol);
+	e = RRLog_Alloc(&rrlog, threadId);
+	e->event = RREVENT_SOCKET;
+	e->threadId = threadId;
+	e->value[0] = result;
+	RRLog_Append(&rrlog, e);
+    } else {
+	e = RRPlay_Dequeue(&rrlog, threadId);
+	AssertEvent(e, RREVENT_SOCKET);
+	result = e->value[0];
+	RRPlay_Free(&rrlog, e);
+    }
+
+    return result;
+}
+
+int
+__bind(int s, const struct sockaddr *addr, socklen_t addrlen)
+{
+    int result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_bind, s, addr, addrlen);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_bind, s, addr, addrlen);
+	e = RRLog_Alloc(&rrlog, threadId);
+	e->event = RREVENT_BIND;
+	e->threadId = threadId;
+	e->value[0] = result;
+	RRLog_Append(&rrlog, e);
+    } else {
+	e = RRPlay_Dequeue(&rrlog, threadId);
+	AssertEvent(e, RREVENT_BIND);
+	result = e->value[0];
+	RRPlay_Free(&rrlog, e);
+    }
+
+    return result;
+}
+
+int
+__listen(int s, int backlog)
+{
+    int result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_listen, s, backlog);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_listen, s, backlog);
+	e = RRLog_Alloc(&rrlog, threadId);
+	e->event = RREVENT_LISTEN;
+	e->threadId = threadId;
+	e->value[0] = result;
+	RRLog_Append(&rrlog, e);
+    } else {
+	e = RRPlay_Dequeue(&rrlog, threadId);
+	AssertEvent(e, RREVENT_LISTEN);
+	result = e->value[0];
+	RRPlay_Free(&rrlog, e);
+    }
+
+    return result;
+}
+
+int
+__connect(int s, const struct sockaddr *name, socklen_t namelen)
+{
+    // TODO
+    return -1;
+}
+
+int
+__accept(int s, struct sockaddr *addr, socklen_t *addrlen)
+{
+    int result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_accept, s, addr, addrlen);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_accept, s, addr, addrlen);
+	e = RRLog_Alloc(&rrlog, threadId);
+	e->event = RREVENT_ACCEPT;
+	e->threadId = threadId;
+	e->value[0] = result;
+	e->value[1] = *addrlen;
+	RRLog_Append(&rrlog, e);
+
+	if (result >= 0) {
+	    logData((uint8_t *)addr, *addrlen);
+	}
+    } else {
+	e = RRPlay_Dequeue(&rrlog, threadId);
+	AssertEvent(e, RREVENT_ACCEPT);
+	result = e->value[0];
+	if (result >= 0) {
+	    *addrlen = e->value[1];
+	}
+	RRPlay_Free(&rrlog, e);
+
+	if (result >= 0) {
+	    logData((uint8_t *)addr, *addrlen);
+	}
+    }
+
+    return result;
+}
+
+int
+__poll(struct pollfd fds[], nfds_t nfds, int timeout)
+{
+    int result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_poll, fds, nfds, timeout);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_poll, fds, nfds, timeout);
+	e = RRLog_Alloc(&rrlog, threadId);
+	e->event = RREVENT_POLL;
+	e->threadId = threadId;
+	e->value[0] = result;
+	e->value[1] = nfds;
+	RRLog_Append(&rrlog, e);
+	if (result > 0) {
+	    logData((uint8_t *)fds, nfds * sizeof(struct pollfd));
+	}
+    } else {
+	e = RRPlay_Dequeue(&rrlog, threadId);
+	AssertEvent(e, RREVENT_POLL);
+	result = e->value[0];
+	assert(e->value[1] == nfds);
+	RRPlay_Free(&rrlog, e);
+	if (result > 0) {
+	    logData((uint8_t *)fds, nfds * sizeof(struct pollfd));
+	}
+    }
+
+    return result;
+}
+
+int
+__kqueue()
+{
+    int result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_kqueue);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_kqueue);
+	e = RRLog_Alloc(&rrlog, threadId);
+	e->event = RREVENT_KQUEUE;
+	e->threadId = threadId;
+	e->value[0] = result;
+	RRLog_Append(&rrlog, e);
+    } else {
+	e = RRPlay_Dequeue(&rrlog, threadId);
+	AssertEvent(e, RREVENT_KQUEUE);
+	result = e->value[0];
+	RRPlay_Free(&rrlog, e);
+    }
+
+    return result;
+}
+
+int
+__kevent(int kq, const struct kevent *changelist, int nchanges,
+	struct kevent *eventlist, int nevents,
+	const struct timespec *timeout)
+{
+    int result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_kevent, changelist, nchanges,
+		       eventlist, nevents, timeout);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_kevent, changelist, nchanges,
+			 eventlist, nevents, timeout);
+	e = RRLog_Alloc(&rrlog, threadId);
+	e->event = RREVENT_KEVENT;
+	e->threadId = threadId;
+	e->value[0] = result;
+	e->value[1] = nchanges;
+	e->value[2] = nevents;
+	RRLog_Append(&rrlog, e);
+	if (result > 0) {
+	    logData((uint8_t *)eventlist, sizeof(struct kevent) * result);
+	}
+    } else {
+	e = RRPlay_Dequeue(&rrlog, threadId);
+	AssertEvent(e, RREVENT_KEVENT);
+	result = e->value[0];
+	RRPlay_Free(&rrlog, e);
+	if (result > 0) {
+	    logData((uint8_t *)eventlist, sizeof(struct kevent) * result);
+	}
+    }
+
+    return result;
 }
 
