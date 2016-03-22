@@ -13,6 +13,7 @@ GREEN = "\033[0;32m"
 NORMAL = "\033[0;39m"
 
 FORMAT = "%-32s [ %s%-9s"+ NORMAL + " ]"
+TFORMAT = "%-32s [ %s%-9s"+ NORMAL + " ] %-10.6f %-10.6f %-10.6f"
 
 tests = [ "helloworld", "read", "rand", "time" ]
 failed = [ ]
@@ -67,13 +68,32 @@ def ReportTimeout(name):
 def RunTest(name):
     write(FORMAT % (name, NORMAL, "Running"))
 
+    # Normal
+    outputNormal = open(name + ".normal", "w+")
+    start = time.time()
+    t = subprocess.Popen(["./" + name],
+                         stdout=outputNormal,
+                         stderr=outputNormal)
+    while 1:
+        t.poll()
+        if t.returncode == 0:
+            break
+        if t.returncode != None:
+            ReportError(name)
+            return
+        if (time.time() - start) > TIMEOUT:
+            t.kill()
+            ReportTimeout(name)
+            return
+    norm_time = time.time() - start
+
     # Record
     outputRecord = open(name + ".record", "w+")
+    start = time.time()
     t = subprocess.Popen(["./" + name],
                          stdout=outputRecord,
                          stderr=outputRecord,
                          env = { "CASTOR_MODE":"RECORD", "CASTOR_LOGFILE":name+".rr"})
-    start = time.time()
     while 1:
         t.poll()
         if t.returncode == 0:
@@ -85,14 +105,15 @@ def RunTest(name):
             t.kill()
             ReportTimeout(name)
             return
+    rec_time = time.time() - start
 
     # Replay
     outputReplay = open(name + ".replay", "w+")
+    start = time.time()
     t = subprocess.Popen(["./" + name],
                          stdout=outputReplay,
                          stderr=outputReplay,
                          env = { "CASTOR_MODE":"REPLAY", "CASTOR_LOGFILE":name+".rr"})
-    start = time.time()
     while 1:
         t.poll()
         if t.returncode == 0:
@@ -104,16 +125,19 @@ def RunTest(name):
             t.kill()
             ReportTimeout(name)
             return
+    rep_time = time.time() - start
 
     write(CLEAR)
-    write(FORMAT % (name, GREEN, "Completed") + "\n")
+    write(TFORMAT % (name, GREEN, "Completed", norm_time, rec_time, rep_time))
+    write("\n")
 
 basedir = os.getcwd()
 if (basedir.split('/')[-1] != 'test'):
     os.chdir('test')
 
-write("%-32s   %s\n" % ("Test", "Status"))
-write("----------------------------------------------\n")
+write("%-32s   %-9s   %-10s %-10s %-10s\n" %
+        ("Test", "Status", "Normal", "Record", "Replay"))
+write("------------------------------------------------------------------------------\n")
 for t in tests:
     CleanTest(t)
     BuildTest(t)
