@@ -161,30 +161,71 @@ logData(uint8_t *buf, size_t len)
     }
 }
 
+typedef struct ThreadState {
+    void	*(*start)(void *);
+    void	*arg;
+} ThreadState;
+
+static ThreadState threadState[128];
+static int nextThreadId = 0;
+
+void *
+thrwrapper(void *arg)
+{
+    uintptr_t thrNo = (uintptr_t)arg;
+
+    threadId = thrNo;
+
+    return (threadState[thrNo].start)(threadState[thrNo].arg);
+}
+
+/*
+ * pthread_create can cause log entries to be out of order because of thread 
+ * creation.  We should add the go code that prevents log entries in the middle 
+ * of the current log entry.
+ */
 int
 pthread_create(pthread_t * thread, const pthread_attr_t * attr,
 	       void *(*start_routine) (void *), void *arg)
 {
     int result;
+    uintptr_t thrNo;
     RRLogEntry *e;
 
-    result = _pthread_create(thread, attr, start_routine, arg);
-
     if (rrMode == RRMODE_NORMAL) {
-	return result;
+	return _pthread_create(thread, attr, start_routine, arg);
     }
 
     if (rrMode == RRMODE_RECORD) {
+	thrNo = __sync_add_and_fetch(&nextThreadId, 1);
+	assert(thrNo < 8);
+
+	threadState[thrNo].start = start_routine;
+	threadState[thrNo].arg = arg;
+
+	result = _pthread_create(thread, attr, thrwrapper, (void *)thrNo);
+
 	e = RRLog_Alloc(&rrlog, threadId);
 	e->event = RREVENT_THREAD_CREATE;
 	e->threadId = threadId;
 	e->value[0] = result;
+	e->value[1] = thrNo;
 	RRLog_Append(&rrlog, e);
     } else {
+	int savedResult;
+
 	e = RRPlay_Dequeue(&rrlog, threadId);
-	AssertReplay(e, result == e->value[0]);
+	thrNo = e->value[1];
+	savedResult = e->value[0];
 	AssertEvent(e, RREVENT_THREAD_CREATE);
 	RRPlay_Free(&rrlog, e);
+
+	threadState[thrNo].start = start_routine;
+	threadState[thrNo].arg = arg;
+
+	result = _pthread_create(thread, attr, thrwrapper, (void *)thrNo);
+
+	assert(result == savedResult);
     }
 
     return result;

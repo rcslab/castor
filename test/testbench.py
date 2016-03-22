@@ -15,7 +15,7 @@ NORMAL = "\033[0;39m"
 FORMAT = "%-32s [ %s%-9s"+ NORMAL + " ]"
 TFORMAT = "%-32s [ %s%-9s"+ NORMAL + " ] %-10.6f %-10.6f %-10.6f"
 
-tests = [ "helloworld", "read", "rand", "time" ]
+tests = [ "helloworld", "read", "rand", "time", "thread_basic" ]
 failed = [ ]
 
 def write(str):

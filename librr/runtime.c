@@ -284,12 +284,12 @@ log_init()
     }
 
     if (rrMode == RRMODE_RECORD) {
-	pthread_create(&rrthr, NULL, DrainQueue, NULL);
-	pthread_create(&gqthr, NULL, TXGQProc, NULL);
+	_pthread_create(&rrthr, NULL, DrainQueue, NULL);
+	_pthread_create(&gqthr, NULL, TXGQProc, NULL);
     } else if (rrMode == RRMODE_REPLAY) {
 	primeSawExit = PrimeQ();
-	pthread_create(&rrthr, NULL, FeedQueue, NULL);
-	pthread_create(&gqthr, NULL, RXGQProc, NULL);
+	_pthread_create(&rrthr, NULL, FeedQueue, NULL);
+	_pthread_create(&gqthr, NULL, RXGQProc, NULL);
     }
 }
 
