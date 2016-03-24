@@ -15,31 +15,28 @@ NORMAL = "\033[0;39m"
 FORMAT = "%-32s [ %s%-9s"+ NORMAL + " ]"
 TFORMAT = "%-32s [ %s%-9s"+ NORMAL + " ] %-10.6f %-10.6f %-10.6f"
 
-tests = [ "helloworld", "read", "rand", "time", "thread_basic", "thread_mutex",
-        "thread_print" ]
+all_tests = [ "helloworld", "read", "rand", "time", "thread_basic", 
+        "thread_mutex", "thread_print" ]
+tests = [ ]
 failed = [ ]
 
 def write(str):
     sys.stdout.write(str)
     sys.stdout.flush()
 
-def CleanTest(name):
+def DeleteFile(name):
     try:
         os.unlink(name)
     except OSError:
         pass
-    try:
-        os.unlink(name + ".record")
-    except OSError:
-        pass
-    try:
-        os.unlink(name + ".replay")
-    except OSError:
-        pass
-    try:
-        os.unlink(name + ".rr")
-    except OSError:
-        pass
+
+def CleanTest(name):
+    DeleteFile(name)
+    DeleteFile(name + ".normal")
+    DeleteFile(name + ".record")
+    DeleteFile(name + ".replay")
+    DeleteFile(name + ".rr")
+    DeleteFile(name + ".core")
 
 def BuildTest(name):
     write(FORMAT % (name, NORMAL, "Building"))
@@ -66,68 +63,45 @@ def ReportTimeout(name):
     write(FORMAT % (name, RED, "Timeout") + "\n")
     failed.append(name)
 
+def Run(name, output, env):
+    outfile = open(output, "w+")
+    start = time.time()
+    t = subprocess.Popen(["./" + name],
+                         stdout=outfile,
+                         stderr=outfile,
+                         env = env)
+    while 1:
+        t.poll()
+        if t.returncode == 0:
+            return (time.time() - start)
+        if t.returncode != None:
+            ReportError(name)
+            return None
+        if (time.time() - start) > TIMEOUT:
+            t.kill()
+            ReportTimeout(name)
+            return None
+
 def RunTest(name):
     write(FORMAT % (name, NORMAL, "Running"))
 
     # Normal
-    outputNormal = open(name + ".normal", "w+")
-    start = time.time()
-    t = subprocess.Popen(["./" + name],
-                         stdout=outputNormal,
-                         stderr=outputNormal,
-                         env = {})
-    while 1:
-        t.poll()
-        if t.returncode == 0:
-            break
-        if t.returncode != None:
-            ReportError(name)
-            return
-        if (time.time() - start) > TIMEOUT:
-            t.kill()
-            ReportTimeout(name)
-            return
-    norm_time = time.time() - start
+    norm_time = Run(name, name + ".normal", {})
+    if norm_time is None:
+        return
 
     # Record
-    outputRecord = open(name + ".record", "w+")
-    start = time.time()
-    t = subprocess.Popen(["./" + name],
-                         stdout=outputRecord,
-                         stderr=outputRecord,
-                         env = { "CASTOR_MODE":"RECORD", "CASTOR_LOGFILE":name+".rr"})
-    while 1:
-        t.poll()
-        if t.returncode == 0:
-            break
-        if t.returncode != None:
-            ReportError(name)
-            return
-        if (time.time() - start) > TIMEOUT:
-            t.kill()
-            ReportTimeout(name)
-            return
-    rec_time = time.time() - start
+    rec_time = Run(name, name + ".record",
+                   { "CASTOR_MODE":"RECORD", "CASTOR_LOGFILE":name+".rr"})
+    if rec_time is None:
+        return
 
     # Replay
-    outputReplay = open(name + ".replay", "w+")
-    start = time.time()
-    t = subprocess.Popen(["./" + name],
-                         stdout=outputReplay,
-                         stderr=outputReplay,
-                         env = { "CASTOR_MODE":"REPLAY", "CASTOR_LOGFILE":name+".rr"})
-    while 1:
-        t.poll()
-        if t.returncode == 0:
-            break
-        if t.returncode != None:
-            ReportError(name)
-            return
-        if (time.time() - start) > TIMEOUT:
-            t.kill()
-            ReportTimeout(name)
-            return
-    rep_time = time.time() - start
+    rep_time = Run(name, name + ".replay",
+                   { "CASTOR_MODE":"REPLAY", "CASTOR_LOGFILE":name+".rr"})
+    if rep_time is None:
+        return
+
 
     write(CLEAR)
     write(TFORMAT % (name, GREEN, "Completed", norm_time, rec_time, rep_time))
@@ -136,6 +110,15 @@ def RunTest(name):
 basedir = os.getcwd()
 if (basedir.split('/')[-1] != 'test'):
     os.chdir('test')
+
+if len(sys.argv) > 1:
+    for t in sys.argv[1:]:
+        if all_tests.count(t) == 0:
+            print "Test '%s' does not exist!" % (t)
+            sys.exit(255)
+        tests.append(t)
+else:
+    tests = all_tests
 
 write("%-32s   %-9s   %-10s %-10s %-10s\n" %
         ("Test", "Status", "Normal", "Record", "Replay"))
