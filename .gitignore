@@ -11,3 +11,5 @@ test/read
 test/time
 test/helloworld
 test/thread_basic
+test/thread_mutex
+test/thread_print
