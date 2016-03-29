@@ -35,6 +35,7 @@
 #include "rrgq.h"
 #include "runtime.h"
 #include "ft.h"
+#include "mtx.h"
 
 extern int
 _pthread_create(pthread_t * thread, const pthread_attr_t * attr,
@@ -42,7 +43,7 @@ _pthread_create(pthread_t * thread, const pthread_attr_t * attr,
 extern int
 _pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr);
 extern int _pthread_mutex_trylock(pthread_mutex_t *mutex);
-extern int _pthread_mutex_lock(pthread_mutex_t *mutex);
+extern int __pthread_mutex_lock(pthread_mutex_t *mutex);
 extern int _pthread_mutex_unlock(pthread_mutex_t *mutex);
 extern int _pthread_mutex_destroy(pthread_mutex_t *mutex);
 extern int __vdso_clock_gettime(clockid_t clock_id, struct timespec *tp);
@@ -65,6 +66,8 @@ int __kevent(int kq, const struct kevent *changelist, int nchanges,
 	struct kevent *eventlist, int nevents,
 	const struct timespec *timeout);
 
+int _pthread_mutex_lock(pthread_mutex_t *mtx);
+
 __strong_reference(__clock_gettime, clock_gettime);
 __strong_reference(__rr_sysctl, __sysctl);
 __strong_reference(_rr_exit, _exit);
@@ -76,6 +79,8 @@ __strong_reference(__connect, connect);
 __strong_reference(__poll, poll);
 __strong_reference(__kqueue, kqueue);
 __strong_reference(__kevent, kevent);
+
+__strong_reference(_pthread_mutex_lock, pthread_mutex_lock);
 
 void
 Events_Init()
@@ -112,6 +117,60 @@ AssertReplay(RRLogEntry *e, bool test)
 #define AssertEvent(_e, _evt)
 #define AssertReplay(_e, _tst)
 #endif
+
+#define LOCKTABLE_SIZE 4096
+static Mutex lockTable[LOCKTABLE_SIZE];
+#define GETLOCK(_obj) &lockTable[(_obj) % LOCKTABLE_SIZE]
+
+void
+RRLog_LEnter(uint32_t threadId, uint64_t objId)
+{
+    RRLogEntry *e = RRLog_Alloc(&rrlog, threadId);
+    e->event = RREVENT_LOCKED_EVENT;
+    e->threadId = threadId;
+    e->objectId = objId;
+    Mutex_Lock(GETLOCK(objId));
+    RRLog_Append(&rrlog, e);
+}
+
+RRLogEntry *
+RRLog_LAlloc(uint32_t threadId)
+{
+    return RRLog_Alloc(&rrlog, threadId);
+}
+
+void
+RRLog_LAppend(RRLogEntry *entry)
+{
+    uint64_t objId = entry->objectId;
+
+    RRLog_Append(&rrlog, entry);
+    Mutex_Unlock(GETLOCK(objId));
+}
+
+void
+RRPlay_LEnter(uint32_t threadId, uint64_t objId)
+{
+    RRLogEntry *e = RRPlay_Dequeue(&rrlog, threadId);
+    AssertEvent(e, RREVENT_LOCKED_EVENT);
+    Mutex_Lock(GETLOCK(objId));
+    RRPlay_Free(&rrlog, e);
+}
+
+RRLogEntry *
+RRPlay_LDequeue(uint32_t threadId)
+{
+    return RRPlay_Dequeue(&rrlog, threadId);
+}
+
+void
+RRPlay_LFree(RRLogEntry *entry)
+{
+    uint64_t objId = entry->objectId;
+
+    RRPlay_Free(&rrlog, entry);
+    Mutex_Unlock(GETLOCK(objId));
+}
 
 #define RREVENT_DATA_LEN	32
 #define RREVENT_DATA_OFFSET	32
@@ -200,17 +259,17 @@ pthread_create(pthread_t * thread, const pthread_attr_t * attr,
 	thrNo = __sync_add_and_fetch(&nextThreadId, 1);
 	assert(thrNo < 8);
 
+	e = RRLog_Alloc(&rrlog, threadId);
+	e->event = RREVENT_THREAD_CREATE;
+	e->threadId = threadId;
+	//e->value[0] = result;
+	e->value[1] = thrNo;
+	RRLog_Append(&rrlog, e);
+
 	threadState[thrNo].start = start_routine;
 	threadState[thrNo].arg = arg;
 
 	result = _pthread_create(thread, attr, thrwrapper, (void *)thrNo);
-
-	e = RRLog_Alloc(&rrlog, threadId);
-	e->event = RREVENT_THREAD_CREATE;
-	e->threadId = threadId;
-	e->value[0] = result;
-	e->value[1] = thrNo;
-	RRLog_Append(&rrlog, e);
     } else {
 	int savedResult;
 
@@ -247,6 +306,9 @@ pthread_mutex_init(pthread_mutex_t *mtx, const pthread_mutexattr_t *attr)
 	    RRLog_Append(&rrlog, e);
 	    break;
 	case RRMODE_REPLAY:
+	    e = RRPlay_Dequeue(&rrlog, threadId);
+	    AssertEvent(e, RREVENT_MUTEX_INIT);
+	    RRPlay_Free(&rrlog, e);
 	    break;
 	case RRMODE_FASTRECORD:
 	case RRMODE_FASTREPLAY:
@@ -271,6 +333,9 @@ pthread_mutex_destroy(pthread_mutex_t *mtx)
 	    RRLog_Append(&rrlog, e);
 	    break;
 	case RRMODE_REPLAY:
+	    e = RRPlay_Dequeue(&rrlog, threadId);
+	    AssertEvent(e, RREVENT_MUTEX_DESTROY);
+	    RRPlay_Free(&rrlog, e);
 	    break;
 	case RRMODE_FASTRECORD:
 	case RRMODE_FASTREPLAY:
@@ -281,28 +346,42 @@ pthread_mutex_destroy(pthread_mutex_t *mtx)
 }
 
 int
-pthread_mutex_lock(pthread_mutex_t *mtx)
+_pthread_mutex_lock(pthread_mutex_t *mtx)
 {
     int result = 0;
     RRLogEntry *e;
 
+    if (rrlog.threads[threadId].status > 0) {
+	return __pthread_mutex_lock(mtx);
+    }
+
     switch (rrMode) {
 	case RRMODE_NORMAL: {
-	    result = _pthread_mutex_lock(mtx);
+	    result = __pthread_mutex_lock(mtx);
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    e = RRLog_Alloc(&rrlog, threadId);
+	    RRLog_LEnter(threadId, (uint64_t)mtx);
+
+	    result = __pthread_mutex_lock(mtx);
+
+	    e = RRLog_LAlloc(threadId);
 	    e->event = RREVENT_MUTEX_LOCK;
 	    e->objectId = (uint64_t)mtx;
 	    e->threadId = threadId;
-	    result = _pthread_mutex_lock(mtx);
-	    RRLog_Append(&rrlog, e);
+	    e->value[0] = result;
+	    RRLog_LAppend(e);
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    e = RRPlay_Dequeue(&rrlog, threadId);
-	    RRPlay_Free(&rrlog, e);
+	    RRPlay_LEnter(threadId, (uint64_t)mtx);
+
+	    result = __pthread_mutex_lock(mtx);
+
+	    e = RRPlay_LDequeue(threadId);
+	    AssertEvent(e, RREVENT_MUTEX_LOCK);
+	    // ASSERT result = e->value[0];
+	    RRPlay_LFree(e);
 	    break;
 	}
 	case RRMODE_FASTRECORD: {
@@ -339,7 +418,7 @@ pthread_mutex_trylock(pthread_mutex_t *mtx)
 	}
 	case RRMODE_RECORD: {
 	    e = RRLog_Alloc(&rrlog, threadId);
-	    e->event = RREVENT_MUTEX_LOCK;
+	    e->event = RREVENT_MUTEX_TRYLOCK;
 	    e->objectId = (uint64_t)mtx;
 	    e->threadId = threadId;
 	    result = _pthread_mutex_trylock(mtx);
@@ -384,16 +463,20 @@ pthread_mutex_unlock(pthread_mutex_t *mtx)
 	    break;
 	}
 	case RRMODE_RECORD: {
+	    result = _pthread_mutex_unlock(mtx);
 	    e = RRLog_Alloc(&rrlog, threadId);
 	    e->event = RREVENT_MUTEX_UNLOCK;
 	    e->objectId = (uint64_t)mtx;
 	    e->threadId = threadId;
-	    result = _pthread_mutex_unlock(mtx);
+	    e->value[0] = result;
 	    RRLog_Append(&rrlog, e);
 	    break;
 	}
 	case RRMODE_REPLAY: {
+	    result = _pthread_mutex_unlock(mtx);
 	    e = RRPlay_Dequeue(&rrlog, threadId);
+	    AssertEvent(e, RREVENT_MUTEX_UNLOCK);
+	    // ASSERT result = e->value[0];
 	    RRPlay_Free(&rrlog, e);
 	    break;
 	}

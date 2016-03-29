@@ -6,13 +6,15 @@
 #include <stdint.h>
 #include <stdalign.h>
 
+#define RRLOG_DEBUG		1
+
 // XXX: Get this from architecture specific headers
 #define PAGESIZE		4096
 #define CACHELINE		64
 
 // Tunables
 #define RRLOG_MAX_THREADS	8
-#define RRLOG_MAX_ENTRIES	(PAGESIZE / CACHELINE - 2)
+#define RRLOG_MAX_ENTRIES	(PAGESIZE / CACHELINE - 4)
 
 typedef struct RRLogEntry {
     alignas(CACHELINE) uint64_t		eventId;
@@ -28,6 +30,8 @@ static_assert(sizeof(RRLogEntry) == CACHELINE, "RRLogEntry must be cache line si
 typedef struct RRLogThread {
     alignas(CACHELINE) volatile uint64_t	freeOff; // Next free entry
     alignas(CACHELINE) volatile uint64_t	usedOff; // Next entry to consume
+    alignas(CACHELINE) volatile uint64_t	status; // Debugging
+    alignas(CACHELINE) volatile uint64_t	_rsvd;
     alignas(CACHELINE) volatile RRLogEntry	entries[RRLOG_MAX_ENTRIES];
 } RRLogThread;
 
@@ -72,7 +76,16 @@ static inline RRLogEntry *
 RRLog_Alloc(RRLog *rrlog, uint32_t threadId)
 {
     RRLogThread *rrthr = &rrlog->threads[threadId];
-    volatile RRLogEntry *rrentry = &rrthr->entries[rrthr->freeOff % RRLOG_MAX_ENTRIES];
+    volatile RRLogEntry *rrentry;
+
+#ifdef RRLOG_DEBUG
+    if (rrthr->status == 1) {
+	abort();
+    }
+    rrthr->status = 1;
+#endif /* RRLOG_DEBUG */
+
+    rrentry = &rrthr->entries[rrthr->freeOff % RRLOG_MAX_ENTRIES];
 
     while (rrthr->freeOff - rrthr->usedOff >= (RRLOG_MAX_ENTRIES - 1))
     {
@@ -87,6 +100,10 @@ RRLog_Append(RRLog *rrlog, RRLogEntry *rrentry)
 {
     rrentry->eventId = __sync_add_and_fetch(&rrlog->lastEvent, 1);
     rrlog->threads[rrentry->threadId].freeOff += 1;
+
+#ifdef RRLOG_DEBUG
+    rrlog->threads[rrentry->threadId].status = 0;
+#endif /* RRLOG_DEBUG */
 }
 
 static inline RRLogEntry *

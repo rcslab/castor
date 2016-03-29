@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdatomic.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -33,7 +34,8 @@ static int logfd;
 pthread_t rrthr;
 pthread_t gqthr;
 
-bool primeSawExit = false;
+static bool volatile primeSawExit = false;
+atomic_bool drainDone = false;
 bool ftMode = false;
 enum RRMODE rrMode = RRMODE_NORMAL;
 static volatile int nextThreadId = 1;
@@ -81,7 +83,7 @@ DrainQueue(void *arg)
 	RRLog_Free(&rrlog, entry);
     }
 
-    //printf("Consumer Done\n");
+    SystemWrite(1, "Consumer Done\n", 14);
     return NULL;
 }
 
@@ -105,7 +107,9 @@ TXGQProc(void *arg)
 
 	for (i = 0; i < numEntries; i++) {
 	    if (entry[i].event == RREVENT_EXIT) {
-		//printf("TXGQ Done\n");
+		SystemWrite(1, "TXGQ Done\n", 10);
+		fsync(logfd);
+		atomic_store(&drainDone, true);
 		return NULL;
 	    }
 	}
@@ -173,6 +177,7 @@ RXGQProc(void *arg)
 	    RRGlobalQueue_Append(&rrgq, &entries[i]);
 	    if (entries[i].event == RREVENT_EXIT) {
 		//printf("RXGQ Done\n");
+		atomic_store(&drainDone, true);
 		return NULL;
 	    }
 	}
@@ -210,8 +215,11 @@ PrimeQ()
 void
 LogDone()
 {
-    pthread_join(rrthr, NULL);
-    pthread_join(gqthr, NULL);
+    /*pthread_join(rrthr, NULL);
+    pthread_join(gqthr, NULL);*/
+    while (!atomic_load(&drainDone)) {
+	usleep(0);
+    }
 }
 
 __attribute__((constructor)) void

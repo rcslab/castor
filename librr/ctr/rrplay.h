@@ -57,12 +57,23 @@ RRPlay_Dequeue(RRLog *rrlog, uint32_t threadId)
 	__asm__ volatile("pause\n");
     }
 
+#ifdef RRLOG_DEBUG
+    if (rrthr->status != 0) {
+	abort();
+    }
+    rrthr->status = 1;
+#endif /* RRLOG_DEBUG */
+
     return entry;
 }
 
 static inline void
 RRPlay_Free(RRLog *rrlog, RRLogEntry *entry)
 {
+#ifdef RRLOG_DEBUG
+    rrlog->threads[entry->threadId].status = 0;
+#endif /* RRLOG_DEBUG */
+
     __sync_add_and_fetch(&rrlog->nextEvent, 1);
     rrlog->threads[entry->threadId].usedOff += 1;
 }
