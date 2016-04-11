@@ -16,7 +16,7 @@ FORMAT = "%-32s [ %s%-9s"+ NORMAL + " ]"
 TFORMAT = "%-32s [ %s%-9s"+ NORMAL + " ] %-10.6f %-10.6f %-10.6f"
 
 all_tests = [ "helloworld", "read", "rand", "time", "thread_basic", 
-        "thread_mutex", "thread_print" ]
+        "thread_mutex", "thread_print", "network_basic" ]
 tests = [ ]
 failed = [ ]
 

@@ -61,6 +61,8 @@ int __listen(int s, int backlog);
 int __accept(int s, struct sockaddr *addr, socklen_t *addrlen);
 int __connect(int s, const struct sockaddr *name, socklen_t namelen);
 int __poll(struct pollfd fds[], nfds_t nfds, int timeout);
+int __getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen);
+int __setsockopt(int s, int level, int optname, const void *optval, socklen_t optlen);
 int __kqueue();
 int __kevent(int kq, const struct kevent *changelist, int nchanges,
 	struct kevent *eventlist, int nevents,
@@ -77,6 +79,8 @@ __strong_reference(__listen, listen);
 __strong_reference(__accept, accept);
 __strong_reference(__connect, connect);
 __strong_reference(__poll, poll);
+__strong_reference(__getsockopt, getsockopt);
+__strong_reference(__setsockopt, setsockopt);
 __strong_reference(__kqueue, kqueue);
 __strong_reference(__kevent, kevent);
 
@@ -761,8 +765,28 @@ __listen(int s, int backlog)
 int
 __connect(int s, const struct sockaddr *name, socklen_t namelen)
 {
-    // TODO
-    return -1;
+    int result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_connect, s, name, namelen);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_connect, s, name, namelen);
+	e = RRLog_Alloc(&rrlog, threadId);
+	e->event = RREVENT_CONNECT;
+	e->threadId = threadId;
+	e->value[0] = result;
+	RRLog_Append(&rrlog, e);
+    } else {
+	e = RRPlay_Dequeue(&rrlog, threadId);
+	AssertEvent(e, RREVENT_CONNECT);
+	result = e->value[0];
+	RRPlay_Free(&rrlog, e);
+    }
+
+    return result;
 }
 
 int
@@ -834,6 +858,71 @@ __poll(struct pollfd fds[], nfds_t nfds, int timeout)
 	if (result > 0) {
 	    logData((uint8_t *)fds, nfds * sizeof(struct pollfd));
 	}
+    }
+
+    return result;
+}
+
+int
+__getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen)
+{
+    int result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_getsockopt, s, level, optname, optval, optlen);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_getsockopt, s, level, optname, optval, optlen);
+	e = RRLog_Alloc(&rrlog, threadId);
+	e->event = RREVENT_GETSOCKOPT;
+	e->threadId = threadId;
+	e->value[0] = result;
+	e->value[1] = optname;
+	e->value[2] = *optlen;
+	RRLog_Append(&rrlog, e);
+	if (result > 0) {
+	    logData((uint8_t *)optval, *optlen);
+	}
+    } else {
+	e = RRPlay_Dequeue(&rrlog, threadId);
+	AssertEvent(e, RREVENT_GETSOCKOPT);
+	result = e->value[0];
+	*optlen = e->value[2];
+	RRPlay_Free(&rrlog, e);
+	if (result > 0) {
+	    logData((uint8_t *)optval, *optlen);
+	}
+    }
+
+    return result;
+}
+
+int
+__setsockopt(int s, int level, int optname, const void *optval, socklen_t optlen)
+{
+    int result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_setsockopt, s, level, optname, optval, optlen);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_setsockopt, s, level, optname, optval, optlen);
+	e = RRLog_Alloc(&rrlog, threadId);
+	e->event = RREVENT_SETSOCKOPT;
+	e->threadId = threadId;
+	e->value[0] = result;
+	e->value[1] = optname;
+	e->value[2] = optlen;
+	RRLog_Append(&rrlog, e);
+    } else {
+	e = RRPlay_Dequeue(&rrlog, threadId);
+	AssertEvent(e, RREVENT_SETSOCKOPT);
+	result = e->value[0];
+	RRPlay_Free(&rrlog, e);
     }
 
     return result;
