@@ -17,6 +17,8 @@ env = Environment(options = opts, BUILDERS = {'ObjectLibrary' : objlib})
 env.Append(CXXFLAGS = "-std=c++11")
 env.Append(CPPFLAGS = "-g")
 
+env.Append(CPPPATH = ["#include", "#include/" + env["RR"]])
+
 Export('env')
 
 SConscript("librr/SConstruct", variant_dir="build/librr")

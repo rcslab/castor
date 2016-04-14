@@ -10,8 +10,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include "rrevent.h"
-#include "ctr/rrlog.h"
+#include <rrevent.h>
+#include <rrlog.h>
 
 static int logfd;
 static RRLogEntry entry;

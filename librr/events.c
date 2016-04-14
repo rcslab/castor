@@ -29,13 +29,14 @@
 
 #include <libc_private.h>
 
-#include "rrevent.h"
-#include "rrlog.h"
-#include "rrplay.h"
-#include "rrgq.h"
+#include <rrlog.h>
+#include <rrplay.h>
+#include <rrgq.h>
+#include <mtx.h>
+#include <rrevent.h>
+
 #include "runtime.h"
 #include "ft.h"
-#include "mtx.h"
 
 extern int
 _pthread_create(pthread_t * thread, const pthread_attr_t * attr,

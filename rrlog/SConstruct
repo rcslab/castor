@@ -5,5 +5,5 @@ src = [
     "rrlog.c"
 ]
 
-env.Program("rrlog", src, CPPPATH=['../librr/'])
+env.Program("rrlog", src)
 
