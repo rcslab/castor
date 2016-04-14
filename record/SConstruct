@@ -1,0 +1,19 @@
+
+Import('env')
+
+common_src = [
+    "ft.c",
+    "proc.c",
+    "runtime.c",
+]
+
+env.StaticLibrary("libcommon.a", common_src)
+
+record_src = ["record.c"]
+replay_src = ["replay.c"]
+
+env.Program("record", record_src,
+        LIBPATH = ["#build/record"], LIBS = ["common", "pthread"])
+env.Program("replay", replay_src,
+        LIBPATH = ["#build/record"], LIBS = ["common", "pthread"])
+

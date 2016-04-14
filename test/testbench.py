@@ -15,6 +15,9 @@ NORMAL = "\033[0;39m"
 FORMAT = "%-32s [ %s%-9s"+ NORMAL + " ]"
 TFORMAT = "%-32s [ %s%-9s"+ NORMAL + " ] %-10.6f %-10.6f %-10.6f"
 
+recordtool = "../build/record/record"
+replaytool = "../build/record/replay"
+
 all_tests = [ "helloworld", "read", "rand", "time", "thread_basic", 
         "thread_mutex", "thread_print", "network_basic" ]
 tests = [ ]
@@ -63,13 +66,12 @@ def ReportTimeout(name):
     write(FORMAT % (name, RED, "Timeout") + "\n")
     failed.append(name)
 
-def Run(name, output, env):
+def Run(tool, name, output):
     outfile = open(output, "w+")
     start = time.time()
-    t = subprocess.Popen(["./" + name],
+    t = subprocess.Popen(tool + ["./" + name],
                          stdout=outfile,
-                         stderr=outfile,
-                         env = env)
+                         stderr=outfile)
     while 1:
         t.poll()
         if t.returncode == 0:
@@ -86,19 +88,17 @@ def RunTest(name):
     write(FORMAT % (name, NORMAL, "Running"))
 
     # Normal
-    norm_time = Run(name, name + ".normal", {})
+    norm_time = Run([], name, name + ".normal")
     if norm_time is None:
         return
 
     # Record
-    rec_time = Run(name, name + ".record",
-                   { "CASTOR_MODE":"RECORD", "CASTOR_LOGFILE":name+".rr"})
+    rec_time = Run([recordtool, "-o", name + ".rr"], name, name + ".record")
     if rec_time is None:
         return
 
     # Replay
-    rep_time = Run(name, name + ".replay",
-                   { "CASTOR_MODE":"REPLAY", "CASTOR_LOGFILE":name+".rr"})
+    rep_time = Run([replaytool, "-o", name + ".rr"], name, name + ".replay")
     if rep_time is None:
         return
 

@@ -36,7 +36,6 @@
 #include <rrevent.h>
 
 #include "runtime.h"
-#include "ft.h"
 
 extern int
 _pthread_create(pthread_t * thread, const pthread_attr_t * attr,
@@ -102,7 +101,7 @@ AssertEvent(RRLogEntry *e, int evt)
 	rrMode = RRMODE_NORMAL;
 	printf("Expected %08x, Encountered %08x\n", evt, e->event);
 	printf("Event #%lu, Thread #%d\n", e->eventId, e->threadId);
-	printf("NextEvent #%lu, LastEvent #%lu\n", rrlog.nextEvent, rrlog.lastEvent);
+	printf("NextEvent #%lu, LastEvent #%lu\n", rrlog->nextEvent, rrlog->lastEvent);
 	abort();
     }
 }
@@ -114,7 +113,7 @@ AssertReplay(RRLogEntry *e, bool test)
 	rrMode = RRMODE_NORMAL;
 	printf("Encountered %08x\n", e->event);
 	printf("Event #%lu, Thread #%d\n", e->eventId, e->threadId);
-	printf("NextEvent #%lu, LastEvent #%lu\n", rrlog.nextEvent, rrlog.lastEvent);
+	printf("NextEvent #%lu, LastEvent #%lu\n", rrlog->nextEvent, rrlog->lastEvent);
 	abort();
     }
 }
@@ -130,18 +129,18 @@ static Mutex lockTable[LOCKTABLE_SIZE];
 void
 RRLog_LEnter(uint32_t threadId, uint64_t objId)
 {
-    RRLogEntry *e = RRLog_Alloc(&rrlog, threadId);
+    RRLogEntry *e = RRLog_Alloc(rrlog, threadId);
     e->event = RREVENT_LOCKED_EVENT;
     e->threadId = threadId;
     e->objectId = objId;
     Mutex_Lock(GETLOCK(objId));
-    RRLog_Append(&rrlog, e);
+    RRLog_Append(rrlog, e);
 }
 
 RRLogEntry *
 RRLog_LAlloc(uint32_t threadId)
 {
-    return RRLog_Alloc(&rrlog, threadId);
+    return RRLog_Alloc(rrlog, threadId);
 }
 
 void
@@ -149,23 +148,23 @@ RRLog_LAppend(RRLogEntry *entry)
 {
     uint64_t objId = entry->objectId;
 
-    RRLog_Append(&rrlog, entry);
+    RRLog_Append(rrlog, entry);
     Mutex_Unlock(GETLOCK(objId));
 }
 
 void
 RRPlay_LEnter(uint32_t threadId, uint64_t objId)
 {
-    RRLogEntry *e = RRPlay_Dequeue(&rrlog, threadId);
+    RRLogEntry *e = RRPlay_Dequeue(rrlog, threadId);
     AssertEvent(e, RREVENT_LOCKED_EVENT);
     Mutex_Lock(GETLOCK(objId));
-    RRPlay_Free(&rrlog, e);
+    RRPlay_Free(rrlog, e);
 }
 
 RRLogEntry *
 RRPlay_LDequeue(uint32_t threadId)
 {
-    return RRPlay_Dequeue(&rrlog, threadId);
+    return RRPlay_Dequeue(rrlog, threadId);
 }
 
 void
@@ -173,7 +172,7 @@ RRPlay_LFree(RRLogEntry *entry)
 {
     uint64_t objId = entry->objectId;
 
-    RRPlay_Free(&rrlog, entry);
+    RRPlay_Free(rrlog, entry);
     Mutex_Unlock(GETLOCK(objId));
 }
 
@@ -190,36 +189,36 @@ logData(uint8_t *buf, size_t len)
 
     if (rrMode == RRMODE_RECORD) {
 	for (i = 0; i < recs; i++) {
-	    e = RRLog_Alloc(&rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, threadId);
 	    e->event = RREVENT_DATA;
 	    uint8_t *dst = ((uint8_t *)e) + RREVENT_DATA_OFFSET;
 	    memcpy(dst, buf, RREVENT_DATA_LEN);
-	    RRLog_Append(&rrlog, e);
+	    RRLog_Append(rrlog, e);
 	    buf += RREVENT_DATA_LEN;
 	}
 	if (rlen) {
-	    e = RRLog_Alloc(&rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, threadId);
 	    e->event = RREVENT_DATA;
 	    uint8_t *dst = ((uint8_t *)e) + RREVENT_DATA_OFFSET;
 	    memcpy(dst, buf, rlen);
-	    RRLog_Append(&rrlog, e);
+	    RRLog_Append(rrlog, e);
 	    buf += rlen;
 	}
     } else {
 	for (i = 0; i < recs; i++) {
-	    e = RRPlay_Dequeue(&rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, threadId);
 	    AssertEvent(e, RREVENT_DATA);
 	    uint8_t *src = ((uint8_t *)e) + RREVENT_DATA_OFFSET;
 	    memcpy(buf, src, RREVENT_DATA_LEN);
-	    RRPlay_Free(&rrlog, e);
+	    RRPlay_Free(rrlog, e);
 	    buf += RREVENT_DATA_LEN;
 	}
 	if (rlen) {
-	    e = RRPlay_Dequeue(&rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, threadId);
 	    AssertEvent(e, RREVENT_DATA);
 	    uint8_t *src = ((uint8_t *)e) + RREVENT_DATA_OFFSET;
 	    memcpy(buf, src, rlen);
-	    RRPlay_Free(&rrlog, e);
+	    RRPlay_Free(rrlog, e);
 	    buf += rlen;
 	}
     }
@@ -264,12 +263,12 @@ pthread_create(pthread_t * thread, const pthread_attr_t * attr,
 	thrNo = __sync_add_and_fetch(&nextThreadId, 1);
 	assert(thrNo < 8);
 
-	e = RRLog_Alloc(&rrlog, threadId);
+	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_THREAD_CREATE;
 	e->threadId = threadId;
 	//e->value[0] = result;
 	e->value[1] = thrNo;
-	RRLog_Append(&rrlog, e);
+	RRLog_Append(rrlog, e);
 
 	threadState[thrNo].start = start_routine;
 	threadState[thrNo].arg = arg;
@@ -278,11 +277,11 @@ pthread_create(pthread_t * thread, const pthread_attr_t * attr,
     } else {
 	int savedResult;
 
-	e = RRPlay_Dequeue(&rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, threadId);
 	thrNo = e->value[1];
 	savedResult = e->value[0];
 	AssertEvent(e, RREVENT_THREAD_CREATE);
-	RRPlay_Free(&rrlog, e);
+	RRPlay_Free(rrlog, e);
 
 	threadState[thrNo].start = start_routine;
 	threadState[thrNo].arg = arg;
@@ -304,16 +303,16 @@ pthread_mutex_init(pthread_mutex_t *mtx, const pthread_mutexattr_t *attr)
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    e = RRLog_Alloc(&rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, threadId);
 	    e->event = RREVENT_MUTEX_INIT;
 	    e->objectId = (uint64_t)mtx;
 	    e->threadId = threadId;
-	    RRLog_Append(&rrlog, e);
+	    RRLog_Append(rrlog, e);
 	    break;
 	case RRMODE_REPLAY:
-	    e = RRPlay_Dequeue(&rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, threadId);
 	    AssertEvent(e, RREVENT_MUTEX_INIT);
-	    RRPlay_Free(&rrlog, e);
+	    RRPlay_Free(rrlog, e);
 	    break;
 	case RRMODE_FASTRECORD:
 	case RRMODE_FASTREPLAY:
@@ -331,16 +330,16 @@ pthread_mutex_destroy(pthread_mutex_t *mtx)
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    e = RRLog_Alloc(&rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, threadId);
 	    e->event = RREVENT_MUTEX_DESTROY;
 	    e->objectId = (uint64_t)mtx;
 	    e->threadId = threadId;
-	    RRLog_Append(&rrlog, e);
+	    RRLog_Append(rrlog, e);
 	    break;
 	case RRMODE_REPLAY:
-	    e = RRPlay_Dequeue(&rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, threadId);
 	    AssertEvent(e, RREVENT_MUTEX_DESTROY);
-	    RRPlay_Free(&rrlog, e);
+	    RRPlay_Free(rrlog, e);
 	    break;
 	case RRMODE_FASTRECORD:
 	case RRMODE_FASTREPLAY:
@@ -355,10 +354,6 @@ _pthread_mutex_lock(pthread_mutex_t *mtx)
 {
     int result = 0;
     RRLogEntry *e;
-
-    if (rrlog.threads[threadId].status > 0) {
-	return __pthread_mutex_lock(mtx);
-    }
 
     switch (rrMode) {
 	case RRMODE_NORMAL: {
@@ -390,17 +385,17 @@ _pthread_mutex_lock(pthread_mutex_t *mtx)
 	    break;
 	}
 	case RRMODE_FASTRECORD: {
-	    e = RRLog_Alloc(&rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, threadId);
 	    e->objectId = 1;
 	    e->threadId = threadId;
 	    result = _pthread_mutex_lock(mtx);
-	    RRLog_Append(&rrlog, e);
+	    RRLog_Append(rrlog, e);
 	    break;
 	}
 	case RRMODE_FASTREPLAY: {
-	    e = RRPlay_Dequeue(&rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, threadId);
 	    result = _pthread_mutex_lock(mtx);
-	    RRPlay_Free(&rrlog, e);
+	    RRPlay_Free(rrlog, e);
 	    break;
 	}
     }
@@ -422,33 +417,33 @@ pthread_mutex_trylock(pthread_mutex_t *mtx)
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    e = RRLog_Alloc(&rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, threadId);
 	    e->event = RREVENT_MUTEX_TRYLOCK;
 	    e->objectId = (uint64_t)mtx;
 	    e->threadId = threadId;
 	    result = _pthread_mutex_trylock(mtx);
 	    e->value[0] = result;
-	    RRLog_Append(&rrlog, e);
+	    RRLog_Append(rrlog, e);
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    e = RRPlay_Dequeue(&rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, threadId);
 	    result = e->value[0];
-	    RRPlay_Free(&rrlog, e);
+	    RRPlay_Free(rrlog, e);
 	    break;
 	}
 	case RRMODE_FASTRECORD: {
-	    e = RRLog_Alloc(&rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, threadId);
 	    e->objectId = 1;
 	    e->threadId = threadId;
 	    result = _pthread_mutex_trylock(mtx);
-	    RRLog_Append(&rrlog, e);
+	    RRLog_Append(rrlog, e);
 	    break;
 	}
 	case RRMODE_FASTREPLAY: {
-	    e = RRPlay_Dequeue(&rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, threadId);
 	    result = _pthread_mutex_trylock(mtx);
-	    RRPlay_Free(&rrlog, e);
+	    RRPlay_Free(rrlog, e);
 	    break;
 	}
     }
@@ -469,20 +464,20 @@ pthread_mutex_unlock(pthread_mutex_t *mtx)
 	}
 	case RRMODE_RECORD: {
 	    result = _pthread_mutex_unlock(mtx);
-	    e = RRLog_Alloc(&rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, threadId);
 	    e->event = RREVENT_MUTEX_UNLOCK;
 	    e->objectId = (uint64_t)mtx;
 	    e->threadId = threadId;
 	    e->value[0] = result;
-	    RRLog_Append(&rrlog, e);
+	    RRLog_Append(rrlog, e);
 	    break;
 	}
 	case RRMODE_REPLAY: {
 	    result = _pthread_mutex_unlock(mtx);
-	    e = RRPlay_Dequeue(&rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, threadId);
 	    AssertEvent(e, RREVENT_MUTEX_UNLOCK);
 	    // ASSERT result = e->value[0];
-	    RRPlay_Free(&rrlog, e);
+	    RRPlay_Free(rrlog, e);
 	    break;
 	}
 	case RRMODE_FASTRECORD: {
@@ -512,20 +507,20 @@ __sys_read(int fd, void *buf, size_t nbytes)
 	int left;
 	result = syscall(SYS_read, fd, buf, nbytes);
 
-	e = RRLog_Alloc(&rrlog, threadId);
+	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_READ;
 	e->threadId = threadId;
 	e->value[0] = result;
-	RRLog_Append(&rrlog, e);
+	RRLog_Append(rrlog, e);
 
 	if (result > 0) {
 	    logData(buf, result);
 	}
     } else {
-	e = RRPlay_Dequeue(&rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, threadId);
 	result = e->value[0];
 	AssertEvent(e, RREVENT_READ);
-	RRPlay_Free(&rrlog, e);
+	RRPlay_Free(rrlog, e);
 
 	if (result > 0) {
 	    logData(buf, result);
@@ -554,22 +549,22 @@ __sys_write(int fd, const void *buf, size_t nbytes)
     if (rrMode == RRMODE_RECORD) {
 	result = syscall(SYS_write, fd, buf, nbytes);
 
-	e = RRLog_Alloc(&rrlog, threadId);
+	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_WRITE;
 	e->threadId = threadId;
 	e->objectId = fd;
 	e->value[0] = result;
-	RRLog_Append(&rrlog, e);
+	RRLog_Append(rrlog, e);
     } else {
 	if (fd == 1) {
 	    // Print console output
 	    syscall(SYS_write, fd, buf, nbytes);
 	}
 
-	e = RRPlay_Dequeue(&rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_WRITE);
 	result = e->value[0];
-	RRPlay_Free(&rrlog, e);
+	RRPlay_Free(rrlog, e);
     }
 
     return result;
@@ -594,21 +589,21 @@ __clock_gettime(clockid_t clock_id, struct timespec *tp)
     if (rrMode == RRMODE_RECORD) {
 	result = __vdso_clock_gettime(clock_id, tp);
 
-	e = RRLog_Alloc(&rrlog, threadId);
+	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETTIME;
 	e->threadId = threadId;
 	e->objectId = clock_id;
 	e->value[0] = tp->tv_sec;
 	e->value[1] = tp->tv_nsec;
 	e->value[2] = result;
-	RRLog_Append(&rrlog, e);
+	RRLog_Append(rrlog, e);
     } else {
-	e = RRPlay_Dequeue(&rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_GETTIME);
 	tp->tv_sec = e->value[0];
 	tp->tv_nsec = e->value[1];
 	result = e->value[2];
-	RRPlay_Free(&rrlog, e);
+	RRPlay_Free(rrlog, e);
     }
 
     return result;
@@ -628,24 +623,24 @@ int __rr_sysctl(const int *name, u_int namelen, void *oldp,
 	int left;
 	result = syscall(SYS___sysctl, name, namelen, oldp, oldlenp, newp, newlen);
 
-	e = RRLog_Alloc(&rrlog, threadId);
+	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SYSCTL;
 	e->threadId = threadId;
 	e->value[0] = result;
 	e->value[1] = *oldlenp;
-	RRLog_Append(&rrlog, e);
+	RRLog_Append(rrlog, e);
 
 	if (oldp) {
 	    logData(oldp, *oldlenp);
 	}
     } else {
-	e = RRPlay_Dequeue(&rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, threadId);
 	result = e->value[0];
 	if (oldp) {
 	    *oldlenp = e->value[1];
 	}
 	AssertEvent(e, RREVENT_SYSCTL);
-	RRPlay_Free(&rrlog, e);
+	RRPlay_Free(rrlog, e);
 
 	if (oldp) {
 	    logData(oldp, *oldlenp);
@@ -666,14 +661,14 @@ _rr_exit(int status)
     }
 
     if (rrMode == RRMODE_RECORD) {
-	e = RRLog_Alloc(&rrlog, threadId);
+	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_EXIT;
 	e->threadId = threadId;
-	RRLog_Append(&rrlog, e);
+	RRLog_Append(rrlog, e);
     } else {
-	e = RRPlay_Dequeue(&rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_EXIT);
-	RRPlay_Free(&rrlog, e);
+	RRPlay_Free(rrlog, e);
     }
 
     // Drain log
@@ -694,16 +689,16 @@ __socket(int domain, int type, int protocol)
 
     if (rrMode == RRMODE_RECORD) {
 	result = syscall(SYS_socket, domain, type, protocol);
-	e = RRLog_Alloc(&rrlog, threadId);
+	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SOCKET;
 	e->threadId = threadId;
 	e->value[0] = result;
-	RRLog_Append(&rrlog, e);
+	RRLog_Append(rrlog, e);
     } else {
-	e = RRPlay_Dequeue(&rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_SOCKET);
 	result = e->value[0];
-	RRPlay_Free(&rrlog, e);
+	RRPlay_Free(rrlog, e);
     }
 
     return result;
@@ -721,16 +716,16 @@ __bind(int s, const struct sockaddr *addr, socklen_t addrlen)
 
     if (rrMode == RRMODE_RECORD) {
 	result = syscall(SYS_bind, s, addr, addrlen);
-	e = RRLog_Alloc(&rrlog, threadId);
+	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_BIND;
 	e->threadId = threadId;
 	e->value[0] = result;
-	RRLog_Append(&rrlog, e);
+	RRLog_Append(rrlog, e);
     } else {
-	e = RRPlay_Dequeue(&rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_BIND);
 	result = e->value[0];
-	RRPlay_Free(&rrlog, e);
+	RRPlay_Free(rrlog, e);
     }
 
     return result;
@@ -748,16 +743,16 @@ __listen(int s, int backlog)
 
     if (rrMode == RRMODE_RECORD) {
 	result = syscall(SYS_listen, s, backlog);
-	e = RRLog_Alloc(&rrlog, threadId);
+	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_LISTEN;
 	e->threadId = threadId;
 	e->value[0] = result;
-	RRLog_Append(&rrlog, e);
+	RRLog_Append(rrlog, e);
     } else {
-	e = RRPlay_Dequeue(&rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_LISTEN);
 	result = e->value[0];
-	RRPlay_Free(&rrlog, e);
+	RRPlay_Free(rrlog, e);
     }
 
     return result;
@@ -775,16 +770,16 @@ __connect(int s, const struct sockaddr *name, socklen_t namelen)
 
     if (rrMode == RRMODE_RECORD) {
 	result = syscall(SYS_connect, s, name, namelen);
-	e = RRLog_Alloc(&rrlog, threadId);
+	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CONNECT;
 	e->threadId = threadId;
 	e->value[0] = result;
-	RRLog_Append(&rrlog, e);
+	RRLog_Append(rrlog, e);
     } else {
-	e = RRPlay_Dequeue(&rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_CONNECT);
 	result = e->value[0];
-	RRPlay_Free(&rrlog, e);
+	RRPlay_Free(rrlog, e);
     }
 
     return result;
@@ -802,24 +797,24 @@ __accept(int s, struct sockaddr *addr, socklen_t *addrlen)
 
     if (rrMode == RRMODE_RECORD) {
 	result = syscall(SYS_accept, s, addr, addrlen);
-	e = RRLog_Alloc(&rrlog, threadId);
+	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_ACCEPT;
 	e->threadId = threadId;
 	e->value[0] = result;
 	e->value[1] = *addrlen;
-	RRLog_Append(&rrlog, e);
+	RRLog_Append(rrlog, e);
 
 	if (result >= 0) {
 	    logData((uint8_t *)addr, *addrlen);
 	}
     } else {
-	e = RRPlay_Dequeue(&rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_ACCEPT);
 	result = e->value[0];
 	if (result >= 0) {
 	    *addrlen = e->value[1];
 	}
-	RRPlay_Free(&rrlog, e);
+	RRPlay_Free(rrlog, e);
 
 	if (result >= 0) {
 	    logData((uint8_t *)addr, *addrlen);
@@ -841,21 +836,21 @@ __poll(struct pollfd fds[], nfds_t nfds, int timeout)
 
     if (rrMode == RRMODE_RECORD) {
 	result = syscall(SYS_poll, fds, nfds, timeout);
-	e = RRLog_Alloc(&rrlog, threadId);
+	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_POLL;
 	e->threadId = threadId;
 	e->value[0] = result;
 	e->value[1] = nfds;
-	RRLog_Append(&rrlog, e);
+	RRLog_Append(rrlog, e);
 	if (result > 0) {
 	    logData((uint8_t *)fds, nfds * sizeof(struct pollfd));
 	}
     } else {
-	e = RRPlay_Dequeue(&rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_POLL);
 	result = e->value[0];
 	assert(e->value[1] == nfds);
-	RRPlay_Free(&rrlog, e);
+	RRPlay_Free(rrlog, e);
 	if (result > 0) {
 	    logData((uint8_t *)fds, nfds * sizeof(struct pollfd));
 	}
@@ -876,22 +871,22 @@ __getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen)
 
     if (rrMode == RRMODE_RECORD) {
 	result = syscall(SYS_getsockopt, s, level, optname, optval, optlen);
-	e = RRLog_Alloc(&rrlog, threadId);
+	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETSOCKOPT;
 	e->threadId = threadId;
 	e->value[0] = result;
 	e->value[1] = optname;
 	e->value[2] = *optlen;
-	RRLog_Append(&rrlog, e);
+	RRLog_Append(rrlog, e);
 	if (result > 0) {
 	    logData((uint8_t *)optval, *optlen);
 	}
     } else {
-	e = RRPlay_Dequeue(&rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_GETSOCKOPT);
 	result = e->value[0];
 	*optlen = e->value[2];
-	RRPlay_Free(&rrlog, e);
+	RRPlay_Free(rrlog, e);
 	if (result > 0) {
 	    logData((uint8_t *)optval, *optlen);
 	}
@@ -912,18 +907,18 @@ __setsockopt(int s, int level, int optname, const void *optval, socklen_t optlen
 
     if (rrMode == RRMODE_RECORD) {
 	result = syscall(SYS_setsockopt, s, level, optname, optval, optlen);
-	e = RRLog_Alloc(&rrlog, threadId);
+	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETSOCKOPT;
 	e->threadId = threadId;
 	e->value[0] = result;
 	e->value[1] = optname;
 	e->value[2] = optlen;
-	RRLog_Append(&rrlog, e);
+	RRLog_Append(rrlog, e);
     } else {
-	e = RRPlay_Dequeue(&rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_SETSOCKOPT);
 	result = e->value[0];
-	RRPlay_Free(&rrlog, e);
+	RRPlay_Free(rrlog, e);
     }
 
     return result;
@@ -941,16 +936,16 @@ __kqueue()
 
     if (rrMode == RRMODE_RECORD) {
 	result = syscall(SYS_kqueue);
-	e = RRLog_Alloc(&rrlog, threadId);
+	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_KQUEUE;
 	e->threadId = threadId;
 	e->value[0] = result;
-	RRLog_Append(&rrlog, e);
+	RRLog_Append(rrlog, e);
     } else {
-	e = RRPlay_Dequeue(&rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_KQUEUE);
 	result = e->value[0];
-	RRPlay_Free(&rrlog, e);
+	RRPlay_Free(rrlog, e);
     }
 
     return result;
@@ -972,21 +967,21 @@ __kevent(int kq, const struct kevent *changelist, int nchanges,
     if (rrMode == RRMODE_RECORD) {
 	result = syscall(SYS_kevent, changelist, nchanges,
 			 eventlist, nevents, timeout);
-	e = RRLog_Alloc(&rrlog, threadId);
+	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_KEVENT;
 	e->threadId = threadId;
 	e->value[0] = result;
 	e->value[1] = nchanges;
 	e->value[2] = nevents;
-	RRLog_Append(&rrlog, e);
+	RRLog_Append(rrlog, e);
 	if (result > 0) {
 	    logData((uint8_t *)eventlist, sizeof(struct kevent) * result);
 	}
     } else {
-	e = RRPlay_Dequeue(&rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_KEVENT);
 	result = e->value[0];
-	RRPlay_Free(&rrlog, e);
+	RRPlay_Free(rrlog, e);
 	if (result > 0) {
 	    logData((uint8_t *)eventlist, sizeof(struct kevent) * result);
 	}

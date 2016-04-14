@@ -12,6 +12,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <sys/capsicum.h>
 
 #include <sys/syscall.h>
 
@@ -20,7 +24,6 @@
 #include "rrplay.h"
 #include "rrgq.h"
 #include "runtime.h"
-#include "ft.h"
 
 extern void Events_Init();
 
@@ -28,7 +31,7 @@ extern void Events_Init();
 
 static RRLogEntry *globalLog;
 static uint64_t logOffset;
-alignas(PAGESIZE) RRLog rrlog;
+RRLog *rrlog;
 static alignas(PAGESIZE) RRGlobalQueue rrgq;
 static int logfd;
 pthread_t rrthr;
@@ -41,9 +44,13 @@ enum RRMODE rrMode = RRMODE_NORMAL;
 static volatile int nextThreadId = 1;
 thread_local int threadId = 0; //-1;
 
+extern int
+_pthread_create(pthread_t * thread, const pthread_attr_t * attr,
+	       void *(*start_routine) (void *), void *arg);
+
 /*
  * Environment Variables:
- * CASTOR_MODE		RECORD, REPLAY, MASTER, SLAVE
+ * CASTOR_MODE		RECORD, REPLAY
  * CASTOR_LOGFILE	Record/Replay File Path
  * CASTOR_HOST		Fault-Tolerance Master Hostname
  */
@@ -70,17 +77,17 @@ DrainQueue(void *arg)
 	RRLogEntry *entry = NULL;
 
 	do {
-	    entry = RRLog_Dequeue(&rrlog);
+	    entry = RRLog_Dequeue(rrlog);
 	} while (entry == NULL);
 
 	RRGlobalQueue_Append(&rrgq, entry);
 
 	if (entry->event == RREVENT_EXIT) {
-	    RRLog_Free(&rrlog, entry);
+	    RRLog_Free(rrlog, entry);
 	    break;
 	}
 
-	RRLog_Free(&rrlog, entry);
+	RRLog_Free(rrlog, entry);
     }
 
     SystemWrite(1, "Consumer Done\n", 14);
@@ -98,11 +105,7 @@ TXGQProc(void *arg)
 	entry = RRGlobalQueue_Dequeue(&rrgq, &numEntries);
 
 	if (numEntries) {
-	    if (ftMode) {
-		RRFT_Send(numEntries, entry);
-	    } else {
-		SystemWrite(logfd, entry, numEntries * sizeof(RRLogEntry));
-	    }
+	    SystemWrite(logfd, entry, numEntries * sizeof(RRLogEntry));
 	}
 
 	for (i = 0; i < numEntries; i++) {
@@ -136,7 +139,7 @@ FeedQueue(void *arg)
 	} while (numEntries == 0);
 
 	for (i = 0; i < numEntries; i++) {
-	    RRPlay_AppendThread(&rrlog, &entry[i]);
+	    RRPlay_AppendThread(rrlog, &entry[i]);
 	    if (entry[i].event == RREVENT_EXIT) {
 		//printf("Feed Done\n");
 		pthread_exit(NULL);
@@ -158,20 +161,16 @@ RXGQProc(void *arg)
     while (1) {
 	numEntries = 512;
 
-	if (ftMode) {
-	    numEntries = RRFT_Recv(numEntries, (RRLogEntry *)&entries);
-	} else {
-	    int result = SystemRead(logfd, &entries, numEntries * sizeof(RRLogEntry));
-	    if (result < 0) {
-		perror("read");
-		abort();
-	    }
-	    if (result == 0) {
-		return NULL;
-	    }
-
-	    numEntries = result / sizeof(RRLogEntry);
+	int result = SystemRead(logfd, &entries, numEntries * sizeof(RRLogEntry));
+	if (result < 0) {
+	    perror("read");
+	    abort();
 	}
+	if (result == 0) {
+	    return NULL;
+	}
+
+	numEntries = result / sizeof(RRLogEntry);
 
 	for (i = 0; i < numEntries; i++) {
 	    RRGlobalQueue_Append(&rrgq, &entries[i]);
@@ -190,20 +189,16 @@ PrimeQ()
     int numEntries = 32;
     RRLogEntry entries[32];
 
-    if (ftMode) {
-	numEntries = RRFT_Recv(numEntries, (RRLogEntry *)&entries);
-    } else {
-	int result = SystemRead(logfd, &entries, numEntries * sizeof(RRLogEntry));
-	if (result < 0) {
-	    perror("read");
-	    abort();
-	}
-
-	numEntries = result / sizeof(RRLogEntry);
+    int result = SystemRead(logfd, &entries, numEntries * sizeof(RRLogEntry));
+    if (result < 0) {
+	perror("read");
+	abort();
     }
 
+    numEntries = result / sizeof(RRLogEntry);
+
     for (int i = 0; i < numEntries; i++) {
-	RRPlay_AppendThread(&rrlog, &entries[i]);
+	RRPlay_AppendThread(rrlog, &entries[i]);
 	if (entries[i].event == RREVENT_EXIT) {
 	    return true;
 	}
@@ -222,8 +217,8 @@ LogDone()
     }
 }
 
-__attribute__((constructor)) void
-log_init()
+void
+OldInit()
 {
     char *mode = getenv("CASTOR_MODE");
     char *logpath = getenv("CASTOR_LOGFILE");
@@ -241,54 +236,45 @@ log_init()
 	rrMode = RRMODE_REPLAY;
     } else if (strcmp(mode, "MASTER") == 0) {
 	fprintf(stderr, "MASTER\n");
+	abort();
 	ftMode = true;
 	rrMode = RRMODE_RECORD;
     } else if (strcmp(mode, "SLAVE") == 0) {
 	fprintf(stderr, "SLAVE\n");
+	abort();
 	ftMode = true;
 	rrMode = RRMODE_REPLAY;
     } else {
 	fprintf(stderr, "Error: Unknown CASTOR_MODE\n");
     }
 
-    globalLog = malloc(GLOBALLOG_LENGTH);
-    if (!globalLog) {
-	fprintf(stderr, "Could not allocate global log\n");
+    rrlog = malloc(sizeof(*rrlog));
+    if (!rrlog){
+	fprintf(stderr, "Could not allocate record/replay log\n");
 	abort();
 	return;
     }
 
-    // Ensure memory is mapped
-    memset((void *)globalLog, 0, GLOBALLOG_LENGTH);
-
-    RRLog_Init(&rrlog);
+    RRLog_Init(rrlog);
     RRGlobalQueue_Init(&rrgq);
     Events_Init();
 
-    if (ftMode) {
-	if (rrMode == RRMODE_RECORD) {
-	    RRFT_InitMaster();
-	} else {
-	    RRFT_InitSlave();
-	}
-    } else {
-	int flags = O_RDWR;
+    int flags = O_RDWR;
 
-	if (logpath == NULL) {
-	    fprintf(stderr, "Error: Must specify log path CASTOR_LOGFILE\n");
-	    abort();
-	    return;
-	}
+    if (logpath == NULL) {
+	fprintf(stderr, "Error: Must specify log path CASTOR_LOGFILE\n");
+	abort();
+	return;
+    }
 
-	if (rrMode == RRMODE_RECORD)
-	    flags |= O_CREAT | O_TRUNC;
+    if (rrMode == RRMODE_RECORD)
+	flags |= O_CREAT | O_TRUNC;
 
-	logfd = open(logpath, flags, 0600);
-	if (logfd < 0) {
-	    perror("open");
-	    abort();
-	    return;
-	}
+    logfd = open(logpath, flags, 0600);
+    if (logfd < 0) {
+	perror("open");
+	abort();
+	return;
     }
 
     if (rrMode == RRMODE_RECORD) {
@@ -299,5 +285,54 @@ log_init()
 	_pthread_create(&rrthr, NULL, FeedQueue, NULL);
 	_pthread_create(&gqthr, NULL, RXGQProc, NULL);
     }
+}
+
+__attribute__((constructor)) void
+log_init()
+{
+    int status;
+    struct stat sb;
+
+    status = fstat(/* shmfd */3, &sb);
+    if (status < 0) {
+	perror("fstat");
+	OldInit();
+	return;
+    }
+
+    char *mode = getenv("CASTOR_MODE");
+    if (mode == NULL) {
+	rrMode = RRMODE_NORMAL;
+	return;
+    }
+
+    // Make sure LogDone returns immediately
+    atomic_store(&drainDone, 1);
+
+    rrlog = mmap(NULL, sizeof(*rrlog), PROT_READ|PROT_WRITE,
+		MAP_NOSYNC|MAP_SHARED, /* shmfd */3, 0);
+    if (rrlog == NULL) {
+	perror("mmap");
+	abort();
+    }
+
+    char *sandbox = getenv("CASTOR_SANDBOX");
+    if (sandbox) {
+	status = cap_enter();
+	if (status != 0) {
+	    perror("cap_enter");
+	    abort();
+	}
+    }
+
+    if (strcmp(mode, "RECORD") == 0) {
+	fprintf(stderr, "RECORD\n");
+	rrMode = RRMODE_RECORD;
+    } else if (strcmp(mode, "REPLAY") == 0) {
+	fprintf(stderr, "REPLAY\n");
+	rrMode = RRMODE_REPLAY;
+    }
+
+    Events_Init();
 }
 
