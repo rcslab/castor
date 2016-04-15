@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -21,6 +22,9 @@
 
 // socket
 #include <sys/socket.h>
+
+// ioctl
+#include <sys/ioccom.h>
 
 // poll/kqueue
 #include <poll.h>
@@ -51,6 +55,7 @@ extern interpos_func_t __libc_interposing[] __hidden;
 
 ssize_t __sys_read(int fd, void *buf, size_t nbytes);
 ssize_t __sys_write(int fd, const void *buf, size_t nbytes);
+int __sys_ioctl(int fd, unsigned long request, ...);
 int __clock_gettime(clockid_t clock_id, struct timespec *tp);
 int __rr_sysctl(const int *name, u_int namelen, void *oldp,
 	     size_t *oldlenp, const void *newp, size_t newlen);
@@ -70,6 +75,8 @@ int __kevent(int kq, const struct kevent *changelist, int nchanges,
 
 int _pthread_mutex_lock(pthread_mutex_t *mtx);
 
+__strong_reference(__sys_ioctl, _ioctl);
+__strong_reference(__sys_ioctl, ioctl);
 __strong_reference(__clock_gettime, clock_gettime);
 __strong_reference(__rr_sysctl, __sysctl);
 __strong_reference(_rr_exit, _exit);
@@ -574,6 +581,52 @@ ssize_t
 _write(int fd, const void *buf, size_t nbytes)
 {
     return write(fd, buf, nbytes);
+}
+
+int
+__sys_ioctl(int fd, unsigned long request, ...)
+{
+    int result;
+    va_list ap;
+    char *argp;
+    bool output = ((IOC_OUT & request) == IOC_OUT);
+    unsigned long datalen = IOCPARM_LEN(request);
+    RRLogEntry *e;
+
+    va_start(ap, request);
+    argp = va_arg(ap, char *);
+    va_end(ap);
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_ioctl, fd, request, argp);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_ioctl, fd, request, argp);
+
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_IOCTL;
+	e->threadId = threadId;
+	e->objectId = fd;
+	e->value[0] = result;
+	e->value[1] = request;
+	RRLog_Append(rrlog, e);
+
+	if ((result == 0) && output) {
+	    logData((uint8_t *)argp, datalen);
+	}
+    } else {
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_IOCTL);
+	result = e->value[0];
+	RRPlay_Free(rrlog, e);
+
+	if ((result == 0) && output) {
+	    logData((uint8_t *)argp, datalen);
+	}
+    }
+
+    return result;
 }
 
 int
