@@ -53,6 +53,9 @@ extern int _pthread_mutex_destroy(pthread_mutex_t *mutex);
 extern int __vdso_clock_gettime(clockid_t clock_id, struct timespec *tp);
 extern interpos_func_t __libc_interposing[] __hidden;
 
+int __sys_open(const char *path, int flags, ...);
+int __sys_openat(int fd, const char *path, int flags, ...);
+int __sys_close(int fd);
 ssize_t __sys_read(int fd, void *buf, size_t nbytes);
 ssize_t __sys_write(int fd, const void *buf, size_t nbytes);
 int __sys_ioctl(int fd, unsigned long request, ...);
@@ -75,8 +78,10 @@ int __kevent(int kq, const struct kevent *changelist, int nchanges,
 
 int _pthread_mutex_lock(pthread_mutex_t *mtx);
 
-__strong_reference(__sys_ioctl, _ioctl);
+__strong_reference(__sys_open, _open);
+__strong_reference(__sys_close, _close);
 __strong_reference(__sys_ioctl, ioctl);
+__strong_reference(__sys_ioctl, _ioctl);
 __strong_reference(__clock_gettime, clock_gettime);
 __strong_reference(__rr_sysctl, __sysctl);
 __strong_reference(_rr_exit, _exit);
@@ -98,6 +103,7 @@ Events_Init()
 {
     __libc_interposing[INTERPOS_read] = (interpos_func_t)&__sys_read;
     __libc_interposing[INTERPOS_write] = (interpos_func_t)&__sys_write;
+    // openat
 }
 
 #if 1
@@ -495,6 +501,105 @@ pthread_mutex_unlock(pthread_mutex_t *mtx)
 	    result = _pthread_mutex_unlock(mtx);
 	    break;
 	}
+    }
+
+    return result;
+}
+
+int
+__sys_open(const char *path, int flags, ...)
+{
+    int result;
+    int mode;
+    va_list ap;
+    RRLogEntry *e;
+
+    va_start(ap, flags);
+    mode = va_arg(ap, int);
+    va_end(ap);
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_open, path, flags, mode);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_open, path, flags, mode);
+
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_OPEN;
+	e->threadId = threadId;
+	e->objectId = 0;
+	e->value[0] = result;
+	RRLog_Append(rrlog, e);
+    } else {
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_OPEN);
+	result = e->value[0];
+	RRPlay_Free(rrlog, e);
+    }
+
+    return result;
+}
+
+int
+__sys_openat(int fd, const char *path, int flags, ...)
+{
+    int result;
+    int mode;
+    va_list ap;
+    RRLogEntry *e;
+
+    va_start(ap, flags);
+    mode = va_arg(ap, int);
+    va_end(ap);
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_openat, fd, path, flags, mode);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_openat, fd, path, flags, mode);
+
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_OPENAT;
+	e->threadId = threadId;
+	e->objectId = 0;
+	e->value[0] = result;
+	RRLog_Append(rrlog, e);
+    } else {
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_OPENAT);
+	result = e->value[0];
+	RRPlay_Free(rrlog, e);
+    }
+
+    return result;
+}
+
+int
+__sys_close(int fd)
+{
+    int result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_close, fd);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_close, fd);
+
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_CLOSE;
+	e->threadId = threadId;
+	e->objectId = fd;
+	e->value[0] = result;
+	RRLog_Append(rrlog, e);
+    } else {
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_CLOSE);
+	result = e->value[0];
+	RRPlay_Free(rrlog, e);
     }
 
     return result;
