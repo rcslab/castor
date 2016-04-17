@@ -17,6 +17,9 @@
 #include <sys/cdefs.h>
 #include <sys/syscall.h>
 
+// stat/fstat
+#include <sys/stat.h>
+
 // sysctl
 #include <sys/sysctl.h>
 
@@ -59,10 +62,13 @@ int __sys_close(int fd);
 ssize_t __sys_read(int fd, void *buf, size_t nbytes);
 ssize_t __sys_write(int fd, const void *buf, size_t nbytes);
 int __sys_ioctl(int fd, unsigned long request, ...);
+int __rr_fstat(int fd, struct stat *sb);
+
 int __clock_gettime(clockid_t clock_id, struct timespec *tp);
 int __rr_sysctl(const int *name, u_int namelen, void *oldp,
 	     size_t *oldlenp, const void *newp, size_t newlen);
-void _rr_exit(int status);
+void __rr_exit(int status);
+
 int __socket(int domain, int type, int protocol);
 int __bind(int s, const struct sockaddr *addr, socklen_t addrlen);
 int __listen(int s, int backlog);
@@ -82,9 +88,11 @@ __strong_reference(__sys_open, _open);
 __strong_reference(__sys_close, _close);
 __strong_reference(__sys_ioctl, ioctl);
 __strong_reference(__sys_ioctl, _ioctl);
+__strong_reference(__rr_fstat, fstat);
+__strong_reference(__rr_fstat, _fstat);
 __strong_reference(__clock_gettime, clock_gettime);
 __strong_reference(__rr_sysctl, __sysctl);
-__strong_reference(_rr_exit, _exit);
+__strong_reference(__rr_exit, _exit);
 __strong_reference(__socket, socket);
 __strong_reference(__bind, bind);
 __strong_reference(__listen, listen);
@@ -735,6 +743,43 @@ __sys_ioctl(int fd, unsigned long request, ...)
 }
 
 int
+__rr_fstat(int fd, struct stat *sb)
+{
+    ssize_t result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_fstat, fd, sb);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	int left;
+	result = syscall(SYS_fstat, fd, sb);
+
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_FSTAT;
+	e->threadId = threadId;
+	e->value[0] = result;
+	RRLog_Append(rrlog, e);
+
+	if (result == 0) {
+	    logData((uint8_t*)sb, sizeof(*sb));
+	}
+    } else {
+	e = RRPlay_Dequeue(rrlog, threadId);
+	result = e->value[0];
+	AssertEvent(e, RREVENT_FSTAT);
+	RRPlay_Free(rrlog, e);
+
+	if (result == 0) {
+	    logData((uint8_t*)sb, sizeof(*sb));
+	}
+    }
+
+    return result;
+}
+
+int
 __clock_gettime(clockid_t clock_id, struct timespec *tp)
 {
     int result;
@@ -809,7 +854,7 @@ int __rr_sysctl(const int *name, u_int namelen, void *oldp,
 }
 
 void
-_rr_exit(int status)
+__rr_exit(int status)
 {
     RRLogEntry *e;
 
