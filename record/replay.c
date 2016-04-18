@@ -14,6 +14,7 @@ usage()
 {
     printf("record [options] [program] [args]\n");
     printf("  -c [cores]    Maximum number of application cores\n");
+    printf("  -i            Interactive debug shell\n");
     printf("  -o [log]      Log file\n");
     printf("  -h            Help\n");
 }
@@ -25,9 +26,10 @@ main(int argc, char *argv[])
     int maxcpus = 64;
     bool ft = false;
     bool sandboxed = false;
+    bool interactive = false;
     const char *logfile;
 
-    while ((ch = getopt(argc, argv, "c:ho:")) != -1) {
+    while ((ch = getopt(argc, argv, "c:iho:")) != -1) {
 	switch (ch) {
 	    case 'c': {
 		maxcpus = atoi(optarg);
@@ -36,6 +38,10 @@ main(int argc, char *argv[])
 	    case 'h': {
 		usage();
 		exit(0);
+	    }
+	    case 'i': {
+		interactive = true;
+		break;
 	    }
 	    case 'o': {
 		logfile = optarg;
@@ -69,6 +75,10 @@ main(int argc, char *argv[])
     }
     Spawn(maxcpus, argv);
 
-    ReplayLog();
+    if (interactive) {
+	CLI_Start();
+    } else {
+	ReplayLog();
+    }
 }
 

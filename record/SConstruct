@@ -2,6 +2,7 @@
 Import('env')
 
 common_src = [
+    "cli.c",
     "ft.c",
     "proc.c",
     "runtime.c",
@@ -13,7 +14,7 @@ record_src = ["record.c"]
 replay_src = ["replay.c"]
 
 env.Program("record", record_src,
-        LIBPATH = ["#build/record"], LIBS = ["common", "pthread"])
+        LIBPATH = ["#build/record"], LIBS = ["common", "edit", "pthread"])
 env.Program("replay", replay_src,
-        LIBPATH = ["#build/record"], LIBS = ["common", "pthread"])
+        LIBPATH = ["#build/record"], LIBS = ["common", "edit", "pthread"])
 

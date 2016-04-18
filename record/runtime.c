@@ -169,6 +169,36 @@ RXGQProc(void *arg)
     }
 }
 
+int
+FillGlobalQueue()
+{
+    int result;
+    int numEntries;
+    RRLogEntry entries[1];
+
+    result = SystemRead(logfd, &entries, numEntries * sizeof(RRLogEntry));
+    if (result < 0) {
+	perror("read");
+	return -1;
+    }
+    if (result == 0) {
+	printf("End of file\n");
+	return 0;
+    }
+
+    numEntries = result / sizeof(RRLogEntry);
+}
+
+int
+QueueOne()
+{
+    if (1) {
+	FillGlobalQueue();
+    }
+
+    // Append
+}
+
 void
 OpenLog(const char *logfile, bool forRecord)
 {
