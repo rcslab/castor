@@ -81,5 +81,11 @@ RRGlobalQueue_Free(RRGlobalQueue *rrgq, uint64_t numEntries)
     rrgq->tail += numEntries;
 }
 
+static inline uint64_t
+RRGlobalQueue_Length(RRGlobalQueue *rrgq)
+{
+    return (rrgq->head - rrgq->tail);
+}
+
 #endif /* __RRGQ_H__ */
 

@@ -39,13 +39,26 @@ CLI_Help(int argc, char *argv[])
 void
 CLI_Step(int argc, char *argv[])
 {
+    int result;
+    int count = 1;
+
+    if (argc == 2) {
+	count = atoi(argv[1]);
+    }
+
+    for (int i = 0; i < count; i++) {
+	result = QueueOne();
+	if (result <= 0) {
+	    printf("Reached end of replay log\n");
+	    break;
+	}
+    }
 }
 
 void
 CLI_Dump(int argc, char *argv[])
 {
-    // Show each queue offset + events
-    // Show current top of log
+    DumpLog();
 }
 
 void
@@ -97,7 +110,7 @@ elprompt(EditLine *el)
    return curPrompt;
 }
 
-int
+void
 CLI_Start()
 {
    el = el_init("", stdin, stdout, stderr);

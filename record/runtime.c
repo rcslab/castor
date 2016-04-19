@@ -33,6 +33,17 @@ pthread_t gqthr;
 
 bool ftMode = false;
 
+struct {
+    uint32_t	evtid;
+    const char* str;
+} rreventTable[] =
+{
+#define RREVENT(_a, _b) { RREVENT_##_a, #_a },
+    RREVENT_TABLE
+#undef RREVENT
+    { 0, 0 }
+};
+
 /*
  * Environment Variables:
  * CASTOR_MODE		RECORD, REPLAY, MASTER, SLAVE
@@ -173,8 +184,8 @@ int
 FillGlobalQueue()
 {
     int result;
-    int numEntries;
-    RRLogEntry entries[1];
+    int numEntries = 64;
+    RRLogEntry entries[64];
 
     result = SystemRead(logfd, &entries, numEntries * sizeof(RRLogEntry));
     if (result < 0) {
@@ -182,21 +193,88 @@ FillGlobalQueue()
 	return -1;
     }
     if (result == 0) {
-	printf("End of file\n");
 	return 0;
     }
 
     numEntries = result / sizeof(RRLogEntry);
+
+    for (int i = 0; i < numEntries; i++) {
+	RRGlobalQueue_Append(&rrgq, &entries[i]);
+    }
+
+    return numEntries;
 }
 
 int
 QueueOne()
 {
-    if (1) {
+    uint64_t numEntries = 1;
+    RRLogEntry *entry;
+
+    if (RRGlobalQueue_Length(&rrgq) < 10) {
 	FillGlobalQueue();
     }
 
-    // Append
+    entry = RRGlobalQueue_Dequeue(&rrgq, &numEntries);
+    if (numEntries == 0)
+	return 0;
+
+    RRPlay_AppendThread(rrlog, entry);
+    RRGlobalQueue_Free(&rrgq, 1);
+
+    return 1;
+}
+
+void
+dumpEntry(RRLogEntry *entry)
+{
+    int i;
+    const char *evtStr = "UNKNOWN";
+
+    for (i = 0; rreventTable[i].str != 0; i++) {
+	if (rreventTable[i].evtid == entry->event) {
+	    evtStr = rreventTable[i].str;
+	    break;
+	}
+    }
+
+    printf("%016ld  %08x  %-16s  %016lx  %016lx  %016lx  %016lx  %016lx  %016lx\n",
+	    entry->eventId, entry->threadId, evtStr, entry->objectId,
+	    entry->value[0], entry->value[1], entry->value[2],
+	    entry->value[3], entry->value[4]);
+}
+
+void
+DumpLog()
+{
+    uint64_t len;
+    RRLogEntry *entry;
+
+    printf("Next Event: %08ld\n", rrlog->nextEvent);
+    printf("Last Event: %08ld\n", rrlog->lastEvent);
+
+    for (int i = 0; i < RRLOG_MAX_THREADS; i++) {
+	printf("Thread %02d:\n", i);
+	printf("  Offsets Free: %02ld Used: %02ld\n",
+		rrlog->threads[i].freeOff, rrlog->threads[i].usedOff);
+	printf("  Status: %016lx\n", rrlog->threads[i].status);
+    }
+
+    printf("GlobalQueue:\n");
+    printf("%-16s  %-8s  %-16s  %-16s  %-16s  %-16s  %-16s  %-16s  %-16s\n",
+	    "Event #", "Thread #", "Event", "Object ID",
+	    "Value[0]", "Value[1]", "Value[2]", "Value[3]", "Value[4]");
+    len = RRGlobalQueue_Length(&rrgq);
+    if (len > 10)
+	len = 10;
+
+    printf("%ld\n", len);
+    entry = RRGlobalQueue_Dequeue(&rrgq, &len);
+    printf("%ld\n", len);
+    printf("Head: %08ld Tail: %08ld\n", rrgq.head, rrgq.tail);
+    for (int i = 0; i < len; i++) {
+	dumpEntry(&entry[i]);
+    }
 }
 
 void
