@@ -34,6 +34,9 @@
 #include <sys/event.h>
 #include <sys/time.h>
 
+// mmap
+#include <sys/mman.h>
+
 #include <libc_private.h>
 
 #include <rrlog.h>
@@ -43,6 +46,9 @@
 #include <rrevent.h>
 
 #include "runtime.h"
+
+/* USE FILES */
+bool useRealFiles = false;
 
 extern int
 _pthread_create(pthread_t * thread, const pthread_attr_t * attr,
@@ -54,6 +60,7 @@ extern int __pthread_mutex_lock(pthread_mutex_t *mutex);
 extern int _pthread_mutex_unlock(pthread_mutex_t *mutex);
 extern int _pthread_mutex_destroy(pthread_mutex_t *mutex);
 extern int __vdso_clock_gettime(clockid_t clock_id, struct timespec *tp);
+extern void *__sys_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
 extern interpos_func_t __libc_interposing[] __hidden;
 
 int __sys_open(const char *path, int flags, ...);
@@ -81,6 +88,7 @@ int __kqueue();
 int __kevent(int kq, const struct kevent *changelist, int nchanges,
 	struct kevent *eventlist, int nevents,
 	const struct timespec *timeout);
+void *__rr_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
 
 int _pthread_mutex_lock(pthread_mutex_t *mtx);
 
@@ -105,6 +113,7 @@ __strong_reference(__getsockopt, getsockopt);
 __strong_reference(__setsockopt, setsockopt);
 __strong_reference(__kqueue, kqueue);
 __strong_reference(__kevent, kevent);
+__strong_reference(__rr_mmap, mmap);
 
 __strong_reference(_pthread_mutex_lock, pthread_mutex_lock);
 
@@ -1192,6 +1201,47 @@ __kevent(int kq, const struct kevent *changelist, int nchanges,
 	if (result > 0) {
 	    logData((uint8_t *)eventlist, sizeof(struct kevent) * result);
 	}
+    }
+
+    return result;
+}
+
+void *
+__rr_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
+{
+    void *result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return __sys_mmap(addr, len, prot, flags, fd, offset);
+    }
+
+    // Ignore anonymous maps
+    if (fd == -1) {
+	return __sys_mmap(addr, len, prot, flags, fd, offset);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = __sys_mmap(addr, len, prot, flags, fd, offset);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_MMAPFD;
+	e->threadId = threadId;
+	e->value[0] = (uint64_t)result;
+	e->value[1] = len;
+	e->value[2] = prot;
+	e->value[3] = flags;
+	RRLog_Append(rrlog, e);
+
+	if (result != 0) {
+	    logData((uint8_t *)result, len);
+	}
+    } else {
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_MMAPFD);
+	RRPlay_Free(rrlog, e);
+
+	result = __sys_mmap(addr, len, prot, flags | MAP_ANON, -1, 0);
+	logData(result, len);
     }
 
     return result;
