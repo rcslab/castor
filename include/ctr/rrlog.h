@@ -6,7 +6,9 @@
 #include <stdint.h>
 #include <stdalign.h>
 
+#ifdef CASTOR_DEBUG
 #define RRLOG_DEBUG		1
+#endif
 
 // XXX: Get this from architecture specific headers
 #define PAGESIZE		4096

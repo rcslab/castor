@@ -57,7 +57,7 @@ extern int __vdso_clock_gettime(clockid_t clock_id, struct timespec *tp);
 extern interpos_func_t __libc_interposing[] __hidden;
 
 int __sys_open(const char *path, int flags, ...);
-int __sys_openat(int fd, const char *path, int flags, ...);
+int __rr_openat(int fd, const char *path, int flags, ...);
 int __sys_close(int fd);
 ssize_t __sys_read(int fd, void *buf, size_t nbytes);
 ssize_t __sys_write(int fd, const void *buf, size_t nbytes);
@@ -85,6 +85,8 @@ int __kevent(int kq, const struct kevent *changelist, int nchanges,
 int _pthread_mutex_lock(pthread_mutex_t *mtx);
 
 __strong_reference(__sys_open, _open);
+__strong_reference(__rr_openat, openat);
+__strong_reference(__rr_openat, _openat);
 __strong_reference(__sys_close, _close);
 __strong_reference(__sys_ioctl, ioctl);
 __strong_reference(__sys_ioctl, _ioctl);
@@ -111,10 +113,10 @@ Events_Init()
 {
     __libc_interposing[INTERPOS_read] = (interpos_func_t)&__sys_read;
     __libc_interposing[INTERPOS_write] = (interpos_func_t)&__sys_write;
-    // openat
+    __libc_interposing[INTERPOS_openat] = (interpos_func_t)&__rr_openat;
 }
 
-#if 1
+#if defined(CASTOR_DEBUG)
 void
 AssertEvent(RRLogEntry *e, int evt)
 {
@@ -138,9 +140,11 @@ AssertReplay(RRLogEntry *e, bool test)
 	abort();
     }
 }
-#else
+#elif defined(CASTOR_RELEASE)
 #define AssertEvent(_e, _evt)
 #define AssertReplay(_e, _tst)
+#else
+#error "Must define build type"
 #endif
 
 #define LOCKTABLE_SIZE 4096
@@ -335,8 +339,8 @@ pthread_mutex_init(pthread_mutex_t *mtx, const pthread_mutexattr_t *attr)
 	    AssertEvent(e, RREVENT_MUTEX_INIT);
 	    RRPlay_Free(rrlog, e);
 	    break;
-	case RRMODE_FASTRECORD:
-	case RRMODE_FASTREPLAY:
+	case RRMODE_FDREPLAY:
+	case RRMODE_FTREPLAY:
 	    break;
     }
     return _pthread_mutex_init(mtx, attr);
@@ -362,8 +366,8 @@ pthread_mutex_destroy(pthread_mutex_t *mtx)
 	    AssertEvent(e, RREVENT_MUTEX_DESTROY);
 	    RRPlay_Free(rrlog, e);
 	    break;
-	case RRMODE_FASTRECORD:
-	case RRMODE_FASTREPLAY:
+	case RRMODE_FDREPLAY:
+	case RRMODE_FTREPLAY:
 	    break;
     }
 
@@ -405,7 +409,7 @@ _pthread_mutex_lock(pthread_mutex_t *mtx)
 	    RRPlay_LFree(e);
 	    break;
 	}
-	case RRMODE_FASTRECORD: {
+	case RRMODE_FDREPLAY: {
 	    e = RRLog_Alloc(rrlog, threadId);
 	    e->objectId = 1;
 	    e->threadId = threadId;
@@ -413,7 +417,7 @@ _pthread_mutex_lock(pthread_mutex_t *mtx)
 	    RRLog_Append(rrlog, e);
 	    break;
 	}
-	case RRMODE_FASTREPLAY: {
+	case RRMODE_FTREPLAY: {
 	    e = RRPlay_Dequeue(rrlog, threadId);
 	    result = _pthread_mutex_lock(mtx);
 	    RRPlay_Free(rrlog, e);
@@ -453,7 +457,7 @@ pthread_mutex_trylock(pthread_mutex_t *mtx)
 	    RRPlay_Free(rrlog, e);
 	    break;
 	}
-	case RRMODE_FASTRECORD: {
+	case RRMODE_FDREPLAY: {
 	    e = RRLog_Alloc(rrlog, threadId);
 	    e->objectId = 1;
 	    e->threadId = threadId;
@@ -461,7 +465,7 @@ pthread_mutex_trylock(pthread_mutex_t *mtx)
 	    RRLog_Append(rrlog, e);
 	    break;
 	}
-	case RRMODE_FASTREPLAY: {
+	case RRMODE_FTREPLAY: {
 	    e = RRPlay_Dequeue(rrlog, threadId);
 	    result = _pthread_mutex_trylock(mtx);
 	    RRPlay_Free(rrlog, e);
@@ -501,11 +505,11 @@ pthread_mutex_unlock(pthread_mutex_t *mtx)
 	    RRPlay_Free(rrlog, e);
 	    break;
 	}
-	case RRMODE_FASTRECORD: {
+	case RRMODE_FDREPLAY: {
 	    result = _pthread_mutex_unlock(mtx);
 	    break;
 	}
-	case RRMODE_FASTREPLAY: {
+	case RRMODE_FTREPLAY: {
 	    result = _pthread_mutex_unlock(mtx);
 	    break;
 	}
@@ -550,10 +554,10 @@ __sys_open(const char *path, int flags, ...)
 }
 
 int
-__sys_openat(int fd, const char *path, int flags, ...)
+__rr_openat(int fd, const char *path, int flags, ...)
 {
     int result;
-    int mode;
+    mode_t mode;
     va_list ap;
     RRLogEntry *e;
 

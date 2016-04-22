@@ -1,6 +1,7 @@
 
 opts = Variables('Local.sc')
 opts.AddVariables(
+    EnumVariable("BUILDTYPE", "Build Type", "DEBUG", ["DEBUG", "RELEASE"]),
     ("CC", "C Compiler"),
     ("CXX", "C++ Compiler"),
     ("AS", "Assembler"),
@@ -14,8 +15,15 @@ objlib = Builder(action = 'ld -r -o $TARGET $SOURCES',
                  src_builder = 'StaticObject')
 
 env = Environment(options = opts, BUILDERS = {'ObjectLibrary' : objlib})
-env.Append(CXXFLAGS = "-std=c++11")
-env.Append(CPPFLAGS = "-g")
+env.Append(CXXFLAGS = ["-std=c++11"])
+env.Append(CPPFLAGS = ["-g"])
+
+if (env["BUILDTYPE"] == "DEBUG"):
+    env.Append(CPPFLAGS = ["-DCASTOR_DEBUG"])
+elif (env["BUILDTYPE"] == "RELEASE"):
+    env.Append(CPPFLAGS = ["-DCASTOR_RELEASE"])
+else:
+    print "Unknown BUILDTYPE"
 
 env.Append(CPPPATH = ["#include", "#include/" + env["RR"]])
 
