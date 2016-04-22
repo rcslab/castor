@@ -295,7 +295,7 @@ log_init()
 
     status = fstat(/* shmfd */3, &sb);
     if (status < 0) {
-	perror("fstat");
+	//perror("fstat");
 	OldInit();
 	return;
     }

@@ -16,6 +16,7 @@ usage()
     printf("  -c [cores]    Maximum number of application cores\n");
     printf("  -i            Interactive debug shell\n");
     printf("  -o [log]      Log file\n");
+    printf("  -s            Sandbox\n");
     printf("  -h            Help\n");
 }
 
@@ -29,7 +30,7 @@ main(int argc, char *argv[])
     bool interactive = false;
     const char *logfile;
 
-    while ((ch = getopt(argc, argv, "c:iho:")) != -1) {
+    while ((ch = getopt(argc, argv, "c:iho:s")) != -1) {
 	switch (ch) {
 	    case 'c': {
 		maxcpus = atoi(optarg);
@@ -45,6 +46,10 @@ main(int argc, char *argv[])
 	    }
 	    case 'o': {
 		logfile = optarg;
+		break;
+	    }
+	    case 's': {
+		sandboxed = true;
 		break;
 	    }
 	    default: {
