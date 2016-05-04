@@ -15,6 +15,7 @@ usage()
     printf("record [options] [program] [args]\n");
     printf("  -c [cores]    Maximum number of application cores\n");
     printf("  -o [log]      Log file\n");
+    printf("  -p            Pin threads\n");
     printf("  -h            Help\n");
 }
 
@@ -24,9 +25,10 @@ main(int argc, char *argv[])
     int ch;
     int maxcpus = 64;
     bool ft = false;
-    const char *logfile;
+    bool pinned = false;
+    const char *logfile = "default.rr";
 
-    while ((ch = getopt(argc, argv, "c:ho:")) != -1) {
+    while ((ch = getopt(argc, argv, "c:ho:p")) != -1) {
 	switch (ch) {
 	    case 'c': {
 		maxcpus = atoi(optarg);
@@ -38,6 +40,10 @@ main(int argc, char *argv[])
 	    }
 	    case 'o': {
 		logfile = optarg;
+		break;
+	    }
+	    case 'p': {
+		pinned = true;
 		break;
 	    }
 	    default: {
@@ -54,7 +60,9 @@ main(int argc, char *argv[])
 	exit(1);
     }
 
-    PinAgent();
+    if (pinned) {
+	PinAgent();
+    }
     if (ft) {
 	fprintf(stderr, "ft not supported");
 	abort();
@@ -63,7 +71,7 @@ main(int argc, char *argv[])
     }
 
     setenv("CASTOR_MODE", "RECORD", 1);
-    Spawn(maxcpus, argv);
+    Spawn(pinned, maxcpus, argv);
 
     RecordLog();
 }

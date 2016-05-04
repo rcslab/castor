@@ -12,10 +12,11 @@
 void
 usage()
 {
-    printf("record [options] [program] [args]\n");
+    printf("replay [options] [program] [args]\n");
     printf("  -c [cores]    Maximum number of application cores\n");
     printf("  -i            Interactive debug shell\n");
     printf("  -o [log]      Log file\n");
+    printf("  -p            Pin threads\n");
     printf("  -s            Sandbox\n");
     printf("  -h            Help\n");
 }
@@ -26,11 +27,12 @@ main(int argc, char *argv[])
     int ch;
     int maxcpus = 64;
     bool ft = false;
+    bool pinned = false;
     bool sandboxed = false;
     bool interactive = false;
-    const char *logfile;
+    const char *logfile = "default.rr";
 
-    while ((ch = getopt(argc, argv, "c:iho:s")) != -1) {
+    while ((ch = getopt(argc, argv, "c:iho:ps")) != -1) {
 	switch (ch) {
 	    case 'c': {
 		maxcpus = atoi(optarg);
@@ -46,6 +48,10 @@ main(int argc, char *argv[])
 	    }
 	    case 'o': {
 		logfile = optarg;
+		break;
+	    }
+	    case 'p': {
+		pinned = true;
 		break;
 	    }
 	    case 's': {
@@ -66,7 +72,9 @@ main(int argc, char *argv[])
 	exit(1);
     }
 
-    PinAgent();
+    if (pinned) {
+	PinAgent();
+    }
     if (ft) {
 	fprintf(stderr, "ft not supported");
 	abort();
@@ -78,7 +86,7 @@ main(int argc, char *argv[])
     if (sandboxed) {
 	setenv("CASTOR_SANDBOX", "1", 1);
     }
-    Spawn(maxcpus, argv);
+    Spawn(pinned, maxcpus, argv);
 
     if (interactive) {
 	CLI_Start();

@@ -54,7 +54,7 @@ PinProcess(int maxcpus)
 }
 
 void
-Spawn(int maxcpus, char *const argv[])
+Spawn(bool pinned, int maxcpus, char *const argv[])
 {
     int pid;
     int status;
@@ -68,7 +68,9 @@ Spawn(int maxcpus, char *const argv[])
 	return;
     }
 
-    PinProcess(maxcpus);
+    if (pinned) {
+	PinProcess(maxcpus);
+    }
 
     status = execvp(*argv, argv);
     perror("execv");

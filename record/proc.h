@@ -2,5 +2,5 @@
 void PinAgent();
 void PinProcess(int maxcpus);
 void Sandbox();
-void Spawn(int maxcpus, char *const argv[]);
+void Spawn(bool pinned, int maxcpus, char *const argv[]);
 
