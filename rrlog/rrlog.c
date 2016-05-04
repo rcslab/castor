@@ -19,13 +19,16 @@ static RRLogEntry entry;
 struct {
     uint32_t	evtid;
     const char* str;
+    uint64_t	count;
 } rreventTable[] =
 {
-#define RREVENT(_a, _b) { RREVENT_##_a, #_a },
+#define RREVENT(_a, _b) { RREVENT_##_a, #_a, 0 },
     RREVENT_TABLE
 #undef RREVENT
     { 0, 0 }
 };
+
+uint64_t eventsPerThread[RRLOG_MAX_THREADS];
 
 void dumpEntry()
 {
@@ -35,9 +38,12 @@ void dumpEntry()
     for (i = 0; rreventTable[i].str != 0; i++) {
 	if (rreventTable[i].evtid == entry.event) {
 	    evtStr = rreventTable[i].str;
+	    rreventTable[i].count++;
 	    break;
 	}
     }
+
+    eventsPerThread[entry.threadId] += 1;
 
     printf("%016ld  %08x  %-16s  %016lx  %016lx  %016lx  %016lx  %016lx  %016lx\n",
 	    entry.eventId, entry.threadId, evtStr, entry.objectId,
@@ -47,6 +53,7 @@ void dumpEntry()
 
 int main(int argc, const char *argv[])
 {
+    int i;
     int flags = O_RDWR;
 
     if (argc != 2) {
@@ -58,6 +65,10 @@ int main(int argc, const char *argv[])
     if (logfd < 0) {
 	perror("open");
 	return 1;
+    }
+
+    for (i = 0; i < RRLOG_MAX_THREADS; i++) {
+	eventsPerThread[i] = 0;
     }
 
     printf("%-16s  %-8s  %-16s  %-16s  %-16s  %-16s  %-16s  %-16s  %-16s\n",
@@ -73,6 +84,18 @@ int main(int argc, const char *argv[])
 	    break;
 
 	dumpEntry();
+    }
+
+    printf("\n%-16s      %s\n", "Event", "Count");
+    for (i = 0; rreventTable[i].str != 0; i++) {
+	if (rreventTable[i].count != 0) {
+	    printf("%-16s      %lu\n", rreventTable[i].str, rreventTable[i].count);
+	}
+    }
+
+    printf("\n%-8s      %s\n", "Thread", "# Events");
+    for (i = 0; i < RRLOG_MAX_THREADS; i++) {
+	printf("%-8d      %lu\n", i, eventsPerThread[i]);
     }
 
     return 0;
