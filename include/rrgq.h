@@ -9,7 +9,7 @@
 #include "rrlog.h"
 
 // Tunables
-#define RRGQ_MAX_ENTRIES	(64 * PAGESIZE / CACHELINE)
+#define RRGQ_MAX_ENTRIES	(4096 * PAGESIZE / CACHELINE)
 
 typedef struct RRGlobalQueue {
     alignas(CACHELINE) volatile uint64_t	head; // Next event to be written
@@ -39,7 +39,8 @@ RRGlobalQueue_Append(RRGlobalQueue *rrgq, RRLogEntry *rrentry)
     volatile RRLogEntry *e = &rrgq->entries[rrgq->head % RRGQ_MAX_ENTRIES];
 
     while ((rrgq->head - rrgq->tail) >= (RRGQ_MAX_ENTRIES - 1)) {
-	__asm__ volatile("pause\n");
+	pthread_yield();
+	//__asm__ volatile("pause\n");
     }
 
     // Copy data

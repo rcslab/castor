@@ -6,7 +6,7 @@ opts.AddVariables(
     ("CXX", "C++ Compiler"),
     ("AS", "Assembler"),
     ("LINK", "Linker"),
-    EnumVariable("RR", "R/R Type", "ctr", ["ctr", "tsx"])
+    EnumVariable("RR", "R/R Type", "ctr", ["ctr", "tsc", "tsx"])
 )
 
 objlib = Builder(action = 'ld -r -o $TARGET $SOURCES',
