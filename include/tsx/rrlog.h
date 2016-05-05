@@ -5,40 +5,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdalign.h>
-
-#include "../archconfig.h"
-
-// Tunables
-#define RRLOG_MAX_THREADS	16
-#define RRLOG_MAX_ENTRIES	(PAGESIZE / CACHELINE - 2)
-
-typedef struct RRLogEntry {
-    alignas(CACHELINE) uint64_t		eventId;
-    uint64_t				objectId;
-    uint32_t				event;
-    uint32_t				threadId;
-    uint64_t				value[5];
-} RRLogEntry;
-
-static_assert(alignof(RRLogEntry) == CACHELINE, "RRLogEntry must be cache line aligned");
-static_assert(sizeof(RRLogEntry) == CACHELINE, "RRLogEntry must be cache line sized");
-
-typedef struct RRLogThread {
-    alignas(CACHELINE) volatile uint64_t	freeOff; // Next free entry
-    alignas(CACHELINE) volatile uint64_t	usedOff; // Next entry to consume
-    alignas(CACHELINE) volatile RRLogEntry	entries[RRLOG_MAX_ENTRIES];
-} RRLogThread;
-
-static_assert(alignof(RRLogThread) == CACHELINE, "RRLogThread must be page aligned");
-static_assert(sizeof(RRLogThread) == PAGESIZE, "RRLogThread must be page sized");
-
-typedef struct RRLog {
-    alignas(CACHELINE) volatile uint64_t nextEvent; // Next event to be read
-    alignas(CACHELINE) volatile uint64_t lastEvent; // Last event to be allocated
-    alignas(PAGESIZE) RRLogThread threads[RRLOG_MAX_THREADS];
-} RRLog;
-
-static_assert(alignof(RRLog) == PAGESIZE, "RRLog must be page aligned");
+#include <archconfig.h>
 
 /*
  * Record Log - Multiple-Writer Single-Reader Queue

@@ -6,7 +6,8 @@ opts.AddVariables(
     ("CXX", "C++ Compiler"),
     ("AS", "Assembler"),
     ("LINK", "Linker"),
-    EnumVariable("RR", "R/R Type", "ctr", ["ctr", "tsc", "tsx"])
+    EnumVariable("RR", "R/R Type", "ctr", ["ctr", "tsc", "tsx"]),
+    EnumVariable("CFG", "R/R Log Config", "ft", ["ft", "dbg", "snap"])
 )
 
 objlib = Builder(action = 'ld -r -o $TARGET $SOURCES',
@@ -24,6 +25,15 @@ elif (env["BUILDTYPE"] == "RELEASE"):
     env.Append(CPPFLAGS = ["-DCASTOR_RELEASE"])
 else:
     print "Unknown BUILDTYPE"
+
+if (env["CFG"] == "ft"):
+    env.Append(CPPFLAGS = ["-DCASTOR_FT"])
+elif (env["CFG"] == "dbg"):
+    env.Append(CPPFLAGS = ["-DCASTOR_DBG"])
+elif (env["CFG"] == "snap"):
+    env.Append(CPPFLAGS = ["-DCASTOR_SNAP"])
+else:
+    print "Unknown CFG"
 
 env.Append(CPPPATH = ["#include", "#include/" + env["RR"]])
 

@@ -5,48 +5,11 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdalign.h>
+#include <archconfig.h>
 
 #ifdef CASTOR_DEBUG
 #define RRLOG_DEBUG		1
 #endif
-
-// XXX: Get this from architecture specific headers
-#define PAGESIZE		4096
-#define CACHELINE		64
-
-// Tunables
-#define RRLOG_MAX_THREADS	8
-#define RRLOG_MAX_ENTRIES	(PAGESIZE / CACHELINE - 4)
-
-typedef struct RRLogEntry {
-    alignas(CACHELINE) uint64_t		eventId;
-    uint64_t				objectId;
-    uint32_t				event;
-    uint32_t				threadId;
-    uint64_t				value[5];
-} RRLogEntry;
-
-static_assert(alignof(RRLogEntry) == CACHELINE, "RRLogEntry must be cache line aligned");
-static_assert(sizeof(RRLogEntry) == CACHELINE, "RRLogEntry must be cache line sized");
-
-typedef struct RRLogThread {
-    alignas(CACHELINE) volatile uint64_t	freeOff; // Next free entry
-    alignas(CACHELINE) volatile uint64_t	usedOff; // Next entry to consume
-    alignas(CACHELINE) volatile uint64_t	status; // Debugging
-    alignas(CACHELINE) volatile uint64_t	_rsvd;
-    alignas(CACHELINE) volatile RRLogEntry	entries[RRLOG_MAX_ENTRIES];
-} RRLogThread;
-
-static_assert(alignof(RRLogThread) == CACHELINE, "RRLogThread must be page aligned");
-static_assert(sizeof(RRLogThread) == PAGESIZE, "RRLogThread must be page sized");
-
-typedef struct RRLog {
-    alignas(CACHELINE) volatile uint64_t nextEvent; // Next event to be read
-    alignas(CACHELINE) volatile uint64_t lastEvent; // Last event to be allocated
-    alignas(PAGESIZE) RRLogThread threads[RRLOG_MAX_THREADS];
-} RRLog;
-
-static_assert(alignof(RRLog) == PAGESIZE, "RRLog must be page aligned");
 
 /*
  * Record Log - Multiple-Writer Single-Reader Queue
