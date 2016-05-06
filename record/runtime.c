@@ -66,14 +66,38 @@ SystemWrite(int fd, const void *buf, size_t nbytes)
 void *
 DrainQueue(void *arg)
 {
+    uint64_t i = 0;
     uint64_t thrDone = 0;
 
     while (1) {
 	RRLogEntry *entry = NULL;
 
+#if defined(CASTOR_CTR)
 	do {
 	    entry = RRLog_Dequeue(rrlog);
 	} while (entry == NULL);
+#elif defined(CASTOR_TSC) || defined(CASTOR_TSX)
+
+#if defined(CASTOR_FT)
+	do {
+	    entry = RRLogThreadDequeue(&rrlog->threads[i % RRLOG_MAX_THREADS]);
+	    i++;
+	} while (entry == NULL);
+#elif defined(CASTOR_DBG) || defined(CASTOR_SNAP)
+	do {
+	    entry = RRLog_Dequeue(rrlog);
+	    if (entry)
+		break;
+
+	    pthread_yield();
+	} while (1);
+#else
+#error "Unknown mode"
+#endif
+
+#else
+#error "Unknown backend"
+#endif
 
 	RRGlobalQueue_Append(&rrgq, entry);
 

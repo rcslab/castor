@@ -26,6 +26,15 @@ elif (env["BUILDTYPE"] == "RELEASE"):
 else:
     print "Unknown BUILDTYPE"
 
+if (env["RR"] == "ctr"):
+    env.Append(CPPFLAGS = ["-DCASTOR_CTR"])
+elif (env["RR"] == "tsc"):
+    env.Append(CPPFLAGS = ["-DCASTOR_TSC"])
+elif (env["RR"] == "tsx"):
+    env.Append(CPPFLAGS = ["-DCASTOR_TSX"])
+else:
+    print "Unknown RR"
+
 if (env["CFG"] == "ft"):
     env.Append(CPPFLAGS = ["-DCASTOR_FT"])
 elif (env["CFG"] == "dbg"):
