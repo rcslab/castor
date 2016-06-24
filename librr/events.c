@@ -95,18 +95,6 @@ int _pthread_mutex_lock(pthread_mutex_t *mtx);
 
 
 
-int	 __sys_setuid(uid_t);
-uid_t __sys_getuid(void);
-//uid_t	 geteuid(void);
-
-__strong_reference(__sys_setuid, setuid);
-__strong_reference(__sys_getuid, getuid);
-//__strong_reference(__sys_geteuid, geteuid);
-/* __strong_reference(__sys_setreuid, setreuid); */
-/* __strong_reference(__sys_seteuid, seteuid); */
-/* __strong_reference(__sys_setresuid, setresuid); */
-/* __strong_reference(__sys_getresuid, getresuid); */
-
 __strong_reference(__sys_open, _open);
 __strong_reference(__rr_openat, openat);
 __strong_reference(__rr_openat, _openat);
@@ -1264,29 +1252,38 @@ __rr_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
     return result;
 }
 
-/* uid */
+/* set/get id*/
+int	 __sys_setuid(uid_t);
+int  __sys_seteuid(uid_t);
+int  __sys_setgid(gid_t);
+int  __sys_setegid(gid_t);
 
-int	__sys_setuid(uid_t arg0)
+__strong_reference(__sys_setuid, setuid);
+__strong_reference(__sys_seteuid, seteuid);
+__strong_reference(__sys_setgid, setgid);
+__strong_reference(__sys_setegid, setegid);
+
+static inline int id_set(unsigned int syscallNum, unsigned int eventNum, id_t id)
 {
     int result;
     RRLogEntry *e;
 
     if (rrMode == RRMODE_NORMAL) {
-	return syscall(SYS_setuid, arg0);
+	return syscall(syscallNum, id);
     }
 
     if (rrMode == RRMODE_RECORD) {
-	result = syscall(SYS_setuid, arg0);
+	result = syscall(syscallNum, id);
 
 	e = RRLog_Alloc(rrlog, threadId);
-	e->event = RREVENT_SETUID;
+	e->event = eventNum;
 	e->threadId = threadId;
-	e->objectId = arg0;
+	e->objectId = id;
 	e->value[0] = result;
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
-	AssertEvent(e, RREVENT_SETUID);
+	AssertEvent(e, eventNum);
 	result = e->value[0];
 	RRPlay_Free(rrlog, e);
     }
@@ -1294,31 +1291,49 @@ int	__sys_setuid(uid_t arg0)
     return result;
 }
 
-uid_t __sys_getuid(void)
+int	__sys_setuid(uid_t uid)   { return id_set(SYS_setuid,  RREVENT_SETUID, uid); }
+int	__sys_seteuid(uid_t euid) { return id_set(SYS_seteuid, RREVENT_SETEUID, euid); }
+int	__sys_setgid(gid_t gid)   { return id_set(SYS_setgid,  RREVENT_SETGID, gid); }
+int	__sys_setegid(gid_t egid) { return id_set(SYS_setegid, RREVENT_SETEGID, egid); }
+
+uid_t __sys_getuid(void);
+uid_t __sys_geteuid(void);
+gid_t __sys_getgid(void);
+gid_t __sys_getegid(void);
+
+__strong_reference(__sys_getuid, getuid);
+__strong_reference(__sys_geteuid, geteuid);
+__strong_reference(__sys_getgid, getgid);
+__strong_reference(__sys_getegid, getegid);
+
+static inline id_t id_get(unsigned int syscallNum, unsigned int eventNum)
 {
     int result;
     RRLogEntry *e;
 
     if (rrMode == RRMODE_NORMAL) {
-	return syscall(SYS_getuid);
+	return syscall(syscallNum);
     }
 
     if (rrMode == RRMODE_RECORD) {
-	result = syscall(SYS_getuid);
+	result = syscall(syscallNum);
 
 	e = RRLog_Alloc(rrlog, threadId);
-	e->event = RREVENT_GETUID;
+	e->event = eventNum;
 	e->threadId = threadId;
 	e->objectId = 0;
 	e->value[0] = result;
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
-	AssertEvent(e, RREVENT_GETUID);
+	AssertEvent(e, eventNum);
 	result = e->value[0];
 	RRPlay_Free(rrlog, e);
     }
     return result;
 }
 
-
+uid_t __sys_getuid(void)  { return id_get(SYS_getuid, RREVENT_GETUID); }
+uid_t __sys_geteuid(void) { return id_get(SYS_geteuid, RREVENT_GETEUID); }
+uid_t __sys_getgid(void)  { return id_get(SYS_getgid, RREVENT_GETGID); }
+uid_t __sys_getegid(void) { return id_get(SYS_getegid, RREVENT_GETEGID); }
