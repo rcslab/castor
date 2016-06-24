@@ -66,6 +66,7 @@ extern interpos_func_t __libc_interposing[] __hidden;
 int __sys_open(const char *path, int flags, ...);
 int __rr_openat(int fd, const char *path, int flags, ...);
 int __sys_close(int fd);
+
 ssize_t __sys_read(int fd, void *buf, size_t nbytes);
 ssize_t __sys_write(int fd, const void *buf, size_t nbytes);
 int __sys_ioctl(int fd, unsigned long request, ...);
@@ -91,6 +92,20 @@ int __kevent(int kq, const struct kevent *changelist, int nchanges,
 void *__rr_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
 
 int _pthread_mutex_lock(pthread_mutex_t *mtx);
+
+
+
+int	 __sys_setuid(uid_t);
+uid_t __sys_getuid(void);
+//uid_t	 geteuid(void);
+
+__strong_reference(__sys_setuid, setuid);
+__strong_reference(__sys_getuid, getuid);
+//__strong_reference(__sys_geteuid, geteuid);
+/* __strong_reference(__sys_setreuid, setreuid); */
+/* __strong_reference(__sys_seteuid, seteuid); */
+/* __strong_reference(__sys_setresuid, setresuid); */
+/* __strong_reference(__sys_getresuid, getresuid); */
 
 __strong_reference(__sys_open, _open);
 __strong_reference(__rr_openat, openat);
@@ -596,6 +611,8 @@ __rr_openat(int fd, const char *path, int flags, ...)
 
     return result;
 }
+
+
 
 int
 __sys_close(int fd)
@@ -1246,4 +1263,62 @@ __rr_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 
     return result;
 }
+
+/* uid */
+
+int	__sys_setuid(uid_t arg0)
+{
+    int result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_setuid, arg0);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_setuid, arg0);
+
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_SETUID;
+	e->threadId = threadId;
+	e->objectId = arg0;
+	e->value[0] = result;
+	RRLog_Append(rrlog, e);
+    } else {
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_SETUID);
+	result = e->value[0];
+	RRPlay_Free(rrlog, e);
+    }
+
+    return result;
+}
+
+uid_t __sys_getuid(void)
+{
+    int result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_getuid);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_getuid);
+
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_GETUID;
+	e->threadId = threadId;
+	e->objectId = 0;
+	e->value[0] = result;
+	RRLog_Append(rrlog, e);
+    } else {
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_GETUID);
+	result = e->value[0];
+	RRPlay_Free(rrlog, e);
+    }
+    return result;
+}
+
 
