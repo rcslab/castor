@@ -1,7 +1,6 @@
 
 #ifndef __RREVENT_H__
 #define __RREVENT_H__
-#include <sys/types.h>
 
 #define RREVENT_TABLE\
     RREVENT(EXIT,		0x55AA55AA)\
