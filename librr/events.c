@@ -1263,7 +1263,7 @@ __strong_reference(__sys_seteuid, seteuid);
 __strong_reference(__sys_setgid, setgid);
 __strong_reference(__sys_setegid, setegid);
 
-static inline int id_set(unsigned int syscallNum, unsigned int eventNum, id_t id)
+static inline int id_set(int syscallNum, uint32_t eventNum, id_t id)
 {
     int result;
     RRLogEntry *e;
@@ -1291,10 +1291,25 @@ static inline int id_set(unsigned int syscallNum, unsigned int eventNum, id_t id
     return result;
 }
 
-int	__sys_setuid(uid_t uid)   { return id_set(SYS_setuid,  RREVENT_SETUID, uid); }
-int	__sys_seteuid(uid_t euid) { return id_set(SYS_seteuid, RREVENT_SETEUID, euid); }
-int	__sys_setgid(gid_t gid)   { return id_set(SYS_setgid,  RREVENT_SETGID, gid); }
-int	__sys_setegid(gid_t egid) { return id_set(SYS_setegid, RREVENT_SETEGID, egid); }
+int	__sys_setuid(uid_t uid)
+{
+    return id_set(SYS_setuid, RREVENT_SETUID, uid);
+}
+
+int	__sys_seteuid(uid_t euid)
+{
+    return id_set(SYS_seteuid, RREVENT_SETEUID, euid);
+}
+
+int	__sys_setgid(gid_t gid)
+{
+    return id_set(SYS_setgid, RREVENT_SETGID, gid);
+}
+
+int	__sys_setegid(gid_t egid)
+{
+    return id_set(SYS_setegid, RREVENT_SETEGID, egid);
+}
 
 uid_t __sys_getuid(void);
 uid_t __sys_geteuid(void);
@@ -1306,7 +1321,7 @@ __strong_reference(__sys_geteuid, geteuid);
 __strong_reference(__sys_getgid, getgid);
 __strong_reference(__sys_getegid, getegid);
 
-static inline id_t id_get(unsigned int syscallNum, unsigned int eventNum)
+static inline id_t id_get(int syscallNum, uint32_t eventNum)
 {
     int result;
     RRLogEntry *e;
@@ -1333,7 +1348,22 @@ static inline id_t id_get(unsigned int syscallNum, unsigned int eventNum)
     return result;
 }
 
-uid_t __sys_getuid(void)  { return id_get(SYS_getuid, RREVENT_GETUID); }
-uid_t __sys_geteuid(void) { return id_get(SYS_geteuid, RREVENT_GETEUID); }
-uid_t __sys_getgid(void)  { return id_get(SYS_getgid, RREVENT_GETGID); }
-uid_t __sys_getegid(void) { return id_get(SYS_getegid, RREVENT_GETEGID); }
+uid_t __sys_getuid(void)
+{
+    return id_get(SYS_getuid, RREVENT_GETUID);
+}
+
+uid_t __sys_geteuid(void)
+{
+    return id_get(SYS_geteuid, RREVENT_GETEUID);
+}
+
+gid_t __sys_getgid(void)
+{
+    return id_get(SYS_getgid, RREVENT_GETGID);
+}
+
+gid_t __sys_getegid(void)
+{
+    return id_get(SYS_getegid, RREVENT_GETEGID);
+}
