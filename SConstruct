@@ -16,6 +16,8 @@ objlib = Builder(action = 'ld -r -o $TARGET $SOURCES',
                  src_builder = 'StaticObject')
 
 env = Environment(options = opts, BUILDERS = {'ObjectLibrary' : objlib})
+Help(opts.GenerateHelpText(env))
+
 env.Append(CXXFLAGS = ["-std=c++11"])
 env.Append(CPPFLAGS = ["-Wall", "-Werror", "-g", "-O2"])
 
