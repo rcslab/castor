@@ -27,9 +27,6 @@
 
 extern void Events_Init();
 
-#define GLOBALLOG_LENGTH	(4*1024*1024)
-
-static RRLogEntry *globalLog;
 static uint64_t logOffset;
 RRLog *rrlog;
 static alignas(PAGESIZE) RRGlobalQueue rrgq;
@@ -41,7 +38,6 @@ static bool volatile primeSawExit = false;
 atomic_bool drainDone = false;
 bool ftMode = false;
 enum RRMODE rrMode = RRMODE_NORMAL;
-static volatile int nextThreadId = 1;
 thread_local int threadId = 0; //-1;
 
 extern int
@@ -70,7 +66,6 @@ SystemWrite(int fd, const void *buf, size_t nbytes)
 void *
 DrainQueue(void *arg)
 {
-    uint64_t thrDone = 0;
     logOffset = 0;
 
     while (1) {

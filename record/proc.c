@@ -8,8 +8,6 @@
 #include <sys/cpuset.h>
 #include <sys/capsicum.h>
 
-static cpuset_t avail;
-
 void
 PinAgent()
 {

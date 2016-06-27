@@ -22,11 +22,9 @@ static_assert(alignof(RRGlobalQueue) == CACHELINE, "RRGlobalQueue must be page a
 /*
  * Record/Replay Global Queue - Single-Writer Single-Reader Queue
  */
-static void
+static inline void
 RRGlobalQueue_Init(RRGlobalQueue *rrgq)
 {
-    int i;
-
     assert((uintptr_t)rrgq % CACHELINE == 0);
 
     rrgq->head = 0;

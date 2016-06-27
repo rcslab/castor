@@ -77,10 +77,7 @@ RRFT_InitMaster()
 void
 RRFT_InitSlave(const char *hostname)
 {
-    int lsock;
-    int clilen;
     struct sockaddr_in srvaddr;
-    struct sockaddr_in cliaddr;
 
     rrsock = socket(AF_INET, SOCK_STREAM, 0);
     if (rrsock < 0) {

@@ -16,6 +16,7 @@ using namespace std;
 
 class Snapshot
 {
+public:
     uint64_t		tsc;
     uint64_t		memOffset;
     uint64_t		logOffset;
@@ -24,6 +25,7 @@ class Snapshot
 
 class SnapshotRegion
 {
+public:
     uint64_t		vaddr;
     uint64_t		memOffset;
     uint64_t		length;

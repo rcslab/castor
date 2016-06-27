@@ -13,6 +13,9 @@
 
 #include <histedit.h>
 
+#include "runtime.h"
+#include "cli.h"
+
 #define MAX_LEN  64
 #define MAX_ARGS 5
 

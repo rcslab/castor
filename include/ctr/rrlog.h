@@ -14,7 +14,7 @@
 /*
  * Record Log - Multiple-Writer Single-Reader Queue
  */
-static void
+static inline void
 RRLog_Init(RRLog *rrlog)
 {
     int i;

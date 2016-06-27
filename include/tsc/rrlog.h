@@ -14,7 +14,7 @@
 /*
  * Record Log - Multiple-Writer Single-Reader Queue
  */
-static void
+static inline void
 RRLog_Init(RRLog *rrlog)
 {
     int i;
@@ -73,7 +73,6 @@ static inline RRLogEntry *
 RRLog_Dequeue(RRLog *rrlog)
 {
     int i;
-    uint64_t nextEvent = rrlog->nextEvent;
     RRLogEntry *entry;
 
     for (i = 0; i < RRLOG_MAX_THREADS; i++) {

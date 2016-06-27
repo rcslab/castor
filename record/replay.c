@@ -8,6 +8,7 @@
 
 #include "proc.h"
 #include "runtime.h"
+#include "cli.h"
 
 void
 usage()

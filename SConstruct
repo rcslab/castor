@@ -17,7 +17,7 @@ objlib = Builder(action = 'ld -r -o $TARGET $SOURCES',
 
 env = Environment(options = opts, BUILDERS = {'ObjectLibrary' : objlib})
 env.Append(CXXFLAGS = ["-std=c++11"])
-env.Append(CPPFLAGS = ["-g", "-O2"])
+env.Append(CPPFLAGS = ["-Wall", "-Werror", "-g", "-O2"])
 
 if (env["BUILDTYPE"] == "DEBUG"):
     env.Append(CPPFLAGS = ["-DCASTOR_DEBUG"])

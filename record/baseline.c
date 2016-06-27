@@ -5,6 +5,8 @@
 #include <stdlib.h>
 
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include "proc.h"
 #include "runtime.h"
@@ -24,7 +26,6 @@ main(int argc, char *argv[])
     int ch;
     int maxcpus = 64;
     bool pinned = false;
-    const char *logfile = "default.rr";
 
     while ((ch = getopt(argc, argv, "c:ho:p")) != -1) {
 	switch (ch) {
@@ -58,7 +59,7 @@ main(int argc, char *argv[])
 	PinAgent();
     }
 
-    int pid = Spawn(pinned, maxcpus, argv);
-    wait();
+    Spawn(pinned, maxcpus, argv);
+    wait(NULL);
 }
 

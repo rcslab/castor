@@ -66,8 +66,9 @@ SystemWrite(int fd, const void *buf, size_t nbytes)
 void *
 DrainQueue(void *arg)
 {
+#if !defined(CASTOR_CTR)
     uint64_t i = 0;
-    uint64_t thrDone = 0;
+#endif
 
     while (1) {
 	RRLogEntry *entry = NULL;

@@ -642,7 +642,6 @@ __sys_read(int fd, void *buf, size_t nbytes)
     }
 
     if (rrMode == RRMODE_RECORD) {
-	int left;
 	result = syscall(SYS_read, fd, buf, nbytes);
 
 	e = RRLog_Alloc(rrlog, threadId);
@@ -771,7 +770,6 @@ __rr_fstat(int fd, struct stat *sb)
     }
 
     if (rrMode == RRMODE_RECORD) {
-	int left;
 	result = syscall(SYS_fstat, fd, sb);
 
 	e = RRLog_Alloc(rrlog, threadId);
@@ -841,7 +839,6 @@ int __rr_sysctl(const int *name, u_int namelen, void *oldp,
     }
 
     if (rrMode == RRMODE_RECORD) {
-	int left;
 	result = syscall(SYS___sysctl, name, namelen, oldp, oldlenp, newp, newlen);
 
 	e = RRLog_Alloc(rrlog, threadId);
