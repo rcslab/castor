@@ -1,0 +1,2 @@
+#!/usr/local/bin/bash
+(grep '__strong' ../librr/events.c | cut -d',' -f2 | cut -d')' -f1 | sed 's/^[ _]*//'; grep INTERPOS_ ../librr/events.c | cut -d'[' -f2 | cut -d']' -f1 | sed 's/INTERPOS_//') | sort | uniq

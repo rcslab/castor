@@ -1,0 +1,9 @@
+#!/bin/sh
+if [ -z $1 ]
+  then
+  echo "Shows syscall in a given binary that are unsupported."
+  echo "usage: unsupported /usr/local/bin/node"
+  exit 1
+fi
+
+((./supported; ./undefined-syscalls $1) | sort | uniq -d; ./undefined-syscalls $1) | sort | uniq -u

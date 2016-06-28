@@ -1,0 +1,8 @@
+#!/usr/local/bin/bash
+if [ -z $1 ]
+  then
+  echo "Shows undefined symbols that are syscalls."
+  echo "usage: undefined-syscalls /usr/local/bin/node"
+  exit 1
+fi
+(nm -D $1 | grep ' U ' | awk '{print$2}' ; cat /usr/include/sys/syscall.h | cut -f2 | sed 's/SYS_//' | grep -v '^$' ; ) | sort | uniq -d
