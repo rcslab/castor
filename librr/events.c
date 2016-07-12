@@ -1249,8 +1249,79 @@ __rr_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
     return result;
 }
 
+int __sys_getgroups(int gidsetlen, gid_t *gidset);
+int __sys_setgroups(int ngroups, const gid_t *gidset);
+
+__strong_reference(__sys_getgroups, getgroups);
+__strong_reference(__sys_setgroups, setgroups);
+
+int
+__sys_getgroups(int gidsetlen, gid_t *gidset)
+{
+    int result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_getgroups, gidsetlen, gidset);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_getgroups, gidsetlen, gidset);
+
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_GETGROUPS;
+	e->threadId = threadId;
+	e->objectId = 0;
+	e->value[0] = result;
+	RRLog_Append(rrlog, e);
+	if (result > 0) {
+	    logData((uint8_t *)gidset, result * sizeof(gid_t));
+	}
+    } else {
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_GETGROUPS);
+	result = e->value[0];
+	RRPlay_Free(rrlog, e);
+	if (result > 0) {
+	    logData((uint8_t *)gidset, result * sizeof(gid_t));
+	}
+    }
+
+    return result;
+}
+
+
+int
+__sys_setgroups(int ngroups, const gid_t *gidset)
+{
+    int result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_setgroups, ngroups, gidset);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_setgroups, ngroups, gidset);
+
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_SETGROUPS;
+	e->threadId = threadId;
+	e->objectId = 0;
+	e->value[0] = result;
+	RRLog_Append(rrlog, e);
+    } else {
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_SETGROUPS);
+	result = e->value[0];
+	RRPlay_Free(rrlog, e);
+    }
+
+    return result;
+}
+
 /* set/get id*/
-int	 __sys_setuid(uid_t);
+int  __sys_setuid(uid_t);
 int  __sys_seteuid(uid_t);
 int  __sys_setgid(gid_t);
 int  __sys_setegid(gid_t);
@@ -1288,22 +1359,26 @@ static inline int id_set(int syscallNum, uint32_t eventNum, id_t id)
     return result;
 }
 
-int	__sys_setuid(uid_t uid)
+int
+__sys_setuid(uid_t uid)
 {
     return id_set(SYS_setuid, RREVENT_SETUID, uid);
 }
 
-int	__sys_seteuid(uid_t euid)
+int
+__sys_seteuid(uid_t euid)
 {
     return id_set(SYS_seteuid, RREVENT_SETEUID, euid);
 }
 
-int	__sys_setgid(gid_t gid)
+int
+__sys_setgid(gid_t gid)
 {
     return id_set(SYS_setgid, RREVENT_SETGID, gid);
 }
 
-int	__sys_setegid(gid_t egid)
+int
+__sys_setegid(gid_t egid)
 {
     return id_set(SYS_setegid, RREVENT_SETEGID, egid);
 }
@@ -1318,7 +1393,8 @@ __strong_reference(__sys_geteuid, geteuid);
 __strong_reference(__sys_getgid, getgid);
 __strong_reference(__sys_getegid, getegid);
 
-static inline id_t id_get(int syscallNum, uint32_t eventNum)
+static inline id_t
+id_get(int syscallNum, uint32_t eventNum)
 {
     int result;
     RRLogEntry *e;
@@ -1345,22 +1421,26 @@ static inline id_t id_get(int syscallNum, uint32_t eventNum)
     return result;
 }
 
-uid_t __sys_getuid(void)
+uid_t
+__sys_getuid(void)
 {
     return id_get(SYS_getuid, RREVENT_GETUID);
 }
 
-uid_t __sys_geteuid(void)
+uid_t
+__sys_geteuid(void)
 {
     return id_get(SYS_geteuid, RREVENT_GETEUID);
 }
 
-gid_t __sys_getgid(void)
+gid_t
+__sys_getgid(void)
 {
     return id_get(SYS_getgid, RREVENT_GETGID);
 }
 
-gid_t __sys_getegid(void)
+gid_t
+__sys_getegid(void)
 {
     return id_get(SYS_getegid, RREVENT_GETEGID);
 }
