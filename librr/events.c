@@ -1360,6 +1360,25 @@ __sys_symlink(const char *name1, const char *name2) {
     return result;
 }
 
+int
+__sys_unlink(const char *path) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_unlink, path);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_unlink, path);
+	    RRRecordI(RREVENT_UNLINK, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_UNLINK, &result);
+	    break;
+    }
+
+    return result;
+}
+
 void
 Events_Init()
 {
@@ -1403,3 +1422,4 @@ __strong_reference(__sys_getgroups, getgroups);
 __strong_reference(__sys_setgroups, setgroups);
 __strong_reference(__sys_link, link);
 __strong_reference(__sys_symlink, symlink);
+__strong_reference(__sys_unlink, unlink);
