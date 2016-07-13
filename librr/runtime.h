@@ -8,8 +8,8 @@ enum RRMODE {
     RRMODE_NORMAL, // Normal
     RRMODE_RECORD, // Debug Recording
     RRMODE_REPLAY, // Replay
-    RRMODE_FDREPLAY, // Replay (Real Files)
-    RRMODE_FTREPLAY, // Replay (Fault Tolerance)
+    //RRMODE_FDREPLAY, // Replay (Real Files)
+    //RRMODE_FTREPLAY, // Replay (Fault Tolerance)
 };
 
 extern enum RRMODE rrMode;

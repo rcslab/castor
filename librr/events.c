@@ -286,9 +286,6 @@ pthread_mutex_init(pthread_mutex_t *mtx, const pthread_mutexattr_t *attr)
 	    AssertEvent(e, RREVENT_MUTEX_INIT);
 	    RRPlay_Free(rrlog, e);
 	    break;
-	case RRMODE_FDREPLAY:
-	case RRMODE_FTREPLAY:
-	    break;
     }
     return _pthread_mutex_init(mtx, attr);
 }
@@ -312,9 +309,6 @@ pthread_mutex_destroy(pthread_mutex_t *mtx)
 	    e = RRPlay_Dequeue(rrlog, threadId);
 	    AssertEvent(e, RREVENT_MUTEX_DESTROY);
 	    RRPlay_Free(rrlog, e);
-	    break;
-	case RRMODE_FDREPLAY:
-	case RRMODE_FTREPLAY:
 	    break;
     }
 
@@ -356,20 +350,22 @@ _pthread_mutex_lock(pthread_mutex_t *mtx)
 	    RRPlay_LFree(e);
 	    break;
 	}
-	case RRMODE_FDREPLAY: {
-	    e = RRLog_Alloc(rrlog, threadId);
-	    e->objectId = 1;
-	    e->threadId = threadId;
-	    result = _pthread_mutex_lock(mtx);
-	    RRLog_Append(rrlog, e);
-	    break;
-	}
-	case RRMODE_FTREPLAY: {
-	    e = RRPlay_Dequeue(rrlog, threadId);
-	    result = _pthread_mutex_lock(mtx);
-	    RRPlay_Free(rrlog, e);
-	    break;
-	}
+	/*
+	 * case RRMODE_FDREPLAY: {
+	 *     e = RRLog_Alloc(rrlog, threadId);
+	 *     e->objectId = 1;
+	 *     e->threadId = threadId;
+	 *     result = _pthread_mutex_lock(mtx);
+	 *     RRLog_Append(rrlog, e);
+	 *     break;
+	 * }
+	 * case RRMODE_FTREPLAY: {
+	 *     e = RRPlay_Dequeue(rrlog, threadId);
+	 *     result = _pthread_mutex_lock(mtx);
+	 *     RRPlay_Free(rrlog, e);
+	 *     break;
+	 * }
+	 */
     }
 
     return result;
@@ -404,20 +400,22 @@ pthread_mutex_trylock(pthread_mutex_t *mtx)
 	    RRPlay_Free(rrlog, e);
 	    break;
 	}
-	case RRMODE_FDREPLAY: {
-	    e = RRLog_Alloc(rrlog, threadId);
-	    e->objectId = 1;
-	    e->threadId = threadId;
-	    result = _pthread_mutex_trylock(mtx);
-	    RRLog_Append(rrlog, e);
-	    break;
-	}
-	case RRMODE_FTREPLAY: {
-	    e = RRPlay_Dequeue(rrlog, threadId);
-	    result = _pthread_mutex_trylock(mtx);
-	    RRPlay_Free(rrlog, e);
-	    break;
-	}
+	/*
+	 * case RRMODE_FDREPLAY: {
+	 *     e = RRLog_Alloc(rrlog, threadId);
+	 *     e->objectId = 1;
+	 *     e->threadId = threadId;
+	 *     result = _pthread_mutex_trylock(mtx);
+	 *     RRLog_Append(rrlog, e);
+	 *     break;
+	 * }
+	 * case RRMODE_FTREPLAY: {
+	 *     e = RRPlay_Dequeue(rrlog, threadId);
+	 *     result = _pthread_mutex_trylock(mtx);
+	 *     RRPlay_Free(rrlog, e);
+	 *     break;
+	 * }
+	 */
     }
 
     return result;
@@ -452,14 +450,16 @@ pthread_mutex_unlock(pthread_mutex_t *mtx)
 	    RRPlay_Free(rrlog, e);
 	    break;
 	}
-	case RRMODE_FDREPLAY: {
-	    result = _pthread_mutex_unlock(mtx);
-	    break;
-	}
-	case RRMODE_FTREPLAY: {
-	    result = _pthread_mutex_unlock(mtx);
-	    break;
-	}
+	/*
+	 * case RRMODE_FDREPLAY: {
+	 *     result = _pthread_mutex_unlock(mtx);
+	 *     break;
+	 * }
+	 * case RRMODE_FTREPLAY: {
+	 *     result = _pthread_mutex_unlock(mtx);
+	 *     break;
+	 * }
+	 */
     }
 
     return result;
