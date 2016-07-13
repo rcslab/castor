@@ -1217,8 +1217,6 @@ __sys_setgroups(int ngroups, const gid_t *gidset)
     return result;
 }
 
-
-//update to use new helpers
 int
 __sys_link(const char *name1, const char *name2) {
     int result;
