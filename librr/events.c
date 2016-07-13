@@ -63,71 +63,6 @@ extern int __vdso_clock_gettime(clockid_t clock_id, struct timespec *tp);
 extern void *__sys_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
 extern interpos_func_t __libc_interposing[] __hidden;
 
-int __sys_open(const char *path, int flags, ...);
-int __rr_openat(int fd, const char *path, int flags, ...);
-int __sys_close(int fd);
-
-ssize_t __sys_read(int fd, void *buf, size_t nbytes);
-ssize_t __sys_write(int fd, const void *buf, size_t nbytes);
-int __sys_ioctl(int fd, unsigned long request, ...);
-int __rr_fstat(int fd, struct stat *sb);
-
-int __clock_gettime(clockid_t clock_id, struct timespec *tp);
-int __rr_sysctl(const int *name, u_int namelen, void *oldp,
-	     size_t *oldlenp, const void *newp, size_t newlen);
-void __rr_exit(int status);
-
-int __socket(int domain, int type, int protocol);
-int __bind(int s, const struct sockaddr *addr, socklen_t addrlen);
-int __listen(int s, int backlog);
-int __accept(int s, struct sockaddr *addr, socklen_t *addrlen);
-int __connect(int s, const struct sockaddr *name, socklen_t namelen);
-int __poll(struct pollfd fds[], nfds_t nfds, int timeout);
-int __getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen);
-int __setsockopt(int s, int level, int optname, const void *optval, socklen_t optlen);
-int __kqueue();
-int __kevent(int kq, const struct kevent *changelist, int nchanges,
-	struct kevent *eventlist, int nevents,
-	const struct timespec *timeout);
-void *__rr_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
-
-int _pthread_mutex_lock(pthread_mutex_t *mtx);
-
-
-
-__strong_reference(__sys_open, _open);
-__strong_reference(__rr_openat, openat);
-__strong_reference(__rr_openat, _openat);
-__strong_reference(__sys_close, _close);
-__strong_reference(__sys_ioctl, ioctl);
-__strong_reference(__sys_ioctl, _ioctl);
-__strong_reference(__rr_fstat, fstat);
-__strong_reference(__rr_fstat, _fstat);
-__strong_reference(__clock_gettime, clock_gettime);
-__strong_reference(__rr_sysctl, __sysctl);
-__strong_reference(__rr_exit, _exit);
-__strong_reference(__socket, socket);
-__strong_reference(__bind, bind);
-__strong_reference(__listen, listen);
-__strong_reference(__accept, accept);
-__strong_reference(__connect, connect);
-__strong_reference(__poll, poll);
-__strong_reference(__getsockopt, getsockopt);
-__strong_reference(__setsockopt, setsockopt);
-__strong_reference(__kqueue, kqueue);
-__strong_reference(__kevent, kevent);
-__strong_reference(__rr_mmap, mmap);
-
-__strong_reference(_pthread_mutex_lock, pthread_mutex_lock);
-
-void
-Events_Init()
-{
-    __libc_interposing[INTERPOS_read] = (interpos_func_t)&__sys_read;
-    __libc_interposing[INTERPOS_write] = (interpos_func_t)&__sys_write;
-    __libc_interposing[INTERPOS_openat] = (interpos_func_t)&__rr_openat;
-}
-
 #if defined(CASTOR_DEBUG)
 void
 AssertEvent(RRLogEntry *e, int evt)
@@ -1249,12 +1184,6 @@ __rr_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
     return result;
 }
 
-int __sys_getgroups(int gidsetlen, gid_t *gidset);
-int __sys_setgroups(int ngroups, const gid_t *gidset);
-
-__strong_reference(__sys_getgroups, getgroups);
-__strong_reference(__sys_setgroups, setgroups);
-
 int
 __sys_getgroups(int gidsetlen, gid_t *gidset)
 {
@@ -1290,7 +1219,6 @@ __sys_getgroups(int gidsetlen, gid_t *gidset)
     return result;
 }
 
-
 int
 __sys_setgroups(int ngroups, const gid_t *gidset)
 {
@@ -1320,18 +1248,8 @@ __sys_setgroups(int ngroups, const gid_t *gidset)
     return result;
 }
 
-/* set/get id*/
-int  __sys_setuid(uid_t);
-int  __sys_seteuid(uid_t);
-int  __sys_setgid(gid_t);
-int  __sys_setegid(gid_t);
-
-__strong_reference(__sys_setuid, setuid);
-__strong_reference(__sys_seteuid, seteuid);
-__strong_reference(__sys_setgid, setgid);
-__strong_reference(__sys_setegid, setegid);
-
-static inline int id_set(int syscallNum, uint32_t eventNum, id_t id)
+static inline int
+id_set(int syscallNum, uint32_t eventNum, id_t id)
 {
     int result;
     RRLogEntry *e;
@@ -1382,16 +1300,6 @@ __sys_setegid(gid_t egid)
 {
     return id_set(SYS_setegid, RREVENT_SETEGID, egid);
 }
-
-uid_t __sys_getuid(void);
-uid_t __sys_geteuid(void);
-gid_t __sys_getgid(void);
-gid_t __sys_getegid(void);
-
-__strong_reference(__sys_getuid, getuid);
-__strong_reference(__sys_geteuid, geteuid);
-__strong_reference(__sys_getgid, getgid);
-__strong_reference(__sys_getegid, getegid);
 
 static inline id_t
 id_get(int syscallNum, uint32_t eventNum)
@@ -1444,3 +1352,45 @@ __sys_getegid(void)
 {
     return id_get(SYS_getegid, RREVENT_GETEGID);
 }
+
+void
+Events_Init()
+{
+    __libc_interposing[INTERPOS_read] = (interpos_func_t)&__sys_read;
+    __libc_interposing[INTERPOS_write] = (interpos_func_t)&__sys_write;
+    __libc_interposing[INTERPOS_openat] = (interpos_func_t)&__rr_openat;
+}
+
+__strong_reference(__sys_open, _open);
+__strong_reference(__rr_openat, openat);
+__strong_reference(__rr_openat, _openat);
+__strong_reference(__sys_close, _close);
+__strong_reference(__sys_ioctl, ioctl);
+__strong_reference(__sys_ioctl, _ioctl);
+__strong_reference(__rr_fstat, fstat);
+__strong_reference(__rr_fstat, _fstat);
+__strong_reference(__clock_gettime, clock_gettime);
+__strong_reference(__rr_sysctl, __sysctl);
+__strong_reference(__rr_exit, _exit);
+__strong_reference(__socket, socket);
+__strong_reference(__bind, bind);
+__strong_reference(__listen, listen);
+__strong_reference(__accept, accept);
+__strong_reference(__connect, connect);
+__strong_reference(__poll, poll);
+__strong_reference(__getsockopt, getsockopt);
+__strong_reference(__setsockopt, setsockopt);
+__strong_reference(__kqueue, kqueue);
+__strong_reference(__kevent, kevent);
+__strong_reference(__rr_mmap, mmap);
+__strong_reference(_pthread_mutex_lock, pthread_mutex_lock);
+__strong_reference(__sys_getuid, getuid);
+__strong_reference(__sys_geteuid, geteuid);
+__strong_reference(__sys_getgid, getgid);
+__strong_reference(__sys_getegid, getegid);
+__strong_reference(__sys_setuid, setuid);
+__strong_reference(__sys_seteuid, seteuid);
+__strong_reference(__sys_setgid, setgid);
+__strong_reference(__sys_setegid, setegid);
+__strong_reference(__sys_getgroups, getgroups);
+__strong_reference(__sys_setgroups, setgroups);
