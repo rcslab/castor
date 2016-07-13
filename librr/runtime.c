@@ -332,7 +332,6 @@ log_init()
     Events_Init();
 }
 
-//add declarations for these in header file.
 void
 RRRecordI(uint32_t eventNum, int i)
 {
