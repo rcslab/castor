@@ -1379,6 +1379,25 @@ __sys_unlink(const char *path) {
     return result;
 }
 
+int
+__sys_rename(const char *name1, const char *name2) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_rename, name1, name2);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_rename, name1, name2);
+	    RRRecordI(RREVENT_RENAME, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_RENAME, &result);
+	    break;
+    }
+
+    return result;
+}
+
 void
 Events_Init()
 {
