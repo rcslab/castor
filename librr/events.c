@@ -1248,6 +1248,27 @@ __sys_setgroups(int ngroups, const gid_t *gidset)
     return result;
 }
 
+
+//update to use new helpers
+int
+__sys_link(const char *name1, const char *name2) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_link, name1, name2);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_link, name1, name2);
+	    RRRecordI(RREVENT_LINK, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_LINK, &result);
+	    break;
+    }
+
+    return result;
+}
+
 static inline int
 id_set(int syscallNum, uint32_t eventNum, id_t id)
 {
@@ -1394,3 +1415,4 @@ __strong_reference(__sys_setgid, setgid);
 __strong_reference(__sys_setegid, setegid);
 __strong_reference(__sys_getgroups, getgroups);
 __strong_reference(__sys_setgroups, setgroups);
+__strong_reference(__sys_link, link);

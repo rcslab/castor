@@ -18,5 +18,8 @@ extern thread_local int threadId;
 
 void LogDone();
 
+void RRRecordI(uint32_t eventNum, int i);
+void RRReplayI(uint32_t eventNum, int *i);
+
 #endif /* __RUNTIME_H__ */
 
