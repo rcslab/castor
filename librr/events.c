@@ -63,37 +63,6 @@ extern int __vdso_clock_gettime(clockid_t clock_id, struct timespec *tp);
 extern void *__sys_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
 extern interpos_func_t __libc_interposing[] __hidden;
 
-#if defined(CASTOR_DEBUG)
-void
-AssertEvent(RRLogEntry *e, int evt)
-{
-    if (e->event != evt) {
-	rrMode = RRMODE_NORMAL;
-	printf("Expected %08x, Encountered %08x\n", evt, e->event);
-	printf("Event #%lu, Thread #%d\n", e->eventId, e->threadId);
-	printf("NextEvent #%lu, LastEvent #%lu\n", rrlog->nextEvent, rrlog->lastEvent);
-	abort();
-    }
-}
-
-void
-AssertReplay(RRLogEntry *e, bool test)
-{
-    if (!test) {
-	rrMode = RRMODE_NORMAL;
-	printf("Encountered %08x\n", e->event);
-	printf("Event #%lu, Thread #%d\n", e->eventId, e->threadId);
-	printf("NextEvent #%lu, LastEvent #%lu\n", rrlog->nextEvent, rrlog->lastEvent);
-	abort();
-    }
-}
-#elif defined(CASTOR_RELEASE)
-#define AssertEvent(_e, _evt)
-#define AssertReplay(_e, _tst)
-#else
-#error "Must define build type"
-#endif
-
 #define LOCKTABLE_SIZE 4096
 static Mutex lockTable[LOCKTABLE_SIZE];
 #define GETLOCK(_obj) &lockTable[(_obj) % LOCKTABLE_SIZE]
@@ -1248,6 +1217,25 @@ __sys_setgroups(int ngroups, const gid_t *gidset)
     return result;
 }
 
+int
+__sys_link(const char *name1, const char *name2) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_link, name1, name2);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_link, name1, name2);
+	    RRRecordI(RREVENT_LINK, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_LINK, &result);
+	    break;
+    }
+
+    return result;
+}
+
 static inline int
 id_set(int syscallNum, uint32_t eventNum, id_t id)
 {
@@ -1394,3 +1382,4 @@ __strong_reference(__sys_setgid, setgid);
 __strong_reference(__sys_setegid, setegid);
 __strong_reference(__sys_getgroups, getgroups);
 __strong_reference(__sys_setgroups, setgroups);
+__strong_reference(__sys_link, link);
