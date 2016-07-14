@@ -1398,6 +1398,44 @@ __sys_rename(const char *name1, const char *name2) {
     return result;
 }
 
+int
+__sys_mkdir(const char *path, mode_t mode) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_mkdir, path, mode);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_mkdir, path, mode);
+	    RRRecordI(RREVENT_MKDIR, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_MKDIR, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
+__sys_rmdir(const char *path) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_rmdir, path);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_rmdir, path);
+	    RRRecordI(RREVENT_RMDIR, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_RMDIR, &result);
+	    break;
+    }
+
+    return result;
+}
+
 void
 Events_Init()
 {
@@ -1442,3 +1480,6 @@ __strong_reference(__sys_setgroups, setgroups);
 __strong_reference(__sys_link, link);
 __strong_reference(__sys_symlink, symlink);
 __strong_reference(__sys_unlink, unlink);
+__strong_reference(__sys_rename, rename);
+__strong_reference(__sys_mkdir, mkdir);
+__strong_reference(__sys_rmdir, rmdir);
