@@ -1436,6 +1436,25 @@ __sys_rmdir(const char *path) {
     return result;
 }
 
+int
+__sys_chdir(const char *path) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_chdir, path);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_chdir, path);
+	    RRRecordI(RREVENT_CHDIR, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_CHDIR, &result);
+	    break;
+    }
+
+    return result;
+}
+
 void
 Events_Init()
 {
@@ -1483,3 +1502,4 @@ __strong_reference(__sys_unlink, unlink);
 __strong_reference(__sys_rename, rename);
 __strong_reference(__sys_mkdir, mkdir);
 __strong_reference(__sys_rmdir, rmdir);
+__strong_reference(__sys_chdir, chdir);
