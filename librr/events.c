@@ -1217,25 +1217,6 @@ __sys_setgroups(int ngroups, const gid_t *gidset)
     return result;
 }
 
-int
-__sys_link(const char *name1, const char *name2) {
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_link, name1, name2);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_link, name1, name2);
-	    RRRecordI(RREVENT_LINK, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_LINK, &result);
-	    break;
-    }
-
-    return result;
-}
-
 static inline int
 id_set(int syscallNum, uint32_t eventNum, id_t id)
 {
@@ -1341,6 +1322,139 @@ __sys_getegid(void)
     return id_get(SYS_getegid, RREVENT_GETEGID);
 }
 
+int
+__sys_link(const char *name1, const char *name2) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_link, name1, name2);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_link, name1, name2);
+	    RRRecordI(RREVENT_LINK, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_LINK, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
+__sys_symlink(const char *name1, const char *name2) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_symlink, name1, name2);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_symlink, name1, name2);
+	    RRRecordI(RREVENT_SYMLINK, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_SYMLINK, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
+__sys_unlink(const char *path) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_unlink, path);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_unlink, path);
+	    RRRecordI(RREVENT_UNLINK, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_UNLINK, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
+__sys_rename(const char *name1, const char *name2) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_rename, name1, name2);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_rename, name1, name2);
+	    RRRecordI(RREVENT_RENAME, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_RENAME, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
+__sys_mkdir(const char *path, mode_t mode) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_mkdir, path, mode);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_mkdir, path, mode);
+	    RRRecordI(RREVENT_MKDIR, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_MKDIR, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
+__sys_rmdir(const char *path) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_rmdir, path);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_rmdir, path);
+	    RRRecordI(RREVENT_RMDIR, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_RMDIR, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
+__sys_chdir(const char *path) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_chdir, path);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_chdir, path);
+	    RRRecordI(RREVENT_CHDIR, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_CHDIR, &result);
+	    break;
+    }
+
+    return result;
+}
+
 void
 Events_Init()
 {
@@ -1383,3 +1497,9 @@ __strong_reference(__sys_setegid, setegid);
 __strong_reference(__sys_getgroups, getgroups);
 __strong_reference(__sys_setgroups, setgroups);
 __strong_reference(__sys_link, link);
+__strong_reference(__sys_symlink, symlink);
+__strong_reference(__sys_unlink, unlink);
+__strong_reference(__sys_rename, rename);
+__strong_reference(__sys_mkdir, mkdir);
+__strong_reference(__sys_rmdir, rmdir);
+__strong_reference(__sys_chdir, chdir);
