@@ -18,9 +18,6 @@ extern thread_local int threadId;
 
 void LogDone();
 
-void RRRecordI(uint32_t eventNum, int i);
-void RRReplayI(uint32_t eventNum, int *i);
-
 #if defined(CASTOR_DEBUG)
 static inline void
 AssertEvent(RRLogEntry *e, int evt)
@@ -51,6 +48,80 @@ AssertReplay(RRLogEntry *e, bool test)
 #else
 #error "Must define build type"
 #endif
+
+static inline void
+RRRecordI(uint32_t eventNum, int i)
+{
+    RRLogEntry *e;
+
+    e = RRLog_Alloc(rrlog, threadId);
+    e->event = eventNum;
+    e->threadId = threadId;
+    e->objectId = 0;
+    e->value[0] = i;
+    RRLog_Append(rrlog, e);
+}
+
+static inline void
+RRReplayI(uint32_t eventNum, int *i)
+{
+    RRLogEntry *e;
+
+    e = RRPlay_Dequeue(rrlog, threadId);
+    AssertEvent(e, eventNum);
+    *i = e->value[0];
+    RRPlay_Free(rrlog, e);
+}
+
+static inline void
+RRRecordOI(uint32_t eventNum, int od, int i)
+{
+    RRLogEntry *e;
+
+    e = RRLog_Alloc(rrlog, threadId);
+    e->event = eventNum;
+    e->threadId = threadId;
+    e->objectId = od;
+    e->value[0] = i;
+    RRLog_Append(rrlog, e);
+}
+
+static inline void
+RRReplayOI(uint32_t eventNum, int *od, int *i)
+{
+    RRLogEntry *e;
+
+    e = RRPlay_Dequeue(rrlog, threadId);
+    AssertEvent(e, eventNum);
+    *od = e->objectId;
+    *i =  e->value[0];
+    RRPlay_Free(rrlog, e);
+}
+
+static inline void
+RRRecordOU(uint32_t eventNum, int od, uint64_t u)
+{
+    RRLogEntry *e;
+
+    e = RRLog_Alloc(rrlog, threadId);
+    e->event = eventNum;
+    e->threadId = threadId;
+    e->objectId = od;
+    e->value[0] = u;
+    RRLog_Append(rrlog, e);
+}
+
+static inline void
+RRReplayOU(uint32_t eventNum, int *od, uint64_t *u)
+{
+    RRLogEntry *e;
+
+    e = RRPlay_Dequeue(rrlog, threadId);
+    AssertEvent(e, eventNum);
+    *od = e->objectId;
+    *u =  e->value[0];
+    RRPlay_Free(rrlog, e);
+}
 
 #endif /* __RUNTIME_H__ */
 

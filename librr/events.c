@@ -20,6 +20,9 @@
 // stat/fstat
 #include <sys/stat.h>
 
+//getrlimit, setrlimit
+#include <sys/resource.h>
+
 // sysctl
 #include <sys/sysctl.h>
 
@@ -1437,6 +1440,139 @@ __sys_rmdir(const char *path) {
 }
 
 int
+__sys_chmod(const char *path, mode_t mode) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_chmod, path, mode);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_chmod, path, mode);
+	    RRRecordI(RREVENT_CHMOD, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_CHMOD, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
+__sys_access(const char *path, int mode) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_access, path, mode);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_access, path, mode);
+	    RRRecordI(RREVENT_ACCESS, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_ACCESS, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
+__sys_truncate(const char *path, off_t length) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_truncate, path, length);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_truncate, path, length);
+	    RRRecordI(RREVENT_TRUNCATE, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_TRUNCATE, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
+__sys_ftruncate(int fd, off_t length) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_truncate, fd, length);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_truncate, fd, length);
+	    RRRecordOI(RREVENT_TRUNCATE, fd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_TRUNCATE, &fd, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
+__sys_flock(int fd, int operation) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_flock, fd, operation);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_flock, fd, operation);
+	    RRRecordOI(RREVENT_FLOCK, fd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_FLOCK, &fd, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
+__sys_fsync(int fd) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_fsync, fd);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_fsync, fd);
+	    RRRecordOI(RREVENT_FSYNC, fd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_FSYNC, &fd, &result);
+	    break;
+    }
+
+    return result;
+}
+
+off_t
+__sys_lseek(int fildes, off_t offset, int whence) {
+    off_t result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_lseek, fildes, offset, whence);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_lseek, fildes, offset, whence);
+	    RRRecordOU(RREVENT_LSEEK, fildes, (uint64_t)result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOU(RREVENT_LSEEK, &fildes, (uint64_t *)&result);
+	    break;
+    }
+
+    return result;
+}
+
+int
 __sys_chdir(const char *path) {
     int result;
 
@@ -1449,6 +1585,175 @@ __sys_chdir(const char *path) {
 	    break;
 	case RRMODE_REPLAY:
 	    RRReplayI(RREVENT_CHDIR, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
+__sys_lstat(const char *path, struct stat *sb) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_lstat, path, sb);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_lstat, path, sb);
+	    RRRecordI(RREVENT_LSTAT, result);
+	    if (result == 0) {
+		logData((uint8_t*)sb, sizeof(*sb));
+	    }
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_LSTAT, &result);
+	    if (result == 0) {
+		logData((uint8_t*)sb, sizeof(*sb));
+	    }
+	    break;
+    }
+
+    return result;
+}
+
+mode_t
+__sys_umask(mode_t numask) {
+    mode_t result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_umask, numask);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_umask, numask);
+	    RRRecordOU(RREVENT_UMASK, 0, (uint64_t)result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOU(RREVENT_UMASK, 0, (uint64_t *)&result);
+	    break;
+    }
+
+    return result;
+}
+
+int
+__sys_getrlimit(int resource, struct rlimit *rlp) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_getrlimit, resource, rlp);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_getrlimit, resource, rlp);
+	    RRRecordI(RREVENT_GETRLIMIT, result);
+	    if (result == 0) {
+		logData((uint8_t*)rlp, sizeof(*rlp));
+	    }
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_GETRLIMIT, &result);
+	    if (result == 0) {
+		logData((uint8_t*)rlp, sizeof(*rlp));
+	    }
+	    break;
+    }
+
+    return result;
+}
+
+int
+__sys_setrlimit(int resource, const struct rlimit *rlp) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_setrlimit, resource, rlp);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_setrlimit, resource, rlp);
+	    RRRecordI(RREVENT_SETRLIMIT, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_SETRLIMIT, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
+__sys_getrusage(int who, struct rusage *rusage) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_getrusage, who, rusage);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_getrusage, who, rusage);
+	    RRRecordI(RREVENT_GETRUSAGE, result);
+	    if (result == 0) {
+		logData((uint8_t*)rusage, sizeof(*rusage));
+	    }
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_GETRUSAGE, &result);
+	    if (result == 0) {
+		logData((uint8_t*)rusage, sizeof(*rusage));
+	    }
+	    break;
+    }
+
+    return result;
+}
+
+int
+__sys_getpeername(int s, struct sockaddr * restrict name,
+		 socklen_t * restrict namelen) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_getpeername, s, name, namelen);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_getpeername, s, name, namelen);
+	    RRRecordI(RREVENT_GETPEERNAME, result);
+	    if (result == 0) {
+		logData((uint8_t*)name, sizeof(*name));
+		logData((uint8_t*)namelen, sizeof(*namelen));
+	    }
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_GETPEERNAME, &result);
+	    if (result == 0) {
+		logData((uint8_t*)name, sizeof(*name));
+		logData((uint8_t*)namelen, sizeof(*namelen));
+	    }
+	    break;
+    }
+
+    return result;
+}
+
+int
+__sys_getsockname(int s, struct sockaddr * restrict name,
+		 socklen_t * restrict namelen) {
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_getsockname, s, name, namelen);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_getsockname, s, name, namelen);
+	    RRRecordI(RREVENT_GETSOCKNAME, result);
+	    if (result == 0) {
+		logData((uint8_t*)name, sizeof(*name));
+		logData((uint8_t*)namelen, sizeof(*namelen));
+	    }
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_GETSOCKNAME, &result);
+	    if (result == 0) {
+		logData((uint8_t*)name, sizeof(*name));
+		logData((uint8_t*)namelen, sizeof(*namelen));
+	    }
 	    break;
     }
 
@@ -1503,3 +1808,17 @@ __strong_reference(__sys_rename, rename);
 __strong_reference(__sys_mkdir, mkdir);
 __strong_reference(__sys_rmdir, rmdir);
 __strong_reference(__sys_chdir, chdir);
+__strong_reference(__sys_chmod, chmod);
+__strong_reference(__sys_access, access);
+__strong_reference(__sys_truncate, truncate);
+__strong_reference(__sys_ftruncate, ftruncate);
+__strong_reference(__sys_flock, flock);
+__strong_reference(__sys_fsync, fsync);
+__strong_reference(__sys_lseek, lseek);
+__strong_reference(__sys_lstat, lstat);
+__strong_reference(__sys_umask, umask);
+__strong_reference(__sys_getrlimit, getrlimit);
+__strong_reference(__sys_setrlimit, setrlimit);
+__strong_reference(__sys_getrusage, getrusage);
+__strong_reference(__sys_getpeername, getpeername);
+__strong_reference(__sys_getsockname, getsockname);
