@@ -87,18 +87,20 @@ def Run(tool, name, output):
 def RunTest(name):
     write(FORMAT % (name, NORMAL, "Running"))
 
+    pname = "../build/test/" + name
+
     # Normal
-    norm_time = Run([], name, name + ".normal")
+    norm_time = Run([], pname, name + ".normal")
     if norm_time is None:
         return
 
     # Record
-    rec_time = Run([recordtool, "-o", name + ".rr"], name, name + ".record")
+    rec_time = Run([recordtool, "-o", name + ".rr"], pname, name + ".record")
     if rec_time is None:
         return
 
     # Replay
-    rep_time = Run([replaytool, "-o", name + ".rr"], name, name + ".replay")
+    rep_time = Run([replaytool, "-o", name + ".rr"], pname, name + ".replay")
     if rep_time is None:
         return
 
@@ -125,7 +127,7 @@ write("%-32s   %-9s   %-10s %-10s %-10s\n" %
 write("------------------------------------------------------------------------------\n")
 for t in tests:
     CleanTest(t)
-    BuildTest(t)
+    #BuildTest(t)
     RunTest(t)
 
 if len(failed) != 0:

@@ -1,0 +1,25 @@
+
+Import('env')
+
+test_env = env.Clone()
+
+tests = [
+    "getuid",
+    "helloworld",
+    "network_basic",
+    "rand",
+    "read",
+    "setuid",
+    "thread_basic",
+    "thread_mutex",
+    "thread_print",
+    "time"
+]
+
+test_env.Append(LINKFLAGS = ["-static"])
+test_env.Append(LIBPATH = ["#system/build"])
+test_env.Append(LIBS = ["thr", "c"])
+
+for t in tests:
+    test_env.Program(t, [ "../librr/librr.o", t+".c"])
+

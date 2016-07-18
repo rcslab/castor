@@ -54,6 +54,7 @@ SConscript("librr/SConstruct", variant_dir="build/librr")
 SConscript("libsnap/SConstruct", variant_dir="build/libsnap")
 SConscript("rrlog/SConstruct", variant_dir="build/rrlog")
 SConscript("record/SConstruct", variant_dir="build/record")
+SConscript("test/SConstruct", variant_dir="build/test")
 
 AlwaysBuild(Alias('test', "build/librr/librr.o", "test/testbench.py"))
 
