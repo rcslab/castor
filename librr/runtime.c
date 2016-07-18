@@ -331,27 +331,3 @@ log_init()
 
     Events_Init();
 }
-
-void
-RRRecordI(uint32_t eventNum, int i)
-{
-    RRLogEntry *e;
-
-    e = RRLog_Alloc(rrlog, threadId);
-    e->event = eventNum;
-    e->threadId = threadId;
-    e->objectId = 0;
-    e->value[0] = i;
-    RRLog_Append(rrlog, e);
-}
-
-void
-RRReplayI(uint32_t eventNum, int *i)
-{
-    RRLogEntry *e;
-
-    e = RRPlay_Dequeue(rrlog, threadId);
-    AssertEvent(e, eventNum);
-    *i = e->value[0];
-    RRPlay_Free(rrlog, e);
-}
