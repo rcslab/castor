@@ -83,4 +83,5 @@ SConscript("record/SConstruct", variant_dir="build/record")
 SConscript("test/SConstruct", variant_dir="build/test")
 
 AlwaysBuild(Alias('test', "build/librr/librr.o", "test/testbench.py"))
+AlwaysBuild(Alias('sysroot', "", "tools/sysroot.sh"))
 
