@@ -5,6 +5,8 @@
 #include <stdlib.h>
 
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include "proc.h"
 #include "runtime.h"
@@ -22,6 +24,7 @@ usage()
 int
 main(int argc, char *argv[])
 {
+    int status;
     int ch;
     int maxcpus = 64;
     bool ft = false;
@@ -74,5 +77,8 @@ main(int argc, char *argv[])
     Spawn(pinned, maxcpus, argv);
 
     RecordLog();
+
+    wait(&status);
+    return WEXITSTATUS(status);
 }
 
