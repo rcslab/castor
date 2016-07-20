@@ -3,9 +3,12 @@
 *.normal
 *.record
 *.replay
+rr.shm
 build
 Local.sc
 .sconsign.dblite
+sysroot
+sysroot-src
 test/rand
 test/read
 test/time
