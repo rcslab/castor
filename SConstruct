@@ -23,6 +23,10 @@ objlib = Builder(action = Action('ld -r -o $TARGET $SOURCES','$OBJLIBCOMSTR'),
                  src_builder = 'StaticObject')
 
 env = Environment(options = opts, BUILDERS = {'ObjectLibrary' : objlib})
+Help("""TARGETS:
+scons               Build castor
+scons sysroot       Build sysroot
+scons test          Run tests\n""")
 Help(opts.GenerateHelpText(env))
 
 if env["VERBOSE"] == "0":
@@ -76,7 +80,6 @@ else:
 env.Append(CPPPATH = ["#include", "#include/" + env["RR"]])
 
 env["SYSROOT"] = os.getcwd() + "/sysroot/usr/amd64-freebsd/"
-print env["SYSROOT"]
 
 Export('env')
 
