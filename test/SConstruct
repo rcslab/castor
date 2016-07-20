@@ -16,8 +16,8 @@ tests = [
     "time"
 ]
 
-test_env.Append(LINKFLAGS = ["-static"])
-test_env.Append(LIBPATH = ["#system/build"])
+test_env.Append(CPPFLAGS = ["--sysroot=$SYSROOT"])
+test_env.Append(LINKFLAGS = ["-static", "--sysroot=$SYSROOT"])
 test_env.Append(LIBS = ["thr", "c"])
 
 for t in tests:

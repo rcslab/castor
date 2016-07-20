@@ -1,4 +1,5 @@
 
+import os
 import multiprocessing
 
 opts = Variables('Local.sc')
@@ -73,6 +74,9 @@ else:
     print "Unknown CFG"
 
 env.Append(CPPPATH = ["#include", "#include/" + env["RR"]])
+
+env["SYSROOT"] = os.getcwd() + "/sysroot/usr/amd64-freebsd/"
+print env["SYSROOT"]
 
 Export('env')
 
