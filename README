@@ -1,0 +1,15 @@
+
+***** BUILD *****
+
+1. Create a sysroot with our patches by running
+
+# scons sysroot
+
+2. Build the system and associated tests
+
+# scons
+
+3. Run the testsuite
+
+# scons test
+
