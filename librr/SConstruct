@@ -7,5 +7,5 @@ src = [
 ]
 
 env.ObjectLibrary("librr.o", src,
-        CPPPATH=env["CPPPATH"] + ["#system/libc/include"])
+        CPPPATH=env["CPPPATH"] + ["#sysroot-src/lib/libc/include"])
 

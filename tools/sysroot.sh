@@ -21,7 +21,5 @@ cd $BASE/sysroot-src
 make -j $NCPU xdev XDEV=amd64 XDEV_ARCH=amd64 MAKEOBJDIRPREFIX=$BASE/sysroot-obj DESTDIR=$BASE/sysroot
 cd ..
 
-rm -rf $BASE/sysroot-obj
-
 echo "SYSROOT Build Complete"
 

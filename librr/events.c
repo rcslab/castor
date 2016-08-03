@@ -1326,7 +1326,8 @@ __sys_getegid(void)
 }
 
 int
-__sys_link(const char *name1, const char *name2) {
+__sys_link(const char *name1, const char *name2)
+{
     int result;
 
     switch (rrMode) {
@@ -1345,7 +1346,8 @@ __sys_link(const char *name1, const char *name2) {
 }
 
 int
-__sys_symlink(const char *name1, const char *name2) {
+__sys_symlink(const char *name1, const char *name2)
+{
     int result;
 
     switch (rrMode) {
@@ -1364,7 +1366,8 @@ __sys_symlink(const char *name1, const char *name2) {
 }
 
 int
-__sys_unlink(const char *path) {
+__sys_unlink(const char *path)
+{
     int result;
 
     switch (rrMode) {
@@ -1383,7 +1386,8 @@ __sys_unlink(const char *path) {
 }
 
 int
-__sys_rename(const char *name1, const char *name2) {
+__sys_rename(const char *name1, const char *name2)
+{
     int result;
 
     switch (rrMode) {
@@ -1402,7 +1406,8 @@ __sys_rename(const char *name1, const char *name2) {
 }
 
 int
-__sys_mkdir(const char *path, mode_t mode) {
+__sys_mkdir(const char *path, mode_t mode)
+{
     int result;
 
     switch (rrMode) {
@@ -1421,7 +1426,8 @@ __sys_mkdir(const char *path, mode_t mode) {
 }
 
 int
-__sys_rmdir(const char *path) {
+__sys_rmdir(const char *path)
+{
     int result;
 
     switch (rrMode) {
@@ -1440,7 +1446,8 @@ __sys_rmdir(const char *path) {
 }
 
 int
-__sys_chmod(const char *path, mode_t mode) {
+__sys_chmod(const char *path, mode_t mode)
+{
     int result;
 
     switch (rrMode) {
@@ -1459,7 +1466,8 @@ __sys_chmod(const char *path, mode_t mode) {
 }
 
 int
-__sys_access(const char *path, int mode) {
+__sys_access(const char *path, int mode)
+{
     int result;
 
     switch (rrMode) {
@@ -1478,7 +1486,8 @@ __sys_access(const char *path, int mode) {
 }
 
 int
-__sys_truncate(const char *path, off_t length) {
+__sys_truncate(const char *path, off_t length)
+{
     int result;
 
     switch (rrMode) {
@@ -1497,7 +1506,8 @@ __sys_truncate(const char *path, off_t length) {
 }
 
 int
-__sys_ftruncate(int fd, off_t length) {
+__sys_ftruncate(int fd, off_t length)
+{
     int result;
 
     switch (rrMode) {
@@ -1516,7 +1526,8 @@ __sys_ftruncate(int fd, off_t length) {
 }
 
 int
-__sys_flock(int fd, int operation) {
+__rr_flock(int fd, int operation)
+{
     int result;
 
     switch (rrMode) {
@@ -1535,7 +1546,8 @@ __sys_flock(int fd, int operation) {
 }
 
 int
-__sys_fsync(int fd) {
+__rr_fsync(int fd)
+{
     int result;
 
     switch (rrMode) {
@@ -1554,7 +1566,8 @@ __sys_fsync(int fd) {
 }
 
 off_t
-__sys_lseek(int fildes, off_t offset, int whence) {
+__sys_lseek(int fildes, off_t offset, int whence)
+{
     off_t result;
 
     switch (rrMode) {
@@ -1573,7 +1586,8 @@ __sys_lseek(int fildes, off_t offset, int whence) {
 }
 
 int
-__sys_chdir(const char *path) {
+__sys_chdir(const char *path)
+{
     int result;
 
     switch (rrMode) {
@@ -1592,7 +1606,8 @@ __sys_chdir(const char *path) {
 }
 
 int
-__sys_lstat(const char *path, struct stat *sb) {
+__sys_lstat(const char *path, struct stat *sb)
+{
     int result;
 
     switch (rrMode) {
@@ -1617,7 +1632,8 @@ __sys_lstat(const char *path, struct stat *sb) {
 }
 
 mode_t
-__sys_umask(mode_t numask) {
+__sys_umask(mode_t numask)
+{
     mode_t result;
 
     switch (rrMode) {
@@ -1636,7 +1652,8 @@ __sys_umask(mode_t numask) {
 }
 
 int
-__sys_getrlimit(int resource, struct rlimit *rlp) {
+__sys_getrlimit(int resource, struct rlimit *rlp)
+{
     int result;
 
     switch (rrMode) {
@@ -1661,7 +1678,8 @@ __sys_getrlimit(int resource, struct rlimit *rlp) {
 }
 
 int
-__sys_setrlimit(int resource, const struct rlimit *rlp) {
+__sys_setrlimit(int resource, const struct rlimit *rlp)
+{
     int result;
 
     switch (rrMode) {
@@ -1680,7 +1698,8 @@ __sys_setrlimit(int resource, const struct rlimit *rlp) {
 }
 
 int
-__sys_getrusage(int who, struct rusage *rusage) {
+__sys_getrusage(int who, struct rusage *rusage)
+{
     int result;
 
     switch (rrMode) {
@@ -1705,8 +1724,9 @@ __sys_getrusage(int who, struct rusage *rusage) {
 }
 
 int
-__sys_getpeername(int s, struct sockaddr * restrict name,
-		 socklen_t * restrict namelen) {
+__rr_getpeername(int s, struct sockaddr * restrict name,
+		 socklen_t * restrict namelen)
+{
     int result;
 
     switch (rrMode) {
@@ -1733,8 +1753,9 @@ __sys_getpeername(int s, struct sockaddr * restrict name,
 }
 
 int
-__sys_getsockname(int s, struct sockaddr * restrict name,
-		 socklen_t * restrict namelen) {
+__rr_getsockname(int s, struct sockaddr * restrict name,
+		 socklen_t * restrict namelen)
+{
     int result;
 
     switch (rrMode) {
@@ -1812,13 +1833,13 @@ __strong_reference(__sys_chmod, chmod);
 __strong_reference(__sys_access, access);
 __strong_reference(__sys_truncate, truncate);
 __strong_reference(__sys_ftruncate, ftruncate);
-__strong_reference(__sys_flock, flock);
-__strong_reference(__sys_fsync, fsync);
+__strong_reference(__rr_flock, flock);
+__strong_reference(__rr_fsync, fsync);
 __strong_reference(__sys_lseek, lseek);
 __strong_reference(__sys_lstat, lstat);
 __strong_reference(__sys_umask, umask);
 __strong_reference(__sys_getrlimit, getrlimit);
 __strong_reference(__sys_setrlimit, setrlimit);
 __strong_reference(__sys_getrusage, getrusage);
-__strong_reference(__sys_getpeername, getpeername);
-__strong_reference(__sys_getsockname, getsockname);
+__strong_reference(__rr_getpeername, getpeername);
+__strong_reference(__rr_getsockname, getsockname);
