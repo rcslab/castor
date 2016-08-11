@@ -1,0 +1,16 @@
+
+Import('env')
+
+perf_env = env.Clone()
+
+tests = [
+    "read"
+]
+
+perf_env.Append(CPPFLAGS = ["--sysroot=$SYSROOT"])
+perf_env.Append(LINKFLAGS = ["-static", "--sysroot=$SYSROOT"])
+perf_env.Append(LIBS = ["thr", "c"])
+
+for t in tests:
+    perf_env.Program(t, [ "../librr/librr.o", t+".c"])
+
