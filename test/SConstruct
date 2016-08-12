@@ -13,7 +13,8 @@ tests = [
     "thread_basic",
     "thread_mutex",
     "thread_print",
-    "time"
+    "time",
+    "fork_basic",
 ]
 
 test_env.Append(CPPFLAGS = ["--sysroot=$SYSROOT"])

@@ -205,7 +205,7 @@ pthread_create(pthread_t * thread, const pthread_attr_t * attr,
 
     if (rrMode == RRMODE_RECORD) {
 	thrNo = __sync_add_and_fetch(&nextThreadId, 1);
-	assert(thrNo < 8);
+	assert(thrNo < RRLOG_MAX_THREADS);
 
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_THREAD_CREATE;
@@ -233,6 +233,54 @@ pthread_create(pthread_t * thread, const pthread_attr_t * attr,
 	result = _pthread_create(thread, attr, thrwrapper, (void *)thrNo);
 
 	assert(result == savedResult);
+    }
+
+    return result;
+}
+
+pid_t
+__rr_fork(void)
+{
+    pid_t result;
+    uintptr_t thrNo;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return fork();
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	thrNo = __sync_add_and_fetch(&nextThreadId, 1);
+	assert(thrNo < RRLOG_MAX_THREADS);
+
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_FORK;
+	e->threadId = threadId;
+	e->value[1] = thrNo;
+	RRLog_Append(rrlog, e);
+
+	result = __sys_fork();
+
+	if (result == 0) {
+	    threadId = thrNo;
+	} else if (result < 0) {
+	    perror("FIXME: fork failed during record");
+	    abort();
+	}
+    } else {
+	e = RRPlay_Dequeue(rrlog, threadId);
+	thrNo = e->value[1];
+	AssertEvent(e, RREVENT_FORK);
+	RRPlay_Free(rrlog, e);
+
+	result = __sys_fork();
+
+	if (result == 0) {
+	    threadId = thrNo;
+	} else if (result < 0) {
+	    perror("FIXME: fork failed during replay");
+	    abort();
+	}
     }
 
     return result;
@@ -1784,6 +1832,7 @@ __rr_getsockname(int s, struct sockaddr * restrict name,
 void
 Events_Init()
 {
+    __libc_interposing[INTERPOS_fork] = (interpos_func_t)&__rr_fork;
     __libc_interposing[INTERPOS_read] = (interpos_func_t)&__sys_read;
     __libc_interposing[INTERPOS_write] = (interpos_func_t)&__sys_write;
     __libc_interposing[INTERPOS_openat] = (interpos_func_t)&__rr_openat;

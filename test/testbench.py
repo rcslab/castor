@@ -18,8 +18,9 @@ TFORMAT = "%-32s [ %s%-9s"+ NORMAL + " ] %-10.6f %-10.6f %-10.6f"
 recordtool = "../build/record/record"
 replaytool = "../build/record/replay"
 
-all_tests = ["getuid", "setuid","helloworld", "read", "rand", "time", "thread_basic", 
-        "thread_mutex", "thread_print", "network_basic" ]
+all_tests = ["getuid", "setuid","helloworld", "read", "rand", "time", 
+        "thread_basic", "thread_mutex", "thread_print", "network_basic",
+        "fork_basic" ]
 tests = [ ]
 failed = [ ]
 
