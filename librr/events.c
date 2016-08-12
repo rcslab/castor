@@ -1143,6 +1143,7 @@ __kevent(int kq, const struct kevent *changelist, int nchanges,
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_KEVENT;
 	e->threadId = threadId;
+	e->objectId = kq;
 	e->value[0] = result;
 	e->value[1] = nchanges;
 	e->value[2] = nevents;
