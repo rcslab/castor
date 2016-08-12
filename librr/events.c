@@ -800,7 +800,9 @@ int __rr_sysctl(const int *name, u_int namelen, void *oldp,
 	e->event = RREVENT_SYSCTL;
 	e->threadId = threadId;
 	e->value[0] = result;
-	e->value[1] = *oldlenp;
+	if (oldp) {
+		e->value[1] = *oldlenp;
+	}
 	RRLog_Append(rrlog, e);
 
 	if (oldp) {
