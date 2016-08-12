@@ -1133,12 +1133,12 @@ __kevent(int kq, const struct kevent *changelist, int nchanges,
     RRLogEntry *e;
 
     if (rrMode == RRMODE_NORMAL) {
-	return syscall(SYS_kevent, changelist, nchanges,
+	return syscall(SYS_kevent, kq, changelist, nchanges,
 		       eventlist, nevents, timeout);
     }
 
     if (rrMode == RRMODE_RECORD) {
-	result = syscall(SYS_kevent, changelist, nchanges,
+	result = syscall(SYS_kevent, kq, changelist, nchanges,
 			 eventlist, nevents, timeout);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_KEVENT;
