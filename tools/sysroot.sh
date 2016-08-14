@@ -7,7 +7,7 @@ if ( ! -d /usr/src ) then
     exit 1
 endif 
 
-set NCPU=`sysctl -n hw.ncpu`
+set NCPU=`/bin/sysctl -n hw.ncpu`
 set NCPU=`expr 2 \* $NCPU`
 
 if ( ! -d $BASE/sysroot-src ) then
