@@ -397,8 +397,6 @@ pthread_mutex_trylock(pthread_mutex_t *mtx)
     int result = 0;
     RRLogEntry *e;
 
-    abort();
-
     switch (rrMode) {
 	case RRMODE_NORMAL: {
 	    result = _pthread_mutex_trylock(mtx);
