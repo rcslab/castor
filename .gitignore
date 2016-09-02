@@ -3,6 +3,8 @@
 *.normal
 *.record
 *.replay
+*.pyc
+compile_commands.json
 rr.shm
 build
 Local.sc

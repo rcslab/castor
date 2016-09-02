@@ -22,12 +22,19 @@ objlib = Builder(action = Action('ld -r -o $TARGET $SOURCES','$OBJLIBCOMSTR'),
                  src_suffix = '.c',
                  src_builder = 'StaticObject')
 
-env = Environment(options = opts, BUILDERS = {'ObjectLibrary' : objlib})
+env = Environment(options = opts, tools = ['default', 'compilation_db'],
+                  BUILDERS = {'ObjectLibrary' : objlib})
 Help("""TARGETS:
 scons               Build castor
 scons sysroot       Build sysroot
-scons test          Run tests\n""")
+scons test          Run tests
+scons compiledb     Compile Database\n""")
 Help(opts.GenerateHelpText(env))
+
+# Clang scan-build support
+env["CC"] = os.getenv("CC") or env["CC"]
+env["CXX"] = os.getenv("CXX") or env["CXX"]
+env["ENV"].update(x for x in os.environ.items() if x[0].startswith("CCC_"))
 
 if env["VERBOSE"] == "0":
     env["CCCOMSTR"] = "Compiling $SOURCE"
@@ -92,4 +99,6 @@ SConscript("perf/SConstruct", variant_dir="build/perf")
 
 AlwaysBuild(Alias('test', "build/librr/librr.o", "test/testbench.py"))
 AlwaysBuild(Alias('sysroot', "", "tools/sysroot.sh"))
+
+compileDb = env.Alias("compiledb", env.CompilationDatabase('compile_commands.json'))
 
