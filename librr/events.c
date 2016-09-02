@@ -146,7 +146,6 @@ logData(uint8_t *buf, size_t len)
 	    uint8_t *dst = ((uint8_t *)e) + RREVENT_DATA_OFFSET;
 	    memcpy(dst, buf, rlen);
 	    RRLog_Append(rrlog, e);
-	    buf += rlen;
 	}
     } else {
 	for (i = 0; i < recs; i++) {
@@ -163,7 +162,6 @@ logData(uint8_t *buf, size_t len)
 	    uint8_t *src = ((uint8_t *)e) + RREVENT_DATA_OFFSET;
 	    memcpy(buf, src, rlen);
 	    RRPlay_Free(rrlog, e);
-	    buf += rlen;
 	}
     }
 }
