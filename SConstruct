@@ -1,4 +1,5 @@
 
+import json
 import os
 import multiprocessing
 
@@ -12,6 +13,7 @@ opts.AddVariables(
     ("AR", "Archiver", "ar"),
     ("RANLIB", "Archiver Indexer", "ranlib"),
     ("NUMCPUS", "Number of CPUs to use for build (0 means auto)", "0"),
+    ("CLANGTIDY", "Clang Tidy", "clang-tidy38"),
     EnumVariable("VERBOSE", "Show full build information", "0", ["0", "1"]),
     EnumVariable("RR", "R/R Type", "ctr", ["ctr", "tsc", "tsx"]),
     EnumVariable("CFG", "R/R Log Config", "ft", ["ft", "dbg", "snap"])
@@ -22,8 +24,17 @@ objlib = Builder(action = Action('ld -r -o $TARGET $SOURCES','$OBJLIBCOMSTR'),
                  src_suffix = '.c',
                  src_builder = 'StaticObject')
 
+def clangtidy(target, source, env):
+    try:
+        f = open("compile_commands.json")
+        j = json.load(f)
+        for x in j:
+            result = os.system(env["CLANGTIDY"]+" "+x["file"])
+    except IOError as e:
+        return []
+
 env = Environment(options = opts, tools = ['default', 'compilation_db'],
-                  BUILDERS = {'ObjectLibrary' : objlib})
+        BUILDERS = {'ObjectLibrary' : objlib})
 Help("""TARGETS:
 scons               Build castor
 scons sysroot       Build sysroot
@@ -101,4 +112,7 @@ AlwaysBuild(Alias('test', "build/librr/librr.o", "test/testbench.py"))
 AlwaysBuild(Alias('sysroot', "", "tools/sysroot.sh"))
 
 compileDb = env.Alias("compiledb", env.CompilationDatabase('compile_commands.json'))
+if ("check" in BUILD_TARGETS):
+    Alias('check', env.Command("fake_clang_tidy_target",
+                               "compile_commands.json", clangtidy))
 
