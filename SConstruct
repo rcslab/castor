@@ -39,7 +39,8 @@ Help("""TARGETS:
 scons               Build castor
 scons sysroot       Build sysroot
 scons test          Run tests
-scons compiledb     Compile Database\n""")
+scons compiledb     Compile Database
+scons check         Clang tidy checker\n""")
 Help(opts.GenerateHelpText(env))
 
 # Clang scan-build support
