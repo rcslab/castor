@@ -3,6 +3,9 @@
 #define __RUNTIME_H__
 
 #include <threads.h>
+#include <stdbool.h>
+#include "rrlog.h"
+#include "rrplay.h"
 
 enum RRMODE {
     RRMODE_NORMAL, // Normal
