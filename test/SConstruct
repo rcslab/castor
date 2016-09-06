@@ -6,6 +6,7 @@ test_env = env.Clone()
 tests = [
     "getuid",
     "helloworld",
+    "hellodebug",
     "network_basic",
     "kqueue",
     "rand",

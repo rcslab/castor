@@ -3,7 +3,9 @@ Import('env')
 
 src = [
     "runtime.c",
-    "events.c"
+    "events.c",
+    "debug/assert.c",
+    "debug/rr_fdprintf.c"
 ]
 
 # Made global to make compilation_db work

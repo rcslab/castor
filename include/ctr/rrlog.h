@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdalign.h>
+#include <stdlib.h>
 #include <archconfig.h>
 
 #ifdef CASTOR_DEBUG
