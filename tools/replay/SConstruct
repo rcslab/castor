@@ -1,7 +1,7 @@
 
 Import('env')
 
-env.Program("record", ["record.c"],
+env.Program("replay", ["replay.c"],
             CPPPATH = ["#build/lib/Common"],
             LIBPATH = ["#build/lib/Common"],
             LIBS = ["CastorCommon", "edit", "pthread"])

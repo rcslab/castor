@@ -111,6 +111,8 @@ SConscript("#build/lib/Common/SConstruct")
 VariantDir("build/tools", "tools")
 SConscript("#build/tools/rrlog/SConstruct")
 SConscript("#build/tools/record/SConstruct")
+SConscript("#build/tools/replay/SConstruct")
+SConscript("#build/tools/baseline/SConstruct")
 
 VariantDir("build/test", "test")
 SConscript("#build/test/SConstruct")
@@ -118,7 +120,9 @@ SConscript("#build/test/SConstruct")
 VariantDir("build/perf", "perf")
 SConscript("#build/perf/SConstruct")
 
-AlwaysBuild(Alias('test', "build/librr/librr.o", "test/testbench.py"))
+AlwaysBuild(Alias('test',
+                  "build/lib/Runtime/libCastorRuntime.o",
+                  "test/testbench.py"))
 AlwaysBuild(Alias('sysroot', "", "tools/sysroot.sh"))
 
 compileDb = env.Alias("compiledb", env.CompilationDatabase('compile_commands.json'))
