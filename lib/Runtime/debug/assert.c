@@ -36,8 +36,9 @@ __FBSDID("$FreeBSD: releng/10.3/lib/libc/gen/assert.c 165903 2007-01-09 00:28:16
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "rr_fdprintf.h"
-#include "rr_debug.h"
+
+#include <castor/rr_fdprintf.h>
+#include <castor/rr_debug.h>
 
 void
 __rr_assert(const char *func, const char *file, int line, const char *failedexpr)

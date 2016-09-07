@@ -1,8 +1,11 @@
 #ifndef RR_DEBUG_H
 #define RR_DEBUG_H 1
-#include "rr_fdprintf.h"
+
 #include <sys/cdefs.h>
-#include "../runtime.h"
+
+#include <castor/runtime.h>
+
+#include "rr_fdprintf.h"
 
 void __rr_assert(const char *, const char *, int, const char *) __dead2;
 

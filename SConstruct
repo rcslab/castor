@@ -102,12 +102,21 @@ env["SYSROOT"] = os.getcwd() + "/sysroot/usr/amd64-freebsd/"
 
 Export('env')
 
-SConscript("librr/SConstruct", variant_dir="build/librr")
-SConscript("libsnap/SConstruct", variant_dir="build/libsnap")
-SConscript("rrlog/SConstruct", variant_dir="build/rrlog")
-SConscript("record/SConstruct", variant_dir="build/record")
-SConscript("test/SConstruct", variant_dir="build/test")
-SConscript("perf/SConstruct", variant_dir="build/perf")
+
+VariantDir("build/lib", "lib")
+SConscript("#build/lib/Runtime/SConstruct")
+SConscript("#build/lib/Checkpointing/SConstruct")
+SConscript("#build/lib/Common/SConstruct")
+
+VariantDir("build/tools", "tools")
+SConscript("#build/tools/rrlog/SConstruct")
+SConscript("#build/tools/record/SConstruct")
+
+VariantDir("build/test", "test")
+SConscript("#build/test/SConstruct")
+
+VariantDir("build/perf", "perf")
+SConscript("#build/perf/SConstruct")
 
 AlwaysBuild(Alias('test', "build/librr/librr.o", "test/testbench.py"))
 AlwaysBuild(Alias('sysroot', "", "tools/sysroot.sh"))

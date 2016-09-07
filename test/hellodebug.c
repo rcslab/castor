@@ -1,6 +1,6 @@
 
 #include <stdio.h>
-#include "../librr/debug/rr_debug.h"
+#include <castor/rr_debug.h>
 
 int main(int argc, const char *argv[])
 {

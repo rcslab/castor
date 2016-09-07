@@ -19,11 +19,11 @@
 
 #include <sys/syscall.h>
 
-#include "rrevent.h"
+#include <castor/rrevent.h>
 #include "rrlog.h"
 #include "rrplay.h"
-#include "rrgq.h"
-#include "runtime.h"
+#include <castor/rrgq.h>
+#include <castor/runtime.h>
 
 extern void Events_Init();
 

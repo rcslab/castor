@@ -42,7 +42,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/syscall.h>
-#include "rr_fdprintf.h"
+
+#include <castor/rr_fdprintf.h>
 
 #define MAXNBUF	(sizeof(intmax_t) * NBBY + 1)
 

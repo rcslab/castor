@@ -1,0 +1,12 @@
+
+Import('env')
+
+common_src = [
+    "cli.c",
+    "ft.c",
+    "proc.c",
+    "runtime.c",
+]
+
+env.StaticLibrary("libCastorCommon.a", common_src)
+

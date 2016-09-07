@@ -24,5 +24,5 @@ test_env.Append(LINKFLAGS = ["-static", "--sysroot=$SYSROOT"])
 test_env.Append(LIBS = ["thr", "c"])
 
 for t in tests:
-    test_env.Program(t, [ "../librr/librr.o", t+".c"])
+    test_env.Program(t, [ "../lib/Runtime/libCastorRuntime.o", t+".c"])
 

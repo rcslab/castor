@@ -1,0 +1,20 @@
+
+Import('env')
+
+record_src = ["record.c"]
+replay_src = ["replay.c"]
+baseline_src = ["baseline.c"]
+
+env.Program("record", ["record.c"],
+            CPPPATH = ["#build/lib/Common"],
+            LIBPATH = ["#build/lib/Common"],
+            LIBS = ["CastorCommon", "edit", "pthread"])
+env.Program("replay", ["replay.c"],
+            CPPPATH = ["#build/lib/Common"],
+            LIBPATH = ["#build/lib/Common"],
+            LIBS = ["CastorCommon", "edit", "pthread"])
+env.Program("baseline", ["baseline.c"],
+            CPPPATH = ["#build/lib/Common"],
+            LIBPATH = ["#build/lib/Common"],
+            LIBS = ["CastorCommon", "edit", "pthread"])
+

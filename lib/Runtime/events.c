@@ -44,11 +44,11 @@
 
 #include <rrlog.h>
 #include <rrplay.h>
-#include <rrgq.h>
-#include <mtx.h>
-#include <rrevent.h>
+#include <castor/rrgq.h>
+#include <castor/mtx.h>
+#include <castor/rrevent.h>
 
-#include "runtime.h"
+#include <castor/runtime.h>
 
 /* USE FILES */
 bool useRealFiles = false;
