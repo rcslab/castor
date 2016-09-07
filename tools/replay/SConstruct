@@ -1,0 +1,7 @@
+
+Import('env')
+
+env.Program("replay", ["replay.c"],
+            LIBPATH = ["#build/lib/Common"],
+            LIBS = ["CastorCommon", "edit", "pthread"])
+

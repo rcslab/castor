@@ -1,0 +1,7 @@
+
+Import('env')
+
+env.Program("record", ["record.c"],
+            LIBPATH = ["#build/lib/Common"],
+            LIBS = ["CastorCommon", "edit", "pthread"])
+

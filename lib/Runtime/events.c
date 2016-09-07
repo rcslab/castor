@@ -44,11 +44,11 @@
 
 #include <rrlog.h>
 #include <rrplay.h>
-#include <rrgq.h>
-#include <mtx.h>
-#include <rrevent.h>
+#include <castor/rrgq.h>
+#include <castor/mtx.h>
+#include <castor/rrevent.h>
 
-#include "runtime.h"
+#include <castor/runtime.h>
 
 /* USE FILES */
 bool useRealFiles = false;
@@ -1691,7 +1691,7 @@ __sys_umask(mode_t numask)
 	    RRRecordOU(RREVENT_UMASK, 0, (uint64_t)result);
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayOU(RREVENT_UMASK, 0, (uint64_t *)&result);
+	    RRReplayOU(RREVENT_UMASK, NULL, (uint64_t *)&result);
 	    break;
     }
 

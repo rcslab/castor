@@ -5,7 +5,8 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdalign.h>
-#include <archconfig.h>
+
+#include <castor/archconfig.h>
 
 /*
  * Record Log - Multiple-Writer Single-Reader Queue

@@ -13,8 +13,8 @@
 
 #include <histedit.h>
 
-#include "runtime.h"
-#include "cli.h"
+#include <castor/Common/runtime.h>
+#include <castor/Common/cli.h>
 
 #define MAX_LEN  64
 #define MAX_ARGS 5

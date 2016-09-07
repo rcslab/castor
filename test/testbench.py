@@ -15,10 +15,10 @@ NORMAL = "\033[0;39m"
 FORMAT = "%-32s [ %s%-9s"+ NORMAL + " ]"
 TFORMAT = "%-32s [ %s%-9s"+ NORMAL + " ] %-10.6f %-10.6f %-10.6f"
 
-recordtool = "../build/record/record"
-replaytool = "../build/record/replay"
+recordtool = "../build/tools/record/record"
+replaytool = "../build/tools/replay/replay"
 
-all_tests = ["getuid", "setuid", "helloworld", "read", "rand", "time", 
+all_tests = ["getuid", "setuid", "helloworld","hellodebug", "read", "rand", "time", 
         "thread_basic", "thread_mutex", "thread_print", "network_basic",
         "fork_basic", "kqueue" ]
 tests = [ ]

@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include <rrevent.h>
+#include <castor/rrevent.h>
 #include <rrlog.h>
 
 static int logfd;

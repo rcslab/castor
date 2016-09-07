@@ -5,7 +5,8 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdalign.h>
-#include <archconfig.h>
+
+#include <castor/archconfig.h>
 
 #ifdef CASTOR_DEBUG
 #define RRLOG_DEBUG		1

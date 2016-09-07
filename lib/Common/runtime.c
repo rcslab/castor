@@ -16,12 +16,12 @@
 
 #include <sys/syscall.h>
 
-#include <rrevent.h>
+#include <castor/rrevent.h>
 #include <rrlog.h>
 #include <rrplay.h>
-#include <rrgq.h>
+#include <castor/rrgq.h>
 
-#include "runtime.h"
+#include <castor/Common/runtime.h>
 #include "ft.h"
 
 static RRLog *rrlog;

@@ -1,0 +1,10 @@
+
+Import('env')
+
+src = [
+    "process.cc",
+    "snapshot.cc",
+]
+
+env.ObjectLibrary("libCastorCheckpointing.o", src, CPPPATH=[env["RR"]])
+
