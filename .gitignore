@@ -11,6 +11,7 @@ Local.sc
 .sconsign.dblite
 sysroot
 sysroot-src
+llvm
 test/rand
 test/read
 test/time
@@ -19,3 +20,4 @@ test/network_basic
 test/thread_basic
 test/thread_mutex
 test/thread_print
+tools/llvm-*.src.tar.xz

@@ -38,6 +38,7 @@ env = Environment(options = opts, tools = ['default', 'compilation_db'],
 Help("""TARGETS:
 scons               Build castor
 scons sysroot       Build sysroot
+scons llvm          Build llvm
 scons test          Run tests
 scons compiledb     Compile Database
 scons check         Clang tidy checker\n""")
@@ -111,6 +112,7 @@ SConscript("perf/SConstruct", variant_dir="build/perf")
 
 AlwaysBuild(Alias('test', "build/librr/librr.o", "test/testbench.py"))
 AlwaysBuild(Alias('sysroot', "", "tools/sysroot.sh"))
+AlwaysBuild(Alias('llvm', "", "tools/llvm.sh"))
 
 compileDb = env.Alias("compiledb", env.CompilationDatabase('compile_commands.json'))
 if ("check" in BUILD_TARGETS):
