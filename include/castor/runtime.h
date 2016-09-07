@@ -96,8 +96,12 @@ RRReplayOI(uint32_t eventNum, int *od, int *i)
 
     e = RRPlay_Dequeue(rrlog, threadId);
     AssertEvent(e, eventNum);
-    *od = e->objectId;
-    *i =  e->value[0];
+    if (od != NULL) {
+	*od = e->objectId;
+    }
+    if (i != NULL) {
+	*i =  e->value[0];
+    }
     RRPlay_Free(rrlog, e);
 }
 
@@ -121,8 +125,12 @@ RRReplayOU(uint32_t eventNum, int *od, uint64_t *u)
 
     e = RRPlay_Dequeue(rrlog, threadId);
     AssertEvent(e, eventNum);
-    *od = e->objectId;
-    *u =  e->value[0];
+    if (od != NULL) {
+	*od = e->objectId;
+    }
+    if (u != NULL) {
+	*u =  e->value[0];
+    }
     RRPlay_Free(rrlog, e);
 }
 

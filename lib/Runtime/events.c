@@ -1691,7 +1691,7 @@ __sys_umask(mode_t numask)
 	    RRRecordOU(RREVENT_UMASK, 0, (uint64_t)result);
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayOU(RREVENT_UMASK, 0, (uint64_t *)&result);
+	    RRReplayOU(RREVENT_UMASK, NULL, (uint64_t *)&result);
 	    break;
     }
 
