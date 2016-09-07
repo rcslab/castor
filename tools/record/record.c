@@ -8,8 +8,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#include "proc.h"
-#include "runtime.h"
+#include <castor/Common/proc.h>
+#include <castor/Common/runtime.h>
 
 void
 usage()

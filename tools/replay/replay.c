@@ -8,9 +8,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#include "proc.h"
-#include "runtime.h"
-#include "cli.h"
+#include <castor/Common/proc.h>
+#include <castor/Common/runtime.h>
+#include <castor/Common/cli.h>
 
 void
 usage()

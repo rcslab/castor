@@ -21,7 +21,7 @@
 #include <rrplay.h>
 #include <castor/rrgq.h>
 
-#include "runtime.h"
+#include <castor/Common/runtime.h>
 #include "ft.h"
 
 static RRLog *rrlog;
