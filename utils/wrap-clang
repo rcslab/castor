@@ -1,0 +1,64 @@
+#!/usr/local/bin/python 
+import sys
+import os
+
+rr_path = os.path.dirname(os.path.abspath(os.path.join(__file__ ,'..')))
+sysroot_path = os.path.join(rr_path, 'sysroot/usr/amd64-freebsd/')
+runtime_path = os.path.join(rr_path, 'build/lib/Runtime/libCastorRuntime.o')
+#print "rr_path:", rr_path
+#print "sysroot_path:", sysroot_path
+#print "runtime_path:", runtime_path
+
+def ok_to_add_stuff(args):
+    for arg in args:
+        if arg in ['-E','-S','-c']:  #is this is a linker pass?
+            return False
+        if arg in ['-shared']:
+            return False
+    return True
+
+def is_library(arg):
+    return arg.startswith('-l')
+
+def is_object(arg):
+    return arg.endswith('.o')
+
+def insert_runtime(args):
+    result = args
+    objects = filter(is_object,args)
+    result.insert(result.index(objects[0]), runtime_path)
+    return result
+
+def insert_lpthreads(args):
+    result = args
+    libraries = filter(is_library,args)
+    if len(libraries) == 0:       #no libraries, hmmm, skip it
+        return result
+    elif '-lpthread' in libraries: #already has pthread
+        return result
+    elif '-lc' in libraries: #insert before libc
+        result.insert(result.index('-lc'), '-lpthread')
+        return result
+    else:                  #insert at end of libraries list
+        result.insert(result.index(libraries[-1]) + 1,'-lpthread')
+        return result
+
+TEST = True
+args = sys.argv[1:]
+if ok_to_add_stuff(args):
+    print "Ok to add stuff"
+    args = insert_runtime(args)
+    args = insert_lpthreads(args)
+    args = ['-static'] + args #prepend static
+else:
+    print "Not ok to add stuff"
+
+#always prepend sysroot
+args = ['--sysroot=' + sysroot_path] + args
+clang = 'clang'
+final_args = [clang] + args
+
+if TEST == True:
+    print "Would run: ", final_args
+else:
+    os.execvp(clang,final_args)
