@@ -26,7 +26,8 @@ def is_object(arg):
 def insert_runtime(args):
     result = args
     objects = filter(is_object,args)
-    result.insert(result.index(objects[0]), runtime_path)
+    if len(objects) > 0:
+        result.insert(result.index(objects[0]), runtime_path)
     return result
 
 def insert_lpthreads(args):
@@ -43,10 +44,10 @@ def insert_lpthreads(args):
         result.insert(result.index(libraries[-1]) + 1,'-lpthread')
         return result
 
-TEST = True
+TEST = False
 args = sys.argv[1:]
 if ok_to_add_stuff(args):
-    print "Ok to add stuff"
+    print "Adding stuff!"
     args = insert_runtime(args)
     args = insert_lpthreads(args)
     args = ['-static'] + args #prepend static
