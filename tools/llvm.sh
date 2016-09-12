@@ -1,7 +1,8 @@
 #!/bin/csh -e
 
 set LLVMVER="3.8.1"
-set SRC=llvm-$LLVMVER.src
+set LLVM_SRC=llvm-$LLVMVER.src
+set CFE_SRC=cfe-$LLVMVER.src
 
 set BASE=`pwd`
 
@@ -11,12 +12,17 @@ if ( -d $BASE/llvm ) then
 endif
 
 cd $BASE/tools
-if ( ! -e $SRC.tar.xz ) then
-    fetch http://llvm.org/releases/3.8.1/$SRC.tar.xz
+if ( ! -e $LLVM_SRC.tar.xz ) then
+    fetch http://llvm.org/releases/3.8.1/$LLVM_SRC.tar.xz
+endif
+if ( ! -e $CFE_SRC.tar.xz ) then
+    fetch http://llvm.org/releases/3.8.1/$CFE_SRC.tar.xz
 endif
 
-tar zxvf $SRC.tar.xz
-mv $SRC $BASE/llvm
+tar zxvf $LLVM_SRC.tar.xz
+tar zxvf $CFE_SRC.tar.xz
+mv $LLVM_SRC $BASE/llvm
+mv $CFE_SRC $BASE/llvm/tools/clang
 
 cd $BASE/llvm
 mkdir build

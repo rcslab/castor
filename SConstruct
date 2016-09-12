@@ -30,6 +30,7 @@ def clangtidy(target, source, env):
         j = json.load(f)
         for x in j:
             result = os.system(env["CLANGTIDY"]+" "+x["file"])
+        os.system(env["CLANGTIDY"]+" lib/Pass/CastorPass.cc")
     except IOError as e:
         return []
 
@@ -124,6 +125,11 @@ SConscript("#build/perf/SConstruct")
 AlwaysBuild(Alias('test',
                   "build/lib/Runtime/libCastorRuntime.o",
                   "test/testbench.py"))
+
+env.Command("lib/Pass/libCastorPass.so",
+            ["lib/Pass/CastorPass.cc", "lib/Pass/CastorPass.h"],
+            "cd lib/Pass && cmake . && cmake --build .")
+
 AlwaysBuild(Alias('sysroot', "", "tools/sysroot.sh"))
 AlwaysBuild(Alias('llvm', "", "tools/llvm.sh"))
 
