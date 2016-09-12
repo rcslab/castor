@@ -1559,9 +1559,9 @@ __sys_ftruncate(int fd, off_t length)
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-	    return syscall(SYS_truncate, fd, length);
+	    return syscall(SYS_ftruncate, fd, length);
 	case RRMODE_RECORD:
-	    result = syscall(SYS_truncate, fd, length);
+	    result = syscall(SYS_ftruncate, fd, length);
 	    RRRecordOI(RREVENT_TRUNCATE, fd, result);
 	    break;
 	case RRMODE_REPLAY:
