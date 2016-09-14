@@ -17,6 +17,7 @@ tests = [
     "thread_print",
     "time",
     "fork_basic",
+    "rdtsc",
 ]
 
 test_env.Append(CPPFLAGS = ["--sysroot=$SYSROOT",

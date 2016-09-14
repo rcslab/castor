@@ -41,7 +41,7 @@ Help("""TARGETS:
 scons               Build castor
 scons sysroot       Build sysroot
 scons llvm          Build llvm
-scons test          Run tests
+scons testbench     Run tests
 scons compiledb     Compile Database
 scons check         Clang tidy checker\n""")
 Help(opts.GenerateHelpText(env))
@@ -127,7 +127,7 @@ SConscript("#build/test/SConstruct")
 VariantDir("build/perf", "perf")
 SConscript("#build/perf/SConstruct")
 
-AlwaysBuild(Alias('test',
+AlwaysBuild(Alias('testbench',
                   "build/lib/Runtime/libCastorRuntime.o",
                   "test/testbench.py"))
 
