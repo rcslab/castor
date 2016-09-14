@@ -34,8 +34,6 @@ bool Castor::runOnModule(Module &M)
 {
     bool mod = false;
 
-    errs() << "Castor Record/Replay Enabled\n";
-
     for (auto &F : M) {
 	for (auto &BB : F) {
 	    mod |= doBasicBlock(M, BB);

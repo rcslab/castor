@@ -14,6 +14,7 @@ opts.AddVariables(
     ("RANLIB", "Archiver Indexer", "ranlib"),
     ("NUMCPUS", "Number of CPUs to use for build (0 means auto)", "0"),
     ("CLANGTIDY", "Clang Tidy", "clang-tidy38"),
+    ("CASTORPASS", "Castor LLVM IR Pass", "lib/Pass/libCastorPass.so"),
     EnumVariable("VERBOSE", "Show full build information", "0", ["0", "1"]),
     EnumVariable("RR", "R/R Type", "ctr", ["ctr", "tsc", "tsx"]),
     EnumVariable("CFG", "R/R Log Config", "ft", ["ft", "dbg", "snap"])
@@ -104,7 +105,6 @@ env["SYSROOT"] = os.getcwd() + "/sysroot/usr/amd64-freebsd/"
 
 Export('env')
 
-
 VariantDir("build/lib", "lib")
 SConscript("#build/lib/Runtime/SConstruct")
 SConscript("#build/lib/Checkpointing/SConstruct")
@@ -116,6 +116,11 @@ SConscript("#build/tools/record/SConstruct")
 SConscript("#build/tools/replay/SConstruct")
 SConscript("#build/tools/baseline/SConstruct")
 
+cp = env.Command("#lib/Pass/libCastorPass.so",
+            ["lib/Pass/CastorPass.cc", "lib/Pass/CastorPass.h"],
+            "cd lib/Pass && cmake . && cmake --build .")
+env.Alias("CastorPass", cp)
+
 VariantDir("build/test", "test")
 SConscript("#build/test/SConstruct")
 
@@ -125,10 +130,6 @@ SConscript("#build/perf/SConstruct")
 AlwaysBuild(Alias('test',
                   "build/lib/Runtime/libCastorRuntime.o",
                   "test/testbench.py"))
-
-env.Command("lib/Pass/libCastorPass.so",
-            ["lib/Pass/CastorPass.cc", "lib/Pass/CastorPass.h"],
-            "cd lib/Pass && cmake . && cmake --build .")
 
 AlwaysBuild(Alias('sysroot', "", "tools/sysroot.sh"))
 AlwaysBuild(Alias('llvm', "", "tools/llvm.sh"))
