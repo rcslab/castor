@@ -19,6 +19,7 @@ tests = [
     "fork_basic",
     "rdtsc",
     "loadstore_volatile",
+    "atomics",
 ]
 
 test_env.Append(CPPFLAGS = ["--sysroot=$SYSROOT",

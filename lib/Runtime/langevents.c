@@ -125,4 +125,85 @@ __castor_store_end(void *ptr)
     return;
 }
 
+void
+__castor_cmpxchg_begin(void *ptr)
+{
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    break;
+	case RRMODE_RECORD:
+	    RRLog_LEnter(threadId, (uint64_t)ptr);
+	    break;
+	case RRMODE_REPLAY:
+	    RRPlay_LEnter(threadId, (uint64_t)ptr);
+	    break;
+    }
+    return;
+}
+
+void
+__castor_cmpxchg_end(void *ptr)
+{
+    RRLogEntry *e;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    break;
+	case RRMODE_RECORD:
+	    e = RRLog_LAlloc(threadId);
+	    e->event = RREVENT_ATOMIC_XCHG;
+	    e->objectId = (uint64_t)ptr;
+	    e->threadId = threadId;
+	    RRLog_LAppend(e);
+	    break;
+	case RRMODE_REPLAY:
+	    e = RRPlay_LDequeue(threadId);
+	    AssertEvent(e, RREVENT_ATOMIC_XCHG);
+	    RRPlay_LFree(e);
+	    break;
+    }
+    return;
+}
+
+void
+__castor_rmw_begin(void *ptr)
+{
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    break;
+	case RRMODE_RECORD:
+	    RRLog_LEnter(threadId, (uint64_t)ptr);
+	    break;
+	case RRMODE_REPLAY:
+	    RRPlay_LEnter(threadId, (uint64_t)ptr);
+	    break;
+    }
+    return;
+}
+
+void
+__castor_rmw_end(void *ptr)
+{
+    RRLogEntry *e;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    break;
+	case RRMODE_RECORD:
+	    e = RRLog_LAlloc(threadId);
+	    e->event = RREVENT_ATOMIC_RMW;
+	    e->objectId = (uint64_t)ptr;
+	    e->threadId = threadId;
+	    RRLog_LAppend(e);
+	    break;
+	case RRMODE_REPLAY:
+	    e = RRPlay_LDequeue(threadId);
+	    AssertEvent(e, RREVENT_ATOMIC_RMW);
+	    RRPlay_LFree(e);
+	    break;
+    }
+    return;
+}
+
+
 

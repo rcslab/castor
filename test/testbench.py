@@ -20,7 +20,7 @@ replaytool = "../build/tools/replay/replay"
 
 all_tests = ["getuid", "setuid", "helloworld","hellodebug", "read", "rand", "time", 
         "thread_basic", "thread_mutex", "thread_print", "network_basic",
-        "fork_basic", "kqueue", "rdtsc", "loadstore_volatile" ]
+        "fork_basic", "kqueue", "rdtsc", "loadstore_volatile", "atomics" ]
 tests = [ ]
 failed = [ ]
 
