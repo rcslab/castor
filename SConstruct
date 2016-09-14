@@ -131,8 +131,8 @@ AlwaysBuild(Alias('testbench',
                   "build/lib/Runtime/libCastorRuntime.o",
                   "test/testbench.py"))
 
-AlwaysBuild(Alias('sysroot', "", "tools/sysroot.sh"))
-AlwaysBuild(Alias('llvm', "", "tools/llvm.sh"))
+AlwaysBuild(Alias('sysroot', "", "utils/sysroot.sh"))
+AlwaysBuild(Alias('llvm', "", "utils/llvm.sh"))
 
 compileDb = env.Alias("compiledb", env.CompilationDatabase('compile_commands.json'))
 if ("check" in BUILD_TARGETS):

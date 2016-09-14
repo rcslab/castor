@@ -20,8 +20,8 @@ test/network_basic
 test/thread_basic
 test/thread_mutex
 test/thread_print
-tools/cfe-*.src.tar.xz
-tools/llvm-*.src.tar.xz
+utils/cfe-*.src.tar.xz
+utils/llvm-*.src.tar.xz
 lib/Pass/CMakeCache.txt
 lib/Pass/CMakeFiles
 lib/Pass/Makefile

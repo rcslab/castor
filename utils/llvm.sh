@@ -11,7 +11,7 @@ if ( -d $BASE/llvm ) then
     exit 1
 endif
 
-cd $BASE/tools
+cd $BASE/utils
 if ( ! -e $LLVM_SRC.tar.xz ) then
     fetch http://llvm.org/releases/3.8.1/$LLVM_SRC.tar.xz
 endif
