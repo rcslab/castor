@@ -13,6 +13,7 @@
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/InlineAsm.h"
 #include "llvm/IR/GlobalValue.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/IRBuilder.h"
@@ -196,7 +197,40 @@ bool Castor::doCall(Module &M, CallInst *I)
     Function *f;
 
     if (I->isInlineAsm()) {
+	bool needRR = false;
 	errs() << "Inline Assembly\n";
+	Value *f = I->getCalledValue();
+	InlineAsm *ia = dyn_cast<InlineAsm>(f);
+	InlineAsm::ConstraintInfoVector civ = ia->ParseConstraints();
+
+	for (auto &c : civ) {
+	    if (c.Type != InlineAsm::isClobber) {
+		continue;
+	    }
+	    for (auto &i : c.Codes) {
+		if (i == "{memory}")
+		    needRR = true;
+	    }
+	}
+
+	if (needRR) {
+	    LLVMContext &ctx = M.getContext();
+	    Instruction *ni = I->getNextNode();
+
+	    IRBuilder<> before(I);
+	    IRBuilder<> after(ni);
+
+	    Value *asm_begin = M.getOrInsertFunction("__castor_asm_begin",
+				Type::getVoidTy(ctx), NULL);
+	    Value *asm_end = M.getOrInsertFunction("__castor_asm_end",
+				Type::getVoidTy(ctx), NULL);
+
+	    before.CreateCall(asm_begin);
+	    after.CreateCall(asm_end);
+
+	    return true;
+	}
+
 	return false;
     }
 

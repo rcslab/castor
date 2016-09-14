@@ -205,5 +205,43 @@ __castor_rmw_end(void *ptr)
     return;
 }
 
+void
+__castor_asm_begin()
+{
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    break;
+	case RRMODE_RECORD:
+	    RRLog_LEnter(threadId, (uint64_t)0);
+	    break;
+	case RRMODE_REPLAY:
+	    RRPlay_LEnter(threadId, (uint64_t)0);
+	    break;
+    }
+    return;
+}
 
+void
+__castor_asm_end()
+{
+    RRLogEntry *e;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    break;
+	case RRMODE_RECORD:
+	    e = RRLog_LAlloc(threadId);
+	    e->event = RREVENT_INLINE_ASM;
+	    e->objectId = (uint64_t)0;
+	    e->threadId = threadId;
+	    RRLog_LAppend(e);
+	    break;
+	case RRMODE_REPLAY:
+	    e = RRPlay_LDequeue(threadId);
+	    AssertEvent(e, RREVENT_INLINE_ASM);
+	    RRPlay_LFree(e);
+	    break;
+    }
+    return;
+}
 
