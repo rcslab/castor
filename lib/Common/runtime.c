@@ -141,7 +141,8 @@ TXGQProc(void *arg)
 
 	RRGlobalQueue_Free(&rrgq, numEntries);
 
-	usleep(100000);
+	//usleep(100000);
+	pthread_yield();
     }
 }
 

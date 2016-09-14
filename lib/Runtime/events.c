@@ -47,8 +47,9 @@
 #include <castor/rrgq.h>
 #include <castor/mtx.h>
 #include <castor/rrevent.h>
-
 #include <castor/runtime.h>
+
+#include "events.h"
 
 /* USE FILES */
 bool useRealFiles = false;
@@ -66,59 +67,7 @@ extern int __vdso_clock_gettime(clockid_t clock_id, struct timespec *tp);
 extern void *__sys_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
 extern interpos_func_t __libc_interposing[] __hidden;
 
-#define LOCKTABLE_SIZE 4096
-static Mutex lockTable[LOCKTABLE_SIZE];
-#define GETLOCK(_obj) &lockTable[(_obj) % LOCKTABLE_SIZE]
-
-void
-RRLog_LEnter(uint32_t threadId, uint64_t objId)
-{
-    RRLogEntry *e = RRLog_Alloc(rrlog, threadId);
-    e->event = RREVENT_LOCKED_EVENT;
-    e->threadId = threadId;
-    e->objectId = objId;
-    Mutex_Lock(GETLOCK(objId));
-    RRLog_Append(rrlog, e);
-}
-
-RRLogEntry *
-RRLog_LAlloc(uint32_t threadId)
-{
-    return RRLog_Alloc(rrlog, threadId);
-}
-
-void
-RRLog_LAppend(RRLogEntry *entry)
-{
-    uint64_t objId = entry->objectId;
-
-    RRLog_Append(rrlog, entry);
-    Mutex_Unlock(GETLOCK(objId));
-}
-
-void
-RRPlay_LEnter(uint32_t threadId, uint64_t objId)
-{
-    RRLogEntry *e = RRPlay_Dequeue(rrlog, threadId);
-    AssertEvent(e, RREVENT_LOCKED_EVENT);
-    Mutex_Lock(GETLOCK(objId));
-    RRPlay_Free(rrlog, e);
-}
-
-RRLogEntry *
-RRPlay_LDequeue(uint32_t threadId)
-{
-    return RRPlay_Dequeue(rrlog, threadId);
-}
-
-void
-RRPlay_LFree(RRLogEntry *entry)
-{
-    uint64_t objId = entry->objectId;
-
-    RRPlay_Free(rrlog, entry);
-    Mutex_Unlock(GETLOCK(objId));
-}
+Mutex lockTable[LOCKTABLE_SIZE];
 
 #define RREVENT_DATA_LEN	32
 #define RREVENT_DATA_OFFSET	32
@@ -1559,9 +1508,9 @@ __sys_ftruncate(int fd, off_t length)
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-	    return syscall(SYS_truncate, fd, length);
+	    return syscall(SYS_ftruncate, fd, length);
 	case RRMODE_RECORD:
-	    result = syscall(SYS_truncate, fd, length);
+	    result = syscall(SYS_ftruncate, fd, length);
 	    RRRecordOI(RREVENT_TRUNCATE, fd, result);
 	    break;
 	case RRMODE_REPLAY:

@@ -4,6 +4,7 @@ Import('env')
 src = [
     "runtime.c",
     "events.c",
+    "langevents.c",
     "debug/assert.c",
     "debug/rr_fdprintf.c"
 ]

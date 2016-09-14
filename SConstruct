@@ -14,6 +14,7 @@ opts.AddVariables(
     ("RANLIB", "Archiver Indexer", "ranlib"),
     ("NUMCPUS", "Number of CPUs to use for build (0 means auto)", "0"),
     ("CLANGTIDY", "Clang Tidy", "clang-tidy38"),
+    ("CASTORPASS", "Castor LLVM IR Pass", "lib/Pass/libCastorPass.so"),
     EnumVariable("VERBOSE", "Show full build information", "0", ["0", "1"]),
     EnumVariable("RR", "R/R Type", "ctr", ["ctr", "tsc", "tsx"]),
     EnumVariable("CFG", "R/R Log Config", "ft", ["ft", "dbg", "snap"])
@@ -30,6 +31,7 @@ def clangtidy(target, source, env):
         j = json.load(f)
         for x in j:
             result = os.system(env["CLANGTIDY"]+" "+x["file"])
+        os.system(env["CLANGTIDY"]+" lib/Pass/CastorPass.cc")
     except IOError as e:
         return []
 
@@ -39,7 +41,7 @@ Help("""TARGETS:
 scons               Build castor
 scons sysroot       Build sysroot
 scons llvm          Build llvm
-scons test          Run tests
+scons testbench     Run tests
 scons compiledb     Compile Database
 scons check         Clang tidy checker\n""")
 Help(opts.GenerateHelpText(env))
@@ -103,7 +105,6 @@ env["SYSROOT"] = os.getcwd() + "/sysroot/usr/amd64-freebsd/"
 
 Export('env')
 
-
 VariantDir("build/lib", "lib")
 SConscript("#build/lib/Runtime/SConstruct")
 SConscript("#build/lib/Checkpointing/SConstruct")
@@ -115,17 +116,23 @@ SConscript("#build/tools/record/SConstruct")
 SConscript("#build/tools/replay/SConstruct")
 SConscript("#build/tools/baseline/SConstruct")
 
+cp = env.Command("#lib/Pass/libCastorPass.so",
+            ["lib/Pass/CastorPass.cc", "lib/Pass/CastorPass.h"],
+            "cd lib/Pass && cmake . && cmake --build .")
+env.Alias("CastorPass", "#lib/Pass/libCastorPass.so")
+
 VariantDir("build/test", "test")
 SConscript("#build/test/SConstruct")
 
 VariantDir("build/perf", "perf")
 SConscript("#build/perf/SConstruct")
 
-AlwaysBuild(Alias('test',
+AlwaysBuild(Alias('testbench',
                   "build/lib/Runtime/libCastorRuntime.o",
                   "test/testbench.py"))
-AlwaysBuild(Alias('sysroot', "", "tools/sysroot.sh"))
-AlwaysBuild(Alias('llvm', "", "tools/llvm.sh"))
+
+AlwaysBuild(Alias('sysroot', "", "utils/sysroot.sh"))
+AlwaysBuild(Alias('llvm', "", "utils/llvm.sh"))
 
 compileDb = env.Alias("compiledb", env.CompilationDatabase('compile_commands.json'))
 if ("check" in BUILD_TARGETS):

@@ -17,12 +17,18 @@ tests = [
     "thread_print",
     "time",
     "fork_basic",
+    "rdtsc",
+    "loadstore_volatile",
+    "atomics",
+    "inlineasm"
 ]
 
-test_env.Append(CPPFLAGS = ["--sysroot=$SYSROOT"])
+test_env.Append(CPPFLAGS = ["--sysroot=$SYSROOT",
+                            "-Xclang", "-load", "-Xclang", "$CASTORPASS"])
 test_env.Append(LINKFLAGS = ["-static", "--sysroot=$SYSROOT"])
 test_env.Append(LIBS = ["thr", "c"])
 
 for t in tests:
+    test_env.Depends(t+".o", "CastorPass")
     test_env.Program(t, [ "../lib/Runtime/libCastorRuntime.o", t+".c"])
 
