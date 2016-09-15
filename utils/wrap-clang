@@ -26,39 +26,45 @@ def is_object(arg):
 def insert_runtime(args):
     result = args
     objects = filter(is_object,args)
-    result.insert(result.index(objects[0]), runtime_path)
+    if len(objects) > 0:
+        result.insert(result.index(objects[0]), runtime_path)
     return result
 
-def insert_lpthreads(args):
+def insert_libraries(args):
     result = args
     libraries = filter(is_library,args)
     if len(libraries) == 0:       #no libraries, hmmm, skip it
         return result
-    elif '-lpthread' in libraries: #already has pthread
-        return result
-    elif '-lc' in libraries: #insert before libc
-        result.insert(result.index('-lc'), '-lpthread')
-        return result
-    else:                  #insert at end of libraries list
-        result.insert(result.index(libraries[-1]) + 1,'-lpthread')
-        return result
+    if '-lc' in libraries: #insert before libc
+        if not ('-lpthread' in libraries):
+            result.insert(result.index('-lc'), '-lpthread')
+    else:
+        if not ('-lpthread' in libraries):
+            result.insert(result.index(libraries[-1]) + 1,'-lpthread')
+    return result
 
-TEST = True
+TEST = False
+PT = False   #pass through mode, don't modify anything.
 args = sys.argv[1:]
-if ok_to_add_stuff(args):
-    print "Ok to add stuff"
+#if ok_to_add_stuff(args):
+if 'postgres' in args: #only do this target
+    print "Modifying Postgres!"
     args = insert_runtime(args)
-    args = insert_lpthreads(args)
+    args = insert_libraries(args)
     args = ['-static'] + args #prepend static
-else:
-    print "Not ok to add stuff"
 
 #always prepend sysroot
 args = ['--sysroot=' + sysroot_path] + args
+
+if PT:
+    args = sys.argv[1:]
+    args = ['--sysroot=' + sysroot_path] + args
+
 clang = 'clang'
 final_args = [clang] + args
 
 if TEST == True:
     print "Would run: ", final_args
 else:
+    print final_args
     os.execvp(clang,final_args)
