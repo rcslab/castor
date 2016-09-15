@@ -43,12 +43,33 @@ def insert_libraries(args):
             result.insert(result.index(libraries[-1]) + 1,'-lpthread')
     return result
 
-TEST = False
-PT = False   #pass through mode, don't modify anything.
+def wrap_target_list(args):
+    result = []
+    if (args[0].startswith('--wrap-targets=')):
+        param = args.pop(0)
+        target_string = param.split('=')[1]
+        result = target_string.split(',')
+    return result
+
+def wrap_test(args):
+    if (args[0] == '--wrap-test'):
+        args.pop(0)
+        return True
+    return False
+
+def build_target(args):
+    result = None
+    if ('-o' in args):
+        result = args[args.index('-o') + 1]
+    return result
+
 args = sys.argv[1:]
-#if ok_to_add_stuff(args):
-if 'postgres' in args: #only do this target
-    print "Modifying Postgres!"
+test = wrap_test(args)
+wrap_targets = wrap_target_list(args)
+target = build_target(args)
+
+if target in wrap_targets:
+    print "wrap-clang modifying: " + target
     args = insert_runtime(args)
     args = insert_libraries(args)
     args = ['-static'] + args #prepend static
@@ -56,15 +77,11 @@ if 'postgres' in args: #only do this target
 #always prepend sysroot
 args = ['--sysroot=' + sysroot_path] + args
 
-if PT:
-    args = sys.argv[1:]
-    args = ['--sysroot=' + sysroot_path] + args
-
 clang = 'clang'
 final_args = [clang] + args
 
-if TEST == True:
-    print "Would run: ", final_args
+if test == True:
+    print "Test Mode, would run: ", ' '.join(final_args)
 else:
-    print final_args
+    print final_args.join(' ')
     os.execvp(clang,final_args)
