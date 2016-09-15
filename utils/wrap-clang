@@ -83,5 +83,5 @@ final_args = [clang] + args
 if test == True:
     print "Test Mode, would run: ", ' '.join(final_args)
 else:
-    print final_args.join(' ')
+    print ' '.join(final_args)
     os.execvp(clang,final_args)
