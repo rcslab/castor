@@ -1,6 +1,6 @@
 #!/bin/csh -e
 
-set LLVMVER="3.8.1"
+set LLVMVER="3.9.0"
 set LLVM_SRC=llvm-$LLVMVER.src
 set CFE_SRC=cfe-$LLVMVER.src
 
@@ -13,10 +13,10 @@ endif
 
 cd $BASE/utils
 if ( ! -e $LLVM_SRC.tar.xz ) then
-    fetch http://llvm.org/releases/3.8.1/$LLVM_SRC.tar.xz
+    fetch http://llvm.org/releases/$LLVMVER/$LLVM_SRC.tar.xz
 endif
 if ( ! -e $CFE_SRC.tar.xz ) then
-    fetch http://llvm.org/releases/3.8.1/$CFE_SRC.tar.xz
+    fetch http://llvm.org/releases/$LLVMVER/$CFE_SRC.tar.xz
 endif
 
 tar zxvf $LLVM_SRC.tar.xz

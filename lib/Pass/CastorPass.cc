@@ -136,7 +136,7 @@ bool Castor::doAtomicCmpXchg(Module &M, AtomicCmpXchgInst *I)
 
 bool Castor::doLoad(Module &M, LoadInst *I)
 {
-    if (I->getOrdering() != NotAtomic || I->isVolatile()) {
+    if (I->getOrdering() != AtomicOrdering::NotAtomic || I->isVolatile()) {
 	errs() << "ATOMIC LOAD\n";
 	LLVMContext &ctx = M.getContext();
 	Instruction *ni = I->getNextNode();
@@ -165,7 +165,7 @@ bool Castor::doLoad(Module &M, LoadInst *I)
 
 bool Castor::doStore(Module &M, StoreInst *I)
 {
-    if (I->getOrdering() != NotAtomic || I->isVolatile()) {
+    if (I->getOrdering() != AtomicOrdering::NotAtomic || I->isVolatile()) {
 	errs() << "ATOMIC STORE\n";
 	LLVMContext &ctx = M.getContext();
 	Instruction *ni = I->getNextNode();
