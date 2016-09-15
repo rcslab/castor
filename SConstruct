@@ -13,7 +13,7 @@ opts.AddVariables(
     ("AR", "Archiver", "ar"),
     ("RANLIB", "Archiver Indexer", "ranlib"),
     ("NUMCPUS", "Number of CPUs to use for build (0 means auto)", "0"),
-    ("CLANGTIDY", "Clang Tidy", "clang-tidy38"),
+    ("CLANGTIDY", "Clang Tidy", "clang-tidy39"),
     ("CASTORPASS", "Castor LLVM IR Pass", "lib/Pass/libCastorPass.so"),
     EnumVariable("VERBOSE", "Show full build information", "0", ["0", "1"]),
     EnumVariable("RR", "R/R Type", "ctr", ["ctr", "tsc", "tsx"]),
@@ -117,7 +117,8 @@ SConscript("#build/tools/replay/SConstruct")
 SConscript("#build/tools/baseline/SConstruct")
 
 cp = env.Command("#lib/Pass/libCastorPass.so",
-            ["lib/Pass/CastorPass.cc", "lib/Pass/CastorPass.h"],
+            [ "lib/Pass/CastorPass.cc", "lib/Pass/CastorPass.h",
+              "lib/Pass/CMakeLists.txt" ],
             "cd lib/Pass && cmake . && cmake --build .")
 env.Alias("CastorPass", "#lib/Pass/libCastorPass.so")
 
