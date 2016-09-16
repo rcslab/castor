@@ -336,7 +336,9 @@ OpenLog(const char *logfile, bool forRecord)
 
     logfd = open(logfile, flags, 0600);
     if (logfd < 0) {
-	perror("open");
+	char str[255];
+	snprintf(str,255,"Could not open log the file: %s",logfile);
+	perror(str);
 	abort();
 	return;
     }
