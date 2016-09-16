@@ -18,10 +18,11 @@ TFORMAT = "%-32s [ %s%-9s"+ NORMAL + " ] %-10.6f %-10.6f %-10.6f"
 recordtool = "../build/tools/record/record"
 replaytool = "../build/tools/replay/replay"
 
-all_tests = ["getuid", "setuid", "helloworld","hellodebug", "read", "rand", "time", 
-        "thread_basic", "thread_mutex", "thread_print", "network_basic",
-        "fork_basic", "kqueue", "rdtsc", "loadstore_volatile", "atomics", 
-        "inlineasm" ]
+all_tests = []
+for f in sorted(os.listdir('test/')):
+    if f.endswith(".c"):
+        all_tests.append(os.path.basename(f[0:-2]))
+
 tests = [ ]
 failed = [ ]
 

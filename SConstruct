@@ -128,10 +128,6 @@ SConscript("#build/test/SConstruct")
 VariantDir("build/perf", "perf")
 SConscript("#build/perf/SConstruct")
 
-AlwaysBuild(Alias('testbench',
-                  "build/lib/Runtime/libCastorRuntime.o",
-                  "test/testbench.py"))
-
 AlwaysBuild(Alias('sysroot', "", "utils/sysroot.sh"))
 AlwaysBuild(Alias('llvm', "", "utils/llvm.sh"))
 
