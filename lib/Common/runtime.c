@@ -16,11 +16,11 @@
 
 #include <sys/syscall.h>
 
-#include <castor/rrevent.h>
 #include <rrlog.h>
 #include <rrplay.h>
 #include <castor/rrgq.h>
 
+#include <castor/events.h>
 #include <castor/Common/runtime.h>
 #include "ft.h"
 

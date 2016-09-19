@@ -2,11 +2,7 @@
 #ifndef __RRGQ_H__
 #define __RRGQ_H__
 
-#include <assert.h>
-#include <stdint.h>
-#include <stdalign.h>
-
-#include "rrlog.h"
+#include <castor/archconfig.h>
 
 // Tunables
 #define RRGQ_MAX_ENTRIES	(4096 * PAGESIZE / CACHELINE)

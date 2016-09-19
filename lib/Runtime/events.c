@@ -46,8 +46,8 @@
 #include <rrplay.h>
 #include <castor/rrgq.h>
 #include <castor/mtx.h>
-#include <castor/rrevent.h>
-#include <castor/runtime.h>
+#include <castor/events.h>
+#include <castor/Runtime/runtime.h>
 
 #include "events.h"
 
@@ -66,6 +66,8 @@ extern int _pthread_mutex_destroy(pthread_mutex_t *mutex);
 extern int __vdso_clock_gettime(clockid_t clock_id, struct timespec *tp);
 extern void *__sys_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
 extern interpos_func_t __libc_interposing[] __hidden;
+
+extern void LogDone();
 
 Mutex lockTable[LOCKTABLE_SIZE];
 

@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <threads.h>
 
 #include <unistd.h>
 #include <pthread.h>
@@ -12,8 +13,8 @@
 #include <rrplay.h>
 #include <castor/rrgq.h>
 #include <castor/mtx.h>
-#include <castor/rrevent.h>
-#include <castor/runtime.h>
+#include <castor/events.h>
+#include <castor/Runtime/runtime.h>
 
 #include "events.h"
 

@@ -2,24 +2,12 @@
 #ifndef __RUNTIME_H__
 #define __RUNTIME_H__
 
-#include <threads.h>
-#include <stdbool.h>
-#include "rrlog.h"
-#include "rrplay.h"
-
-enum RRMODE {
-    RRMODE_NORMAL, // Normal
-    RRMODE_RECORD, // Debug Recording
-    RRMODE_REPLAY, // Replay
-    //RRMODE_FDREPLAY, // Replay (Real Files)
-    //RRMODE_FTREPLAY, // Replay (Fault Tolerance)
-};
+#include <rrlog.h>
+#include <rrplay.h>
 
 extern enum RRMODE rrMode;
 extern RRLog *rrlog;
 extern thread_local int threadId;
-
-void LogDone();
 
 #if defined(CASTOR_DEBUG)
 static inline void

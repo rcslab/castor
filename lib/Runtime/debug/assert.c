@@ -27,15 +27,12 @@
  * SUCH DAMAGE.
  */
 
-#if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)assert.c	8.1 (Berkeley) 6/4/93";
-#endif /* LIBC_SCCS and not lint */
-#include <sys/cdefs.h>
-__FBSDID("$FreeBSD: releng/10.3/lib/libc/gen/assert.c 165903 2007-01-09 00:28:16Z imp $");
-
-#include <unistd.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <sys/cdefs.h>
+#include <unistd.h>
 
 #include <castor/rr_fdprintf.h>
 #include <castor/rr_debug.h>
@@ -43,16 +40,16 @@ __FBSDID("$FreeBSD: releng/10.3/lib/libc/gen/assert.c 165903 2007-01-09 00:28:16
 void
 __rr_assert(const char *func, const char *file, int line, const char *failedexpr)
 {
-	if (func == NULL)
-		(void)rr_fdprintf(STDERR_FILENO,
-		     "Assertion failed: (%s), file %s, line %d.\n", failedexpr,
-		     file, line);
-	else
-		(void)rr_fdprintf(STDERR_FILENO,
-		     "Assertion failed: (%s), file %s, line %d.\n", failedexpr,
-		     file, line);
+    if (func == NULL) {
+	(void)rr_fdprintf(STDERR_FILENO,
+		"Assertion failed: (%s), file %s, line %d.\n", failedexpr,
+		file, line);
+    } else {
+	(void)rr_fdprintf(STDERR_FILENO,
+		"Assertion failed: (%s), file %s, line %d.\n", failedexpr,
+		file, line);
+    }
 
-	rrMode = RRMODE_NORMAL;
-	abort();
-	/* NOTREACHED */
+    rrMode = RRMODE_NORMAL;
+    abort();
 }

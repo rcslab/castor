@@ -10,7 +10,7 @@
 #ifndef __CASTOR_MTX_H__
 #define __CASTOR_MTX_H__
 
-#include "archconfig.h"
+#include <castor/archconfig.h>
 
 typedef struct Mutex {
     alignas(CACHELINE) _Atomic(uint64_t)	lck;

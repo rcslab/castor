@@ -10,8 +10,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include <castor/rrevent.h>
-#include <rrlog.h>
+#include <castor/archconfig.h>
+#include <castor/events.h>
 
 static int logfd;
 static RRLogEntry entry;

@@ -2,6 +2,10 @@
 #ifndef __CASTOR_ARCHCONFIG_H__
 #define __CASTOR_ARCHCONFIG_H__
 
+#include <assert.h>
+#include <stdalign.h>
+#include <stdint.h>
+
 #ifdef USE_L3CACHELINE
 #define CACHELINE	128
 #else
@@ -21,6 +25,14 @@
 #else
 #error "Unknown logging configuration"
 #endif
+
+enum RRMODE {
+    RRMODE_NORMAL, // Normal
+    RRMODE_RECORD, // Debug Recording
+    RRMODE_REPLAY, // Replay
+    //RRMODE_FASTRECORD, // Fault Tolerance Recording
+    //RRMODE_FASTREPLAY, // Fault Tolerance Replay
+};
 
 typedef struct RRLogEntry {
     alignas(CACHELINE) uint64_t		eventId;
@@ -42,8 +54,6 @@ typedef struct RRLogThread {
 } RRLogThread;
 
 static_assert(alignof(RRLogThread) == CACHELINE, "RRLogThread must be page aligned");
-//static_assert(sizeof(RRLogThread) == PAGESIZE, "RRLogThread must be page 
-//sized");
 
 typedef struct RRLog {
     alignas(CACHELINE) volatile uint64_t nextEvent; // Next event to be read

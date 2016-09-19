@@ -2,9 +2,6 @@
 #ifndef __EVENTS_H__
 #define __EVENTS_H__
 
-#include <castor/mtx.h>
-
-
 #define LOCKTABLE_SIZE 4096
 #define GETLOCK(_obj) &lockTable[(_obj) % LOCKTABLE_SIZE]
 
