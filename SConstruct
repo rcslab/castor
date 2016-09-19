@@ -14,6 +14,7 @@ opts.AddVariables(
     ("RANLIB", "Archiver Indexer", "ranlib"),
     ("NUMCPUS", "Number of CPUs to use for build (0 means auto)", "0"),
     ("CLANGTIDY", "Clang Tidy", "clang-tidy39"),
+    ("CTAGS", "Ctags", "exctags"),
     ("CASTORPASS", "Castor LLVM IR Pass", "lib/Pass/libCastorPass.so"),
     EnumVariable("VERBOSE", "Show full build information", "0", ["0", "1"]),
     EnumVariable("RR", "R/R Type", "ctr", ["ctr", "tsc", "tsx"]),
@@ -22,14 +23,15 @@ opts.AddVariables(
 
 env = Environment(options = opts,
                   tools = ['default', 'compilation_db', 'objectlib',
-                           'clangtidy'])
+                           'clangtidy', 'ctags'])
 Help("""TARGETS:
 scons               Build castor
 scons sysroot       Build sysroot
 scons llvm          Build llvm
 scons testbench     Run tests
 scons compiledb     Compile Database
-scons check         Clang tidy checker\n""")
+scons check         Clang tidy checker
+scons tags          Ctags\n""")
 Help(opts.GenerateHelpText(env))
 
 # Clang scan-build support
@@ -121,4 +123,8 @@ compileDb = env.Alias("compiledb", env.CompilationDatabase('compile_commands.jso
 if ("check" in BUILD_TARGETS):
     Alias('check', AlwaysBuild(env.ClangCheckAll(
             ["compile_commands.json", "#lib/Pass/compile_commands.json"])))
+
+if ("tags" in BUILD_TARGETS):
+    env.Command("tags", ["lib", "include", "tools"],
+                              '$CTAGS -R -f $TARGET $SOURCES')
 

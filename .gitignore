@@ -12,6 +12,7 @@ Local.sc
 sysroot
 sysroot-src
 llvm
+tags
 test/rand
 test/read
 test/time
