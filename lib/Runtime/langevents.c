@@ -14,9 +14,8 @@
 #include <castor/rrgq.h>
 #include <castor/mtx.h>
 #include <castor/events.h>
-#include <castor/Runtime/runtime.h>
 
-#include "events.h"
+#include "util.h"
 
 uint64_t
 __castor_rdtsc()

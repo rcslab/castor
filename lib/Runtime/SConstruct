@@ -3,6 +3,7 @@ Import('env')
 
 src = [
     "runtime.c",
+    "util.c",
     "events.c",
     "langevents.c",
     "debug/assert.c",

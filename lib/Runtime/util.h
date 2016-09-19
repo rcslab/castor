@@ -1,44 +1,77 @@
 
-#ifndef __RUNTIME_H__
-#define __RUNTIME_H__
+#ifndef __UTIL_H__
+#define __UTIL_H__
 
-#include <castor/rrlog.h>
-#include <castor/rrplay.h>
+#define LOCKTABLE_SIZE 4096
 
 extern enum RRMODE rrMode;
 extern RRLog *rrlog;
 extern thread_local int threadId;
+extern Mutex lockTable[LOCKTABLE_SIZE];
 
 #if defined(CASTOR_DEBUG)
-static inline void
-AssertEvent(RRLogEntry *e, int evt)
-{
-    if (e->event != evt) {
-	rrMode = RRMODE_NORMAL;
-	printf("Expected %08x, Encountered %08x\n", evt, e->event);
-	printf("Event #%lu, Thread #%d\n", e->eventId, e->threadId);
-	printf("NextEvent #%lu, LastEvent #%lu\n", rrlog->nextEvent, rrlog->lastEvent);
-	abort();
-    }
-}
-
-static inline void
-AssertReplay(RRLogEntry *e, bool test)
-{
-    if (!test) {
-	rrMode = RRMODE_NORMAL;
-	printf("Encountered %08x\n", e->event);
-	printf("Event #%lu, Thread #%d\n", e->eventId, e->threadId);
-	printf("NextEvent #%lu, LastEvent #%lu\n", rrlog->nextEvent, rrlog->lastEvent);
-	abort();
-    }
-}
+void AssertEvent(RRLogEntry *e, int evt);
+void AssertReplay(RRLogEntry *e, bool test);
 #elif defined(CASTOR_RELEASE)
 #define AssertEvent(_e, _evt)
 #define AssertReplay(_e, _tst)
 #else
 #error "Must define build type"
 #endif
+
+void logData(uint8_t *buf, size_t len);
+
+#define GETLOCK(_obj) &lockTable[(_obj) % LOCKTABLE_SIZE]
+
+static inline void
+RRLog_LEnter(uint32_t threadId, uint64_t objId)
+{
+    RRLogEntry *e = RRLog_Alloc(rrlog, threadId);
+    e->event = RREVENT_LOCKED_EVENT;
+    e->threadId = threadId;
+    e->objectId = objId;
+    Mutex_Lock(GETLOCK(objId));
+    RRLog_Append(rrlog, e);
+}
+
+static inline RRLogEntry *
+RRLog_LAlloc(uint32_t threadId)
+{
+    return RRLog_Alloc(rrlog, threadId);
+}
+
+static inline void
+RRLog_LAppend(RRLogEntry *entry)
+{
+    uint64_t objId = entry->objectId;
+
+    RRLog_Append(rrlog, entry);
+    Mutex_Unlock(GETLOCK(objId));
+}
+
+static inline void
+RRPlay_LEnter(uint32_t threadId, uint64_t objId)
+{
+    RRLogEntry *e = RRPlay_Dequeue(rrlog, threadId);
+    AssertEvent(e, RREVENT_LOCKED_EVENT);
+    Mutex_Lock(GETLOCK(objId));
+    RRPlay_Free(rrlog, e);
+}
+
+static inline RRLogEntry *
+RRPlay_LDequeue(uint32_t threadId)
+{
+    return RRPlay_Dequeue(rrlog, threadId);
+}
+
+static inline void
+RRPlay_LFree(RRLogEntry *entry)
+{
+    uint64_t objId = entry->objectId;
+
+    RRPlay_Free(rrlog, entry);
+    Mutex_Unlock(GETLOCK(objId));
+}
 
 static inline void
 RRRecordI(uint32_t eventNum, int i)
@@ -122,5 +155,5 @@ RRReplayOU(uint32_t eventNum, int *od, uint64_t *u)
     RRPlay_Free(rrlog, e);
 }
 
-#endif /* __RUNTIME_H__ */
+#endif /* __UTIL_H__ */
 
