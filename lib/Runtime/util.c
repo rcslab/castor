@@ -15,12 +15,38 @@
 
 Mutex lockTable[LOCKTABLE_SIZE];
 
+static struct {
+    uint32_t	evtid;
+    const char*	str;
+} eventTable[] =
+{
+#define RREVENT(_a, _b) { RREVENT_##_a, #_a },
+    RREVENT_TABLE
+#undef RREVENT
+    { 0, 0 }
+};
+
+static const char *
+Lookup(uint32_t event)
+{
+    int i;
+
+    for (i = 0; eventTable[i].str != 0; i++) {
+	if (eventTable[i].evtid == event) {
+	    return eventTable[i].str;
+	}
+    }
+
+    return "UNKNOWN";
+}
+
 void
 AssertEvent(RRLogEntry *e, int evt)
 {
     if (e->event != evt) {
 	rrMode = RRMODE_NORMAL;
-	printf("Expected %08x, Encountered %08x\n", evt, e->event);
+	printf("Expected %s(%08x), Encountered %s(%08x)\n",
+		Lookup(evt), evt, Lookup(e->event), e->event);
 	printf("Event #%lu, Thread #%d\n", e->eventId, e->threadId);
 	printf("NextEvent #%lu, LastEvent #%lu\n", rrlog->nextEvent, rrlog->lastEvent);
 	abort();
@@ -32,7 +58,7 @@ AssertReplay(RRLogEntry *e, bool test)
 {
     if (!test) {
 	rrMode = RRMODE_NORMAL;
-	printf("Encountered %08x\n", e->event);
+	printf("Encountered %s(%08x)\n", Lookup(e->event), e->event);
 	printf("Event #%lu, Thread #%d\n", e->eventId, e->threadId);
 	printf("NextEvent #%lu, LastEvent #%lu\n", rrlog->nextEvent, rrlog->lastEvent);
 	abort();
