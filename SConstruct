@@ -20,23 +20,9 @@ opts.AddVariables(
     EnumVariable("CFG", "R/R Log Config", "ft", ["ft", "dbg", "snap"])
 )
 
-objlib = Builder(action = Action('ld -r -o $TARGET $SOURCES','$OBJLIBCOMSTR'),
-                 suffix = '.o',
-                 src_suffix = '.c',
-                 src_builder = 'StaticObject')
-
-def clangtidy(target, source, env):
-    try:
-        f = open("compile_commands.json")
-        j = json.load(f)
-        for x in j:
-            result = os.system(env["CLANGTIDY"]+" "+x["file"])
-        os.system(env["CLANGTIDY"]+" lib/Pass/CastorPass.cc")
-    except IOError as e:
-        return []
-
-env = Environment(options = opts, tools = ['default', 'compilation_db'],
-        BUILDERS = {'ObjectLibrary' : objlib})
+env = Environment(options = opts,
+                  tools = ['default', 'compilation_db', 'objectlib',
+                           'clangtidy'])
 Help("""TARGETS:
 scons               Build castor
 scons sysroot       Build sysroot
@@ -133,6 +119,6 @@ AlwaysBuild(Alias('llvm', "", "utils/llvm.sh"))
 
 compileDb = env.Alias("compiledb", env.CompilationDatabase('compile_commands.json'))
 if ("check" in BUILD_TARGETS):
-    Alias('check', env.Command("fake_clang_tidy_target",
-                               "compile_commands.json", clangtidy))
+    Alias('check', AlwaysBuild(env.ClangCheckAll(
+            ["compile_commands.json", "#lib/Pass/compile_commands.json"])))
 
