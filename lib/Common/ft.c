@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#include <rrlog.h>
+#include <castor/rrlog.h>
 #include "ft.h"
 
 #define RRFT_PORT	8051

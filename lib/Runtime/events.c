@@ -42,8 +42,8 @@
 
 #include <libc_private.h>
 
-#include <rrlog.h>
-#include <rrplay.h>
+#include <castor/rrlog.h>
+#include <castor/rrplay.h>
 #include <castor/rrgq.h>
 #include <castor/mtx.h>
 #include <castor/events.h>

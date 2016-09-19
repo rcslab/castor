@@ -2,8 +2,8 @@
 #ifndef __RUNTIME_H__
 #define __RUNTIME_H__
 
-#include <rrlog.h>
-#include <rrplay.h>
+#include <castor/rrlog.h>
+#include <castor/rrplay.h>
 
 extern enum RRMODE rrMode;
 extern RRLog *rrlog;
