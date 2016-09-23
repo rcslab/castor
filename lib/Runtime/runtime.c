@@ -1,5 +1,4 @@
 
-#include <assert.h>
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -17,12 +16,13 @@
 #include <sys/mman.h>
 #include <sys/capsicum.h>
 
-#include <sys/syscall.h>
-
+#include <castor/debug.h>
 #include <castor/rrlog.h>
 #include <castor/rrplay.h>
 #include <castor/rrgq.h>
 #include <castor/events.h>
+
+#include "system.h"
 
 extern void Events_Init();
 
@@ -49,18 +49,6 @@ _pthread_create(pthread_t * thread, const pthread_attr_t * attr,
  * CASTOR_LOGFILE	Record/Replay File Path
  * CASTOR_HOST		Fault-Tolerance Master Hostname
  */
-
-int
-SystemRead(int fd, void *buf, size_t nbytes)
-{
-    return syscall(SYS_read, fd, buf, nbytes);
-}
-
-int
-SystemWrite(int fd, const void *buf, size_t nbytes)
-{
-    return syscall(SYS_write, fd, buf, nbytes);
-}
 
 void *
 DrainQueue(void *arg)
@@ -300,6 +288,8 @@ log_init()
 	rrMode = RRMODE_NORMAL;
 	return;
     }
+
+    Debug_Init("castor.log");
 
     // Make sure LogDone returns immediately
     atomic_store(&drainDone, 1);

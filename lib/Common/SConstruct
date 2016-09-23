@@ -6,6 +6,7 @@ common_src = [
     "ft.c",
     "proc.c",
     "runtime.c",
+    "debug.c"
 ]
 
 env.StaticLibrary("libCastorCommon.a", common_src)

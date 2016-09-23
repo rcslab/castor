@@ -1,5 +1,4 @@
 
-#include <assert.h>
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -16,10 +15,12 @@
 
 #include <sys/syscall.h>
 
+#include <castor/debug.h>
 #include <castor/rrlog.h>
 #include <castor/rrplay.h>
 #include <castor/rrgq.h>
 
+#include <castor/debug.h>
 #include <castor/events.h>
 #include <castor/Common/runtime.h>
 #include "ft.h"
@@ -319,7 +320,7 @@ OpenLog(const char *logfile, bool forRecord)
     for (int i = 0; i <= (sizeof(*rrlog)/4096); i++)
 	write(shmfd, buf, 4096);
 
-    assert(shmfd == 3);
+    ASSERT(shmfd == 3);
 
     rrlog = mmap(NULL, sizeof(*rrlog), PROT_READ|PROT_WRITE,
 		MAP_NOSYNC|MAP_SHARED, shmfd, 0);

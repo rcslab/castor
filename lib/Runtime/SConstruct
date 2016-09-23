@@ -3,11 +3,16 @@ Import('env')
 
 src = [
     "runtime.c",
+    "debug.c",
     "util.c",
+    "freebsd.c",
     "events.c",
     "langevents.c",
     "debug/assert.c",
-    "debug/rr_fdprintf.c"
+    "debug/rr_fdprintf.c",
+    # Backtrace Support
+    "/usr/lib/libexecinfo.a",
+    "/usr/lib/libelf.a"
 ]
 
 # Made global to make compilation_db work

@@ -45,6 +45,8 @@
 
 #include <castor/rr_fdprintf.h>
 
+#include "../system.h"
+
 #define MAXNBUF	(sizeof(intmax_t) * NBBY + 1)
 
 #define	PRINT_METHOD_SNPRINTF	1
@@ -58,12 +60,6 @@ struct snprintf_arg {
 	size_t	buf_total;
 	int	fd;
 };
-
-static inline int
-SystemWrite(int fd, const void *buf, size_t nbytes)
-{
-    return syscall(SYS_write, fd, buf, nbytes);
-}
 
 static void
 printf_out(struct snprintf_arg *info)
@@ -462,25 +458,7 @@ rr_fdprintf(int fd, const char *fmt, ...)
 	return (retval);
 }
 
-/* UNUSED
-
-void
-rtld_fdputstr(int fd, const char *str)
-{
-
-	SystemWrite(fd, str, strlen(str));
-}
-
-void
-rtld_fdputchar(int fd, int c)
-{
-	char c1;
-
-	c1 = c;
-	SystemWrite(fd, &c1, 1);
-}
-
-int
+static int
 rtld_vsnprintf(char *buf, size_t bufsize, const char *fmt, va_list ap)
 {
 	struct snprintf_arg info;
@@ -496,4 +474,15 @@ rtld_vsnprintf(char *buf, size_t bufsize, const char *fmt, va_list ap)
 	return (retval);
 }
 
-*/
+int
+rr_vsnprintf(char *buf, size_t bufsize, const char *fmt, ...)
+{
+	va_list ap;
+	int retval;
+
+	va_start(ap, fmt);
+	retval = rtld_vsnprintf(buf, bufsize, fmt, ap);
+	va_end(ap);
+	return (retval);
+}
+
