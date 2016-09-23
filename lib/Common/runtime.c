@@ -360,7 +360,6 @@ RecordLog()
 {
     pthread_create(&rrthr, NULL, DrainQueue, NULL);
     pthread_create(&gqthr, NULL, TXGQProc, NULL);
-    LogDone();
 }
 
 void
@@ -368,7 +367,6 @@ ReplayLog()
 {
     pthread_create(&rrthr, NULL, FeedQueue, NULL);
     pthread_create(&gqthr, NULL, RXGQProc, NULL);
-    LogDone();
 }
 
 

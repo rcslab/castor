@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include <castor/debug.h>
 #include <castor/Common/proc.h>
 #include <castor/Common/runtime.h>
 
@@ -74,11 +75,20 @@ main(int argc, char *argv[])
     }
 
     setenv("CASTOR_MODE", "RECORD", 1);
-    Spawn(pinned, maxcpus, argv);
+    if (Spawn(pinned, maxcpus, argv) < 0) {
+	exit(1);
+    }
 
     RecordLog();
 
     wait(&status);
+    if (WIFSIGNALED(status)) {
+	WARNING("Child exited unexpectedly: %08x", WTERMSIG(status));
+	exit(1);
+    }
+
+    LogDone();
+
     return WEXITSTATUS(status);
 }
 

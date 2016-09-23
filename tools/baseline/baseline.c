@@ -23,6 +23,7 @@ usage()
 int
 main(int argc, char *argv[])
 {
+    int status;
     int ch;
     int maxcpus = 64;
     bool pinned = false;
@@ -60,6 +61,7 @@ main(int argc, char *argv[])
     }
 
     Spawn(pinned, maxcpus, argv);
-    wait(NULL);
+    wait(&status);
+    return WEXITSTATUS(status);
 }
 

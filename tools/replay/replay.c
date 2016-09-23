@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include <castor/debug.h>
 #include <castor/Common/proc.h>
 #include <castor/Common/runtime.h>
 #include <castor/Common/cli.h>
@@ -90,7 +91,9 @@ main(int argc, char *argv[])
     if (sandboxed) {
 	setenv("CASTOR_SANDBOX", "1", 1);
     }
-    Spawn(pinned, maxcpus, argv);
+    if (Spawn(pinned, maxcpus, argv) < 0) {
+	exit(1);
+    }
 
     if (interactive) {
 	CLI_Start();
@@ -98,6 +101,13 @@ main(int argc, char *argv[])
 	ReplayLog();
 
 	wait(&status);
+	if (WIFSIGNALED(status)) {
+	    WARNING("Child exited unexpectedly: %08x", WTERMSIG(status));
+	    exit(1);
+	}
+
+	LogDone();
+
 	return WEXITSTATUS(status);
     }
 

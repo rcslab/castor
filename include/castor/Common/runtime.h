@@ -3,6 +3,7 @@
 #define __RUNTIME_H__
 
 void OpenLog(const char *logfile, bool forRecord);
+void LogDone();
 void RecordLog();
 void ReplayLog();
 int QueueOne();
