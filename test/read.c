@@ -8,6 +8,8 @@
 #include <fcntl.h>
 #include <sys/syscall.h>
 
+#include <castor/rr_debug.h>
+
 int main(int argc, const char *argv[])
 {
     struct stat sb;
@@ -22,12 +24,14 @@ int main(int argc, const char *argv[])
     assert(len == sb.st_size);
 
     lseek(fd, 0, SEEK_SET);
-    len = syscall(SYS_read, fd, (void *)&norm, sb.st_size);
-    assert(len == sb.st_size);
+    if (rrMode != RRMODE_REPLAY) {
+	len = syscall(SYS_read, fd, (void *)&norm, sb.st_size);
+	assert(len == sb.st_size);
 
-    for (int i = 0; i < sb.st_size; i++) {
-	if (rr[i] != norm[i]) {
-	    printf("Mismatch at %d\n", i);
+	for (int i = 0; i < sb.st_size; i++) {
+	    if (rr[i] != norm[i]) {
+		printf("Mismatch at %d\n", i);
+	    }
 	}
     }
 
