@@ -32,22 +32,32 @@ int Debug_Init(const char *logPath);
 
 #ifdef CASTOR_DEBUG
 #define ASSERT(_x) \
-    if (!(_x)) { \
-        Debug_Log(LEVEL_SYS, "ASSERT("#_x"): %s %s:%d\n", \
-                __FUNCTION__, __FILE__, __LINE__); \
-        assert(_x); \
-    }
+    do { \
+	if (!(_x)) { \
+	    Debug_Log(LEVEL_SYS, "ASSERT(%s): %s %s:%d\n", \
+		  #_x, __FUNCTION__, __FILE__, __LINE__); \
+	    abort(); \
+	} \
+    } while (0)
 #else
 #define ASSERT(_x)
 #endif
 
-#define PANIC() { Debug_Log(LEVEL_SYS, "PANIC: " \
-                         "function %s, file %s, line %d\n", \
-                         __func__, __FILE__, __LINE__); abort(); }
-#define NOT_IMPLEMENTED(_x) if (!(_x)) { Debug_Log(LEVEL_SYS, \
-                                "NOT_IMPLEMENTED(" #_x "): %s %s:%d\n", \
-                                __func__, __FILE__, __LINE__); abort(); }
-
+#define PANIC() \
+    do { \
+	Debug_Log(LEVEL_SYS, "PANIC: " \
+		"function %s, file %s, line %d\n", \
+		__func__, __FILE__, __LINE__); \
+	abort(); \
+    } while (0)
+#define NOT_IMPLEMENTED(_x) \
+    do { \
+	if (!(_x)) { Debug_Log(LEVEL_SYS, \
+		"NOT_IMPLEMENTED(" #_x "): %s %s:%d\n", \
+		__func__, __FILE__, __LINE__); \
+	    abort(); \
+	} \
+    } while (0)
 
 #endif /* __CASTOR_DEBUG_H__ */
 

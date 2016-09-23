@@ -20,7 +20,6 @@
 #include <castor/rrplay.h>
 #include <castor/rrgq.h>
 
-#include <castor/debug.h>
 #include <castor/events.h>
 #include <castor/Common/runtime.h>
 #include "ft.h"

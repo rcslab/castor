@@ -1,8 +1,8 @@
 
-#ifndef __CLI_H__
-#define __CLI_H__
+#ifndef __CASTOR_CLI_H__
+#define __CASTOR_CLI_H__
 
 void CLI_Start();
 
-#endif /* __CLI_H__ */
+#endif /* __CASTOR_CLI_H__ */
 

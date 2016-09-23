@@ -1,16 +1,9 @@
 
-#include <assert.h>
-#include <stdint.h>
-#include <stdalign.h>
-#include <stdatomic.h>
-
-#include <pthread.h>
-#include <pthread_np.h>
-
 #ifndef __CASTOR_MTX_H__
 #define __CASTOR_MTX_H__
 
 #include <castor/archconfig.h>
+#include <pthread_np.h>
 
 typedef struct Mutex {
     alignas(CACHELINE) _Atomic(uint64_t)	lck;
@@ -31,7 +24,7 @@ Mutex_Lock(Mutex *m)
 {
     uint64_t tid = pthread_getthreadid_np();
 
-    assert(tid != 0);
+    ASSERT(tid != 0);
 
     if (atomic_load(&m->thr) == tid) {
 	atomic_fetch_add(&m->lck, 1);
@@ -51,8 +44,8 @@ Mutex_Unlock(Mutex *m)
 {
     uint64_t tid = pthread_getthreadid_np();
 
-    assert(atomic_load(&m->lck) > 0);
-    assert(atomic_load(&m->thr) == tid);
+    ASSERT(atomic_load(&m->lck) > 0);
+    ASSERT(atomic_load(&m->thr) == tid);
 
     if (atomic_fetch_sub(&m->lck, 1) == 1)
 	atomic_store(&m->thr, 0);

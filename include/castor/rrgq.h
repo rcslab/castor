@@ -1,6 +1,6 @@
 
-#ifndef __RRGQ_H__
-#define __RRGQ_H__
+#ifndef __CASTOR_RRGQ_H__
+#define __CASTOR_RRGQ_H__
 
 #include <castor/archconfig.h>
 
@@ -21,7 +21,7 @@ static_assert(alignof(RRGlobalQueue) == CACHELINE, "RRGlobalQueue must be page a
 static inline void
 RRGlobalQueue_Init(RRGlobalQueue *rrgq)
 {
-    assert((uintptr_t)rrgq % CACHELINE == 0);
+    ASSERT((uintptr_t)rrgq % CACHELINE == 0);
 
     rrgq->head = 0;
     rrgq->tail = 0;
@@ -82,5 +82,5 @@ RRGlobalQueue_Length(RRGlobalQueue *rrgq)
     return (rrgq->head - rrgq->tail);
 }
 
-#endif /* __RRGQ_H__ */
+#endif /* __CASTOR_RRGQ_H__ */
 

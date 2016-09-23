@@ -45,7 +45,7 @@
 
 #include <castor/rr_fdprintf.h>
 
-#include "../system.h"
+#include "system.h"
 
 #define MAXNBUF	(sizeof(intmax_t) * NBBY + 1)
 

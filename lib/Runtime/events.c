@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdatomic.h>
 #include <threads.h>
 
 #include <unistd.h>
@@ -42,6 +43,7 @@
 
 #include <libc_private.h>
 
+#include <castor/debug.h>
 #include <castor/rrlog.h>
 #include <castor/rrplay.h>
 #include <castor/rrgq.h>

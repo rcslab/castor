@@ -1,6 +1,6 @@
 
-#ifndef __RRPLAY_H__
-#define __RRPLAY_H__
+#ifndef __CASTOR_RRPLAY_H__
+#define __CASTOR_RRPLAY_H__
 
 #include "rrlog.h"
 
@@ -78,5 +78,5 @@ RRPlay_Free(RRLog *rrlog, RRLogEntry *entry)
     rrlog->threads[entry->threadId].usedOff += 1;
 }
 
-#endif /* __RRPLAY_H__ */
+#endif /* __CASTOR_RRPLAY_H__ */
 

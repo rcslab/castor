@@ -1,6 +1,6 @@
 
-#ifndef __RRLOG_H__
-#define __RRLOG_H__
+#ifndef __CASTOR_RRLOG_H__
+#define __CASTOR_RRLOG_H__
 
 #include <assert.h>
 #include <stdint.h>
@@ -109,5 +109,5 @@ RRLog_Free(RRLog *rrlog, RRLogEntry *rrentry)
     rrlog->threads[rrentry->threadId].usedOff += 1;
 }
 
-#endif /* __RRLOG_H__ */
+#endif /* __CASTOR_RRLOG_H__ */
 

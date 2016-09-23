@@ -8,8 +8,8 @@ src = [
     "freebsd.c",
     "events.c",
     "langevents.c",
-    "debug/assert.c",
-    "debug/rr_fdprintf.c",
+    "rr_assert.c",
+    "rr_fdprintf.c",
     # Backtrace Support
     "/usr/lib/libexecinfo.a",
     "/usr/lib/libelf.a"

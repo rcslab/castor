@@ -3,9 +3,10 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdatomic.h>
 #include <threads.h>
 
-#include <castor/archconfig.h>
+#include <castor/debug.h>
 #include <castor/rrlog.h>
 #include <castor/rrplay.h>
 #include <castor/mtx.h>

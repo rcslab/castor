@@ -1,14 +1,15 @@
 
-#include <assert.h>
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdatomic.h>
 #include <threads.h>
 
 #include <unistd.h>
 #include <pthread.h>
 
+#include <castor/debug.h>
 #include <castor/rrlog.h>
 #include <castor/rrplay.h>
 #include <castor/rrgq.h>
