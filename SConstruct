@@ -23,7 +23,7 @@ opts.AddVariables(
 
 env = Environment(options = opts,
                   tools = ['default', 'compilation_db', 'objectlib',
-                           'clangtidy', 'ctags'])
+                           'clangtidy'])
 Help("""TARGETS:
 scons               Build castor
 scons sysroot       Build sysroot
