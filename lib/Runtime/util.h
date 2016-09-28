@@ -20,6 +20,7 @@ void AssertReplay(RRLogEntry *e, bool test);
 #endif
 
 void logData(uint8_t *buf, size_t len);
+uint64_t hashData(uint8_t *buf, size_t len);
 
 #define GETLOCK(_obj) &lockTable[(_obj) % LOCKTABLE_SIZE]
 

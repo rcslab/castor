@@ -546,8 +546,14 @@ __sys_write(int fd, const void *buf, size_t nbytes)
 	e->threadId = threadId;
 	e->objectId = fd;
 	e->value[0] = result;
+	e->value[1] = hashData((uint8_t *)buf, nbytes);
 	RRLog_Append(rrlog, e);
     } else {
+	/*
+	 * We should only write the same number of bytes as we did during 
+	 * recording.  The output divergence test is more conservative than it 
+	 * needs to be.  We can assert only on bytes actually written out.
+	 */
 	if (fd == 1) {
 	    // Print console output
 	    syscall(SYS_write, fd, buf, nbytes);
@@ -555,6 +561,7 @@ __sys_write(int fd, const void *buf, size_t nbytes)
 
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_WRITE);
+	AssertReplay(e, e->value[1] == hashData((uint8_t *)buf, nbytes));
 	result = e->value[0];
 	RRPlay_Free(rrlog, e);
     }

@@ -14,6 +14,9 @@
 
 #include "util.h"
 
+#define XXH_PRIVATE_API
+#include "xxhash.h"
+
 Mutex lockTable[LOCKTABLE_SIZE];
 
 static struct {
@@ -46,11 +49,12 @@ AssertEvent(RRLogEntry *e, int evt)
 {
     if (e->event != evt) {
 	rrMode = RRMODE_NORMAL;
-	printf("Expected %s(%08x), Encountered %s(%08x)\n",
-		Lookup(evt), evt, Lookup(e->event), e->event);
-	printf("Event #%lu, Thread #%d\n", e->eventId, e->threadId);
-	printf("NextEvent #%lu, LastEvent #%lu\n", rrlog->nextEvent, rrlog->lastEvent);
-	abort();
+	SYSERROR("Expected %s(%08x), Encountered %s(%08x)\n",
+			Lookup(evt), evt, Lookup(e->event), e->event);
+	SYSERROR("Event #%lu, Thread #%d\n", e->eventId, e->threadId);
+	SYSERROR("NextEvent #%lu, LastEvent #%lu\n",
+			rrlog->nextEvent, rrlog->lastEvent);
+	PANIC();
     }
 }
 
@@ -59,10 +63,11 @@ AssertReplay(RRLogEntry *e, bool test)
 {
     if (!test) {
 	rrMode = RRMODE_NORMAL;
-	printf("Encountered %s(%08x)\n", Lookup(e->event), e->event);
-	printf("Event #%lu, Thread #%d\n", e->eventId, e->threadId);
-	printf("NextEvent #%lu, LastEvent #%lu\n", rrlog->nextEvent, rrlog->lastEvent);
-	abort();
+	SYSERROR("Encountered %s(%08x)\n", Lookup(e->event), e->event);
+	SYSERROR("Event #%lu, Thread #%d\n", e->eventId, e->threadId);
+	SYSERROR("NextEvent #%lu, LastEvent #%lu\n",
+			rrlog->nextEvent, rrlog->lastEvent);
+	PANIC();
     }
 }
 
@@ -110,5 +115,11 @@ logData(uint8_t *buf, size_t len)
 	    RRPlay_Free(rrlog, e);
 	}
     }
+}
+
+uint64_t
+hashData(uint8_t *buf, size_t len)
+{
+    return XXH64(buf, len, 0);
 }
 
