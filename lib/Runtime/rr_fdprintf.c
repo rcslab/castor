@@ -430,8 +430,8 @@ number:
 #undef PCHAR
 }
 
-static inline int
-rtld_vfdprintf(int fd, const char *fmt, va_list ap)
+int
+rr_vfdprintf(int fd, const char *fmt, va_list ap)
 {
 	char buf[512];
 	struct snprintf_arg info;
@@ -453,13 +453,13 @@ rr_fdprintf(int fd, const char *fmt, ...)
 	int retval;
 
 	va_start(ap, fmt);
-	retval = rtld_vfdprintf(fd, fmt, ap);
+	retval = rr_vfdprintf(fd, fmt, ap);
 	va_end(ap);
 	return (retval);
 }
 
-static int
-rtld_vsnprintf(char *buf, size_t bufsize, const char *fmt, va_list ap)
+int
+rr_vsnprintf(char *buf, size_t bufsize, const char *fmt, va_list ap)
 {
 	struct snprintf_arg info;
 	int retval;
@@ -475,14 +475,15 @@ rtld_vsnprintf(char *buf, size_t bufsize, const char *fmt, va_list ap)
 }
 
 int
-rr_vsnprintf(char *buf, size_t bufsize, const char *fmt, ...)
+rr_snprintf(char *buf, size_t bufsize, const char *fmt, ...)
 {
 	va_list ap;
 	int retval;
 
 	va_start(ap, fmt);
-	retval = rtld_vsnprintf(buf, bufsize, fmt, ap);
+	retval = rr_vsnprintf(buf, bufsize, fmt, ap);
 	va_end(ap);
+
 	return (retval);
 }
 
