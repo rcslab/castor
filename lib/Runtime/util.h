@@ -12,9 +12,11 @@ extern Mutex lockTable[LOCKTABLE_SIZE];
 #if defined(CASTOR_DEBUG)
 void AssertEvent(RRLogEntry *e, int evt);
 void AssertReplay(RRLogEntry *e, bool test);
+void AssertOutput(RRLogEntry *e, uint64_t hash, uint8_t *buf, size_t nbytes);
 #elif defined(CASTOR_RELEASE)
 #define AssertEvent(_e, _evt)
 #define AssertReplay(_e, _tst)
+#define AssertOutput(_e, _hash, _buf, _len)
 #else
 #error "Must define build type"
 #endif

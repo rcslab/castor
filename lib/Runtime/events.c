@@ -561,7 +561,7 @@ __sys_write(int fd, const void *buf, size_t nbytes)
 
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_WRITE);
-	AssertReplay(e, e->value[1] == hashData((uint8_t *)buf, nbytes));
+	AssertOutput(e, e->value[1], (uint8_t *)buf, nbytes);
 	result = e->value[0];
 	RRPlay_Free(rrlog, e);
     }

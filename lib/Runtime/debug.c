@@ -1,18 +1,26 @@
 
 #include <assert.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdatomic.h>
+#include <threads.h>
 
 #include <unistd.h>
 #include <signal.h>
 #include <execinfo.h>
 
 #include <castor/debug.h>
+#include <castor/events.h>
+#include <castor/rrlog.h>
+#include <castor/rrplay.h>
+#include <castor/mtx.h>
 #include <castor/rr_fdprintf.h>
 
 #include "system.h"
+#include "util.h"
 
 #define MAX_LOG         512
 
@@ -21,6 +29,11 @@ Debug_LogBacktrace()
 {
     const size_t MAX_FRAMES = 128;
     void *array[MAX_FRAMES];
+
+    if (rrMode != RRMODE_NORMAL) {
+	WARNING("Unable to print backtrace while in Record/Replay mode");
+	return;
+    }
 
     int num = backtrace(array, MAX_FRAMES);
     char **names = backtrace_symbols(array, num);
@@ -35,6 +48,11 @@ Debug_PrintBacktrace()
 {
     const size_t MAX_FRAMES = 128;
     void *array[MAX_FRAMES];
+
+    if (rrMode != RRMODE_NORMAL) {
+	WARNING("Unable to print backtrace while in Record/Replay mode");
+	return;
+    }
 
     int num = backtrace(array, MAX_FRAMES);
     char **names = backtrace_symbols(array, num);
@@ -57,7 +75,7 @@ Debug_Log(int level, const char *fmt, ...)
         return;
 #endif /* DEBUG */
 
-    off = snprintf(buf, 32, "%016llx ", __builtin_readcyclecounter());
+    off = rr_snprintf(buf, 32, "%016llx ", __builtin_readcyclecounter());
 
     switch (level) {
         case LEVEL_SYS:
@@ -104,10 +122,10 @@ void Debug_Sighandler(int signum)
     names = backtrace_symbols(array, num);
     Debug_Log(LEVEL_SYS, "Backtrace:\n");
     for (int i = 0; i < num; i++) {
-        if (names != NULL)
-            Debug_Log(LEVEL_SYS, "[%d] %s\n", i, names[i]);
-        else
-            Debug_Log(LEVEL_SYS, "[%d] [0x%p]\n", i, array[i]);
+	if (names != NULL)
+	    Debug_Log(LEVEL_SYS, "[%d] %s\n", i, names[i]);
+	else
+	    Debug_Log(LEVEL_SYS, "[%d] [0x%p]\n", i, array[i]);
     }
     free(names);
 
@@ -115,7 +133,7 @@ void Debug_Sighandler(int signum)
 }
 
 int Debug_Init(const char *logPath) {
-    signal(SIGSEGV, Debug_Sighandler);
+    //signal(SIGSEGV, Debug_Sighandler);
 
     return 0;
 }

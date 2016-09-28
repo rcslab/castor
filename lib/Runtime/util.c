@@ -49,10 +49,11 @@ AssertEvent(RRLogEntry *e, int evt)
 {
     if (e->event != evt) {
 	rrMode = RRMODE_NORMAL;
-	SYSERROR("Expected %s(%08x), Encountered %s(%08x)\n",
+	SYSERROR("Event Logging Divergence!");
+	SYSERROR("Expected %s(%08x), Encountered %s(%08x)",
 			Lookup(evt), evt, Lookup(e->event), e->event);
-	SYSERROR("Event #%lu, Thread #%d\n", e->eventId, e->threadId);
-	SYSERROR("NextEvent #%lu, LastEvent #%lu\n",
+	SYSERROR("Event #%lu, Thread #%d", e->eventId, e->threadId);
+	SYSERROR("NextEvent #%lu, LastEvent #%lu",
 			rrlog->nextEvent, rrlog->lastEvent);
 	PANIC();
     }
@@ -63,9 +64,24 @@ AssertReplay(RRLogEntry *e, bool test)
 {
     if (!test) {
 	rrMode = RRMODE_NORMAL;
-	SYSERROR("Encountered %s(%08x)\n", Lookup(e->event), e->event);
-	SYSERROR("Event #%lu, Thread #%d\n", e->eventId, e->threadId);
-	SYSERROR("NextEvent #%lu, LastEvent #%lu\n",
+	SYSERROR("Event Assertion Divergence!"); 
+	SYSERROR("Encountered %s(%08x)", Lookup(e->event), e->event);
+	SYSERROR("Event #%lu, Thread #%d", e->eventId, e->threadId);
+	SYSERROR("NextEvent #%lu, LastEvent #%lu",
+			rrlog->nextEvent, rrlog->lastEvent);
+	PANIC();
+    }
+}
+
+void
+AssertOutput(RRLogEntry *e, uint64_t hash, uint8_t *buf, size_t nbytes)
+{
+    if (hash != hashData(buf, nbytes)) {
+	rrMode = RRMODE_NORMAL;
+	SYSERROR("Output Divergence Detected!");
+	SYSERROR("Encountered %s(%08x)", Lookup(e->event), e->event);
+	SYSERROR("Event #%lu, Thread #%d", e->eventId, e->threadId);
+	SYSERROR("NextEvent #%lu, LastEvent #%lu",
 			rrlog->nextEvent, rrlog->lastEvent);
 	PANIC();
     }

@@ -36,6 +36,7 @@ int Debug_Init(const char *logPath);
 	if (!(_x)) { \
 	    Debug_Log(LEVEL_SYS, "ASSERT(%s): %s %s:%d\n", \
 		  #_x, __FUNCTION__, __FILE__, __LINE__); \
+	    Debug_LogBacktrace(); \
 	    abort(); \
 	} \
     } while (0)
@@ -48,6 +49,7 @@ int Debug_Init(const char *logPath);
 	Debug_Log(LEVEL_SYS, "PANIC: " \
 		"function %s, file %s, line %d\n", \
 		__func__, __FILE__, __LINE__); \
+	Debug_LogBacktrace(); \
 	abort(); \
     } while (0)
 #define NOT_IMPLEMENTED(_x) \
@@ -55,6 +57,7 @@ int Debug_Init(const char *logPath);
 	if (!(_x)) { Debug_Log(LEVEL_SYS, \
 		"NOT_IMPLEMENTED(" #_x "): %s %s:%d\n", \
 		__func__, __FILE__, __LINE__); \
+	    Debug_LogBacktrace(); \
 	    abort(); \
 	} \
     } while (0)
