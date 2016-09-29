@@ -622,6 +622,41 @@ __sys_ioctl(int fd, unsigned long request, ...)
 }
 
 int
+__rr_fcntl(int fd, int cmd, ...)
+{
+    ssize_t result;
+    RRLogEntry *e;
+    va_list ap;
+    int arg;
+
+    va_start(ap, cmd);
+    arg = va_arg(ap, int);
+    va_end(ap);
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_fcntl, fd, cmd, arg);
+    }
+    NOT_IMPLEMENTED((cmd == F_GETFL) || (cmd == F_SETFL));
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_fcntl, fd, cmd, arg);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_FCNTL;
+	e->threadId = threadId;
+	e->objectId = fd;
+	e->value[0] = result;
+	e->value[1] = arg;
+	RRLog_Append(rrlog, e);
+    } else {
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_FCNTL);
+	result = e->value[0];
+	RRPlay_Free(rrlog, e);
+    }
+
+    return result;
+}
+
+int
 __rr_fstat(int fd, struct stat *sb)
 {
     ssize_t result;
@@ -1755,6 +1790,7 @@ __strong_reference(__sys_close, _close);
 __strong_reference(__sys_ioctl, ioctl);
 __strong_reference(__sys_ioctl, _ioctl);
 __strong_reference(__rr_fstat, fstat);
+__strong_reference(__rr_fcntl, fcntl);
 __strong_reference(__rr_fstat, _fstat);
 __strong_reference(__clock_gettime, clock_gettime);
 __strong_reference(__rr_sysctl, __sysctl);
