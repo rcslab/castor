@@ -630,7 +630,6 @@ __sys_ioctl(int fd, unsigned long request, ...)
 }
 
 int
-<<<<<<< HEAD
 __rr_fcntl(int fd, int cmd, ...)
 {
     ssize_t result;
@@ -660,7 +659,13 @@ __rr_fcntl(int fd, int cmd, ...)
 	AssertEvent(e, RREVENT_FCNTL);
 	result = e->value[0];
 	RRPlay_Free(rrlog, e);
-=======
+    }
+
+    return result;
+}
+
+
+int
 __rr_fstatfs(int fd, struct statfs *buf)
 {
     ssize_t result;
@@ -712,7 +717,6 @@ __rr_getdirentries(int fd, char *buf, int nbytes, long *basep)
 	e->event = RREVENT_GETDIRENTRIES;
 	e->threadId = threadId;
 	e->value[0] = result;
-	e->value[1] = nbytes;
 	e->value[2] = *basep;
 	RRLog_Append(rrlog, e);
 
@@ -723,7 +727,6 @@ __rr_getdirentries(int fd, char *buf, int nbytes, long *basep)
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_GETDIRENTRIES);
 	result = e->value[0];
-	nbytes = e->value[1];
 	*basep = e->value[2];
 	RRPlay_Free(rrlog, e);
 

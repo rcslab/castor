@@ -32,5 +32,3 @@ int main()
     dump_entries(buf, result);
     return 0;
 }
-
-
