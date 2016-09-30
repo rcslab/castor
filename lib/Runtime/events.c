@@ -41,6 +41,14 @@
 // mmap
 #include <sys/mman.h>
 
+//getdirentries
+#include <sys/types.h>
+#include <dirent.h>
+
+//statfs/fstatfs
+#include <sys/param.h>
+#include <sys/mount.h>
+
 #include <libc_private.h>
 
 #include <castor/debug.h>
@@ -622,6 +630,7 @@ __sys_ioctl(int fd, unsigned long request, ...)
 }
 
 int
+<<<<<<< HEAD
 __rr_fcntl(int fd, int cmd, ...)
 {
     ssize_t result;
@@ -651,6 +660,113 @@ __rr_fcntl(int fd, int cmd, ...)
 	AssertEvent(e, RREVENT_FCNTL);
 	result = e->value[0];
 	RRPlay_Free(rrlog, e);
+=======
+__rr_fstatfs(int fd, struct statfs *buf)
+{
+    ssize_t result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_fstatfs, fd, buf);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_fstatfs, fd, buf);
+
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_FSTATFS;
+	e->threadId = threadId;
+	e->value[0] = result;
+	RRLog_Append(rrlog, e);
+
+	if (result == 0) {
+	    logData((uint8_t*)buf, sizeof(*buf));
+	}
+    } else {
+	e = RRPlay_Dequeue(rrlog, threadId);
+	result = e->value[0];
+	AssertEvent(e, RREVENT_FSTATFS);
+	RRPlay_Free(rrlog, e);
+
+	if (result == 0) {
+	    logData((uint8_t*)buf, sizeof(*buf));
+	}
+    }
+
+    return result;
+}
+
+int
+__rr_getdirentries(int fd, char *buf, int nbytes, long *basep)
+{
+    int result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_getdirentries, fd, buf, nbytes, basep);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_getdirentries, fd, buf, nbytes, basep);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_GETDIRENTRIES;
+	e->threadId = threadId;
+	e->value[0] = result;
+	e->value[1] = nbytes;
+	e->value[2] = *basep;
+	RRLog_Append(rrlog, e);
+
+	if (result >= 0) {
+	    logData((uint8_t*)buf, result);
+	}
+    } else {
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_GETDIRENTRIES);
+	result = e->value[0];
+	nbytes = e->value[1];
+	*basep = e->value[2];
+	RRPlay_Free(rrlog, e);
+
+	if (result >= 0) {
+	    logData((uint8_t*)buf, result);
+	}
+    }
+
+    return result;
+}
+
+int
+__rr_fstatat(int fd, const char *path, struct stat *buf, int flag)
+{
+    ssize_t result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_fstatat, fd, path, buf, flag);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_fstatat, fd, path, buf, flag);
+
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_FSTATAT;
+	e->threadId = threadId;
+	e->objectId = fd;
+	e->value[0] = result;
+	RRLog_Append(rrlog, e);
+
+	if (result == 0) {
+	    logData((uint8_t*)buf, sizeof(*buf));
+	}
+    } else {
+	e = RRPlay_Dequeue(rrlog, threadId);
+	result = e->value[0];
+	AssertEvent(e, RREVENT_FSTATAT);
+	RRPlay_Free(rrlog, e);
+
+	if (result == 0) {
+	    logData((uint8_t*)buf, sizeof(*buf));
+	}
     }
 
     return result;
@@ -1599,6 +1715,26 @@ __sys_chdir(const char *path)
 }
 
 int
+__sys_fchdir(int fd)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_fchdir, fd);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_fchdir, fd);
+	    RRRecordI(RREVENT_FCHDIR, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_FCHDIR, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
 __sys_lstat(const char *path, struct stat *sb)
 {
     int result;
@@ -1792,6 +1928,12 @@ __strong_reference(__sys_ioctl, _ioctl);
 __strong_reference(__rr_fstat, fstat);
 __strong_reference(__rr_fcntl, fcntl);
 __strong_reference(__rr_fstat, _fstat);
+__strong_reference(__rr_fstatfs, fstatfs);
+__strong_reference(__rr_fstatfs, _fstatfs);
+__strong_reference(__rr_fstatat, fstatat);
+__strong_reference(__rr_fstatat, _fstatat);
+__strong_reference(__rr_getdirentries, getdirentries);
+__strong_reference(__rr_getdirentries, _getdirentries);
 __strong_reference(__clock_gettime, clock_gettime);
 __strong_reference(__rr_sysctl, __sysctl);
 __strong_reference(__rr_exit, _exit);
@@ -1824,6 +1966,7 @@ __strong_reference(__sys_rename, rename);
 __strong_reference(__sys_mkdir, mkdir);
 __strong_reference(__sys_rmdir, rmdir);
 __strong_reference(__sys_chdir, chdir);
+__strong_reference(__sys_fchdir, fchdir);
 __strong_reference(__sys_chmod, chmod);
 __strong_reference(__sys_access, access);
 __strong_reference(__sys_truncate, truncate);
