@@ -19,16 +19,31 @@ void dump_entries(char * buf, int size)
     }
 }
 
-int main()
+void list_cwd()
 {
-    int fd;
     char buf[BUFF_MAX];
     long basep;
+    int fd;
     int result;
 
     fd = open(".", O_RDONLY);
     result = getdirentries(fd, buf, BUFF_MAX, &basep);
     assert(result > 0);
     dump_entries(buf, result);
+}
+
+int main()
+{
+    int cwd;
+    int result;
+
+    list_cwd();
+    cwd = open(".", O_RDONLY);
+    result = chdir(".."); //test chdir
+    assert(result == 0);
+    list_cwd();
+    result = fchdir(cwd); //also test fchdir
+    assert(result == 0);
+    list_cwd();
     return 0;
 }
