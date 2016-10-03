@@ -1,14 +1,7 @@
-
 #include <assert.h>
 #include <stdio.h>
-
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-#include <sys/syscall.h>
-
-#include <castor/rr_debug.h>
 
 int main(int argc, const char *argv[])
 {
@@ -20,6 +13,7 @@ int main(int argc, const char *argv[])
     assert(result == 0);
     result = fcntl(fd, F_GETFL, flags);
     assert(result == flags);
+    printf("flags %d\n", flags);
     return 0;
 }
 
