@@ -664,7 +664,6 @@ __rr_fcntl(int fd, int cmd, ...)
     return result;
 }
 
-
 int
 __rr_fstatfs(int fd, struct statfs *buf)
 {
@@ -681,6 +680,7 @@ __rr_fstatfs(int fd, struct statfs *buf)
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FSTATFS;
 	e->threadId = threadId;
+	e->objectId = fd;
 	e->value[0] = result;
 	RRLog_Append(rrlog, e);
 
@@ -716,6 +716,7 @@ __rr_getdirentries(int fd, char *buf, int nbytes, long *basep)
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETDIRENTRIES;
 	e->threadId = threadId;
+	e->objectId = fd;
 	e->value[0] = result;
 	e->value[2] = *basep;
 	RRLog_Append(rrlog, e);
@@ -808,6 +809,41 @@ __rr_fstat(int fd, struct stat *sb)
 	}
     }
 
+    return result;
+}
+
+ssize_t
+__rr_readlink(const char *restrict path, char *restrict buf, size_t bufsize)
+{
+    ssize_t result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_readlink, path, buf, bufsize);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_readlink, path, buf, bufsize);
+
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_READLINK;
+	e->threadId = threadId;
+	e->value[0] = result;
+	RRLog_Append(rrlog, e);
+
+	if (result == 0) {
+	    logData((uint8_t*)buf, bufsize);
+	}
+    } else {
+	e = RRPlay_Dequeue(rrlog, threadId);
+	result = e->value[0];
+	AssertEvent(e, RREVENT_READLINK);
+	RRPlay_Free(rrlog, e);
+
+	if (result == 0) {
+	    logData((uint8_t*)buf, bufsize);
+	}
+    }
     return result;
 }
 
@@ -1727,10 +1763,10 @@ __sys_fchdir(int fd)
 	    return syscall(SYS_fchdir, fd);
 	case RRMODE_RECORD:
 	    result = syscall(SYS_fchdir, fd);
-	    RRRecordI(RREVENT_FCHDIR, result);
+	    RRRecordOI(RREVENT_FCHDIR, fd, result);
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_FCHDIR, &result);
+	    RRReplayOI(RREVENT_FCHDIR, &fd, &result);
 	    break;
     }
 
@@ -1963,6 +1999,8 @@ __strong_reference(__sys_setegid, setegid);
 __strong_reference(__sys_getgroups, getgroups);
 __strong_reference(__sys_setgroups, setgroups);
 __strong_reference(__sys_link, link);
+__strong_reference(__rr_readlink, readlink);
+__strong_reference(__rr_readlink, _readlink);
 __strong_reference(__sys_symlink, symlink);
 __strong_reference(__sys_unlink, unlink);
 __strong_reference(__sys_rename, rename);
