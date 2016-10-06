@@ -831,7 +831,7 @@ __rr_readlink(const char *restrict path, char *restrict buf, size_t bufsize)
 	e->value[0] = result;
 	RRLog_Append(rrlog, e);
 
-	if (result == 0) {
+	if (result > 0) {
 	    logData((uint8_t*)buf, bufsize);
 	}
     } else {
@@ -840,7 +840,7 @@ __rr_readlink(const char *restrict path, char *restrict buf, size_t bufsize)
 	AssertEvent(e, RREVENT_READLINK);
 	RRPlay_Free(rrlog, e);
 
-	if (result == 0) {
+	if (result > 0) {
 	    logData((uint8_t*)buf, bufsize);
 	}
     }
@@ -1949,6 +1949,214 @@ __rr_getsockname(int s, struct sockaddr * restrict name,
     return result;
 }
 
+int
+__rr_cap_enter(void)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_cap_enter);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_cap_enter);
+	    RRRecordI(RREVENT_CAP_ENTER, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_CAP_ENTER, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
+__rr_cap_rights_limit(int fd, const cap_rights_t *rights)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_cap_rights_limit, fd, rights);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_cap_rights_limit, fd, rights);
+	    RRRecordOI(RREVENT_CAP_RIGHTS_LIMIT, fd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_CAP_RIGHTS_LIMIT, &fd, &result);
+	    break;
+    }
+
+    return result;
+}
+
+ssize_t
+__rr_sendmsg(int s, const struct msghdr *msg, int flags)
+{
+    ssize_t result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_sendmsg, s, msg, flags);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_sendmsg, s, msg, flags);
+	    RRRecordOS(RREVENT_SENDMSG, s, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOS(RREVENT_SENDMSG, &s, &result);
+	    break;
+    }
+
+    return result;
+}
+
+void log_msg(struct msghdr *msg)
+{
+    logData((uint8_t*)msg, sizeof(*msg));
+
+    if ((msg->msg_name != NULL) && (msg->msg_namelen > 0)) {
+	logData((uint8_t*)msg->msg_name, msg->msg_namelen);
+    }
+
+    if ((msg->msg_iov != NULL) && (msg->msg_iovlen > 0)) {
+	logData((uint8_t*)msg->msg_iov, msg->msg_iovlen * sizeof(*msg->msg_iov));
+    }
+
+    for (int i = 0; i < msg->msg_iovlen; i++) {
+	logData(msg->msg_iov[i].iov_base, msg->msg_iov[i].iov_len);
+    }
+
+    if ((msg->msg_control != NULL) && (msg->msg_controllen > 0)) {
+	logData((uint8_t*)msg->msg_control, msg->msg_controllen);
+    }
+}
+
+ssize_t
+__rr_recvmsg(int s, struct msghdr *msg, int flags)
+{
+    ssize_t result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_recvmsg, s, msg, flags);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_recvmsg, s, msg, flags);
+	    RRRecordOS(RREVENT_RECVMSG, s, result);
+	    if (result != -1) {
+		log_msg(msg);
+	    }
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOS(RREVENT_RECVMSG, &s, &result);
+	    if (result != -1) {
+		log_msg(msg);
+	    }
+	    break;
+    }
+
+    return result;
+}
+
+
+ssize_t
+__rr_sendto(int s, const void *msg, size_t len, int flags,
+		 const struct sockaddr *to, socklen_t tolen)
+{
+    ssize_t result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_sendto, s, msg, len, flags, to, tolen);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_sendto, s, msg, len, flags, to, tolen);
+	    RRRecordOS(RREVENT_SENDTO, s, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOS(RREVENT_SENDTO, &s, &result);
+	    break;
+    }
+
+    return result;
+}
+
+ssize_t
+__rr_recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *
+	restrict from, socklen_t * restrict fromlen)
+{
+    ssize_t result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_recvfrom, s, buf, len, flags, from, fromlen);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_recvfrom, s, buf, len, flags, from, fromlen);
+	    RRRecordOS(RREVENT_RECVFROM, s, result);
+	    if (result != -1) {
+		logData((uint8_t*)buf, len);
+		if (from != NULL) {
+		    logData((uint8_t*)from, sizeof(struct sockaddr));
+		    logData((uint8_t*)&fromlen, sizeof(socklen_t));
+		}
+	    }
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOS(RREVENT_RECVFROM, &s, &result);
+	    if (result != -1) {
+		logData((uint8_t*)buf, len);
+		if (from != NULL) {
+		    logData((uint8_t*)from, sizeof(struct sockaddr));
+		    logData((uint8_t*)&fromlen, sizeof(socklen_t));
+		}
+	    }
+	    break;
+    }
+
+    return result;
+}
+
+
+int
+__rr_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
+	 struct timeval *timeout)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_select, nfds, readfds, writefds, exceptfds, timeout);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_select, nfds, readfds, writefds, exceptfds, timeout);
+	    RRRecordI(RREVENT_SELECT, result);
+	    if (result != -1) {
+		if (readfds != NULL) {
+		    logData((uint8_t*)readfds, sizeof(*readfds));
+		}
+		if (writefds != NULL) {
+		    logData((uint8_t*)writefds, sizeof(*writefds));
+		}
+		if (exceptfds != NULL) {
+		    logData((uint8_t*)exceptfds, sizeof(*exceptfds));
+		}
+	    }
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_SELECT, &result);
+	    if (result != -1) {
+		if (readfds != NULL) {
+		    logData((uint8_t*)readfds, sizeof(*readfds));
+		}
+		if (writefds != NULL) {
+		    logData((uint8_t*)writefds, sizeof(*writefds));
+		}
+		if (exceptfds != NULL) {
+		    logData((uint8_t*)exceptfds, sizeof(*exceptfds));
+		}
+	    }
+	    break;
+    }
+
+    return result;
+}
+
 void
 Events_Init()
 {
@@ -2022,3 +2230,17 @@ __strong_reference(__sys_setrlimit, setrlimit);
 __strong_reference(__sys_getrusage, getrusage);
 __strong_reference(__rr_getpeername, getpeername);
 __strong_reference(__rr_getsockname, getsockname);
+__strong_reference(__rr_cap_enter, cap_enter);
+__strong_reference(__rr_cap_enter, _cap_enter);
+__strong_reference(__rr_cap_rights_limit, cap_rights_limit);
+__strong_reference(__rr_cap_rights_limit, _cap_rights_limit);
+__strong_reference(__rr_sendto, sendto);
+__strong_reference(__rr_sendto, _sendto);
+__strong_reference(__rr_sendmsg, sendmsg);
+__strong_reference(__rr_sendmsg, _sendmsg);
+__strong_reference(__rr_select, _select);
+__strong_reference(__rr_select, select);
+__strong_reference(__rr_recvmsg, recvmsg);
+__strong_reference(__rr_recvmsg, _recvmsg);
+__strong_reference(__rr_recvfrom, recvfrom);
+__strong_reference(__rr_recvfrom, _recvfrom);

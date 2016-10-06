@@ -158,5 +158,36 @@ RRReplayOU(uint32_t eventNum, int *od, uint64_t *u)
     RRPlay_Free(rrlog, e);
 }
 
+static inline void
+RRRecordOS(uint32_t eventNum, int od, ssize_t s)
+{
+    RRLogEntry *e;
+
+    e = RRLog_Alloc(rrlog, threadId);
+    e->event = eventNum;
+    e->threadId = threadId;
+    e->objectId = od;
+    e->value[0] = s;
+    RRLog_Append(rrlog, e);
+}
+
+static inline void
+RRReplayOS(uint32_t eventNum, int *od, ssize_t *s)
+{
+    RRLogEntry *e;
+
+    e = RRPlay_Dequeue(rrlog, threadId);
+    AssertEvent(e, eventNum);
+    if (od != NULL) {
+	*od = e->objectId;
+    }
+    if (s != NULL) {
+	*s =  e->value[0];
+    }
+    RRPlay_Free(rrlog, e);
+}
+
+
+
 #endif /* __UTIL_H__ */
 
