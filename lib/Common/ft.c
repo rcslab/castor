@@ -1,4 +1,5 @@
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
@@ -10,6 +11,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#include <castor/debug.h>
 #include <castor/rrlog.h>
 #include "ft.h"
 

@@ -10,7 +10,7 @@ extern thread_local int threadId;
 extern Mutex lockTable[LOCKTABLE_SIZE];
 
 #if defined(CASTOR_DEBUG)
-void AssertEvent(RRLogEntry *e, int evt);
+void AssertEvent(RRLogEntry *e, uint32_t evt);
 void AssertReplay(RRLogEntry *e, bool test);
 void AssertOutput(RRLogEntry *e, uint64_t hash, uint8_t *buf, size_t nbytes);
 #elif defined(CASTOR_RELEASE)

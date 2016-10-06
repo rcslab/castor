@@ -83,8 +83,7 @@ typedef struct ThreadState {
     void	*arg;
 } ThreadState;
 
-static ThreadState threadState[128];
-static int nextThreadId = 0;
+static ThreadState threadState[RRLOG_MAX_THREADS];
 
 void *
 thrwrapper(void *arg)
@@ -114,8 +113,7 @@ pthread_create(pthread_t * thread, const pthread_attr_t * attr,
     }
 
     if (rrMode == RRMODE_RECORD) {
-	thrNo = __sync_add_and_fetch(&nextThreadId, 1);
-	assert(thrNo < RRLOG_MAX_THREADS);
+	thrNo = RRShared_AllocThread(rrlog);
 
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_THREAD_CREATE;
@@ -136,6 +134,8 @@ pthread_create(pthread_t * thread, const pthread_attr_t * attr,
 	savedResult = e->value[0];
 	AssertEvent(e, RREVENT_THREAD_CREATE);
 	RRPlay_Free(rrlog, e);
+
+	RRShared_SetupThread(rrlog, thrNo);
 
 	threadState[thrNo].start = start_routine;
 	threadState[thrNo].arg = arg;
@@ -160,8 +160,7 @@ __rr_fork(void)
     }
 
     if (rrMode == RRMODE_RECORD) {
-	thrNo = __sync_add_and_fetch(&nextThreadId, 1);
-	assert(thrNo < RRLOG_MAX_THREADS);
+	thrNo = RRShared_AllocThread(rrlog);
 
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FORK;

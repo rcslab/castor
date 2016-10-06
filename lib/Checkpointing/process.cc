@@ -68,7 +68,7 @@ split(const string &str, char sep)
 string
 join(const vector<string> &str, char sep)
 {
-    int i;
+    unsigned int i;
     string rval = "";
 
     if (str.size() == 0)
@@ -115,7 +115,7 @@ readMap(int pid)
     }
 
     close(mapfd);
-    free(buf);
+    delete[] buf;
 
     return regions;
 }

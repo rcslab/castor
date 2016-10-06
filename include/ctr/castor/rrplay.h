@@ -13,10 +13,10 @@
 static inline void
 RRPlay_AppendThread(RRLog *rrlog, RRLogEntry *entry)
 {
-    RRLogThread *rrthr = &rrlog->threads[entry->threadId];
-    volatile RRLogEntry *rrentry = &rrthr->entries[rrthr->freeOff % RRLOG_MAX_ENTRIES];
+    RRLogThread *rrthr = RRShared_LookupThread(rrlog, entry->threadId); 
+    volatile RRLogEntry *rrentry = &rrthr->entries[rrthr->freeOff % rrlog->numEvents];
 
-    while (rrthr->freeOff - rrthr->usedOff >= (RRLOG_MAX_ENTRIES - 1)) {
+    while ((rrthr->freeOff - rrthr->usedOff) >= (rrlog->numEvents - 1)) {
 	__asm__ volatile("pause\n");
     }
 
@@ -36,9 +36,9 @@ RRPlay_AppendThread(RRLog *rrlog, RRLogEntry *entry)
 }
 
 static inline RRLogEntry *
-RRPlayThreadDequeue(RRLogThread *rrthr)
+RRPlayThreadDequeue(RRLog *rrlog, RRLogThread *rrthr)
 {
-    volatile RRLogEntry *entry = &rrthr->entries[rrthr->usedOff % RRLOG_MAX_ENTRIES];
+    volatile RRLogEntry *entry = &rrthr->entries[rrthr->usedOff % rrlog->numEvents];
 
     while (rrthr->freeOff == rrthr->usedOff) {
 	__asm__ volatile("pause\n");
@@ -50,8 +50,8 @@ RRPlayThreadDequeue(RRLogThread *rrthr)
 static inline RRLogEntry *
 RRPlay_Dequeue(RRLog *rrlog, uint32_t threadId)
 {
-    RRLogThread *rrthr = &rrlog->threads[threadId];
-    RRLogEntry *entry = RRPlayThreadDequeue(rrthr);
+    RRLogThread *rrthr = RRShared_LookupThread(rrlog, threadId); 
+    RRLogEntry *entry = RRPlayThreadDequeue(rrlog, rrthr);
 
     while (entry->eventId != rrlog->nextEvent) {
 	__asm__ volatile("pause\n");
@@ -70,12 +70,13 @@ RRPlay_Dequeue(RRLog *rrlog, uint32_t threadId)
 static inline void
 RRPlay_Free(RRLog *rrlog, RRLogEntry *entry)
 {
+    RRLogThread *rrthr = RRShared_LookupThread(rrlog, entry->threadId); 
 #ifdef RRLOG_DEBUG
-    rrlog->threads[entry->threadId].status = 0;
+    rrthr->status = 0;
 #endif /* RRLOG_DEBUG */
 
     __sync_add_and_fetch(&rrlog->nextEvent, 1);
-    rrlog->threads[entry->threadId].usedOff += 1;
+    rrthr->usedOff += 1;
 }
 
 #endif /* __CASTOR_RRPLAY_H__ */

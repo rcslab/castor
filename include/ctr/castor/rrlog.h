@@ -8,6 +8,7 @@
 #include <stdlib.h>
 
 #include <castor/archconfig.h>
+#include <castor/rrshared.h>
 
 #ifdef CASTOR_DEBUG
 #define RRLOG_DEBUG		1
@@ -17,32 +18,26 @@
  * Record Log - Multiple-Writer Single-Reader Queue
  */
 static inline void
-RRLog_Init(RRLog *rrlog)
+RRLog_Init(RRLog *rrlog, uint32_t numEvents)
 {
-    int i;
-    int j;
-
     assert((uintptr_t)rrlog % PAGESIZE == 0);
-
-    for (i = 0; i < RRLOG_MAX_THREADS; i++) {
-	rrlog->threads[i].freeOff = 0;
-	rrlog->threads[i].usedOff = 0;
-	for (j = 0; j < RRLOG_MAX_ENTRIES; j++) {
-	    rrlog->threads[i].entries[j].eventId = 0;
-	    rrlog->threads[i].entries[j].objectId = 0;
-	    rrlog->threads[i].entries[j].event = 0;
-	    rrlog->threads[i].entries[j].threadId = i;
-	}
-    }
 
     rrlog->nextEvent = 1;
     rrlog->lastEvent = 0;
+    atomic_init(&rrlog->freePtr, ROUNDUP(sizeof(*rrlog), PAGESIZE));
+    rrlog->rrMode = RRMODE_NORMAL;
+    rrlog->numThreads = RRLOG_MAX_THREADS;
+    rrlog->numEvents = numEvents;
+
+    for (int i = 0; i < RRLOG_MAX_THREADS; i++) {
+	rrlog->threadInfo[i].offset = 0;
+    }
 }
 
 static inline RRLogEntry *
 RRLog_Alloc(RRLog *rrlog, uint32_t threadId)
 {
-    RRLogThread *rrthr = &rrlog->threads[threadId];
+    RRLogThread *rrthr = RRShared_LookupThread(rrlog, threadId);
     volatile RRLogEntry *rrentry;
 
 #ifdef RRLOG_DEBUG
@@ -52,12 +47,14 @@ RRLog_Alloc(RRLog *rrlog, uint32_t threadId)
     rrthr->status = 1;
 #endif /* RRLOG_DEBUG */
 
-    rrentry = &rrthr->entries[rrthr->freeOff % RRLOG_MAX_ENTRIES];
+    rrentry = &rrthr->entries[rrthr->freeOff % rrlog->numEvents];
 
-    while (rrthr->freeOff - rrthr->usedOff >= (RRLOG_MAX_ENTRIES - 1))
+    while ((rrthr->freeOff - rrthr->usedOff) >= (rrlog->numEvents - 1))
     {
 	__asm__ volatile("pause\n");
     }
+
+    rrentry->threadId = threadId;
 
     return (RRLogEntry *)rrentry;
 }
@@ -65,18 +62,20 @@ RRLog_Alloc(RRLog *rrlog, uint32_t threadId)
 static inline void
 RRLog_Append(RRLog *rrlog, RRLogEntry *rrentry)
 {
+    RRLogThread *rrthr = RRShared_LookupThread(rrlog, rrentry->threadId);
+
     rrentry->eventId = __sync_add_and_fetch(&rrlog->lastEvent, 1);
-    rrlog->threads[rrentry->threadId].freeOff += 1;
+    rrthr->freeOff += 1;
 
 #ifdef RRLOG_DEBUG
-    rrlog->threads[rrentry->threadId].status = 0;
+    rrthr->status = 0;
 #endif /* RRLOG_DEBUG */
 }
 
 static inline RRLogEntry *
-RRLogThreadDequeue(RRLogThread *rrthr)
+RRLogThreadDequeue(RRLog *rrlog, RRLogThread *rrthr)
 {
-    volatile RRLogEntry *entry = &rrthr->entries[rrthr->usedOff % RRLOG_MAX_ENTRIES];
+    volatile RRLogEntry *entry = &rrthr->entries[rrthr->usedOff % rrlog->numEvents];
 
     if (rrthr->freeOff == rrthr->usedOff)
 	return NULL;
@@ -92,11 +91,15 @@ RRLog_Dequeue(RRLog *rrlog)
     RRLogEntry *entry;
 
     for (i = 0; i < RRLOG_MAX_THREADS; i++) {
-	entry = RRLogThreadDequeue(&rrlog->threads[i]);
+	if (rrlog->threadInfo[i].offset != 0) {
+	    RRLogThread *rrthr = RRShared_LookupThread(rrlog, i);
 
-	if (entry && entry->eventId == nextEvent) {
-	    rrlog->nextEvent += 1;
-	    return entry;
+	    entry = RRLogThreadDequeue(rrlog, rrthr);
+
+	    if (entry && entry->eventId == nextEvent) {
+		rrlog->nextEvent += 1;
+		return entry;
+	    }
 	}
     }
 
@@ -106,7 +109,8 @@ RRLog_Dequeue(RRLog *rrlog)
 static inline void
 RRLog_Free(RRLog *rrlog, RRLogEntry *rrentry)
 {
-    rrlog->threads[rrentry->threadId].usedOff += 1;
+    RRLogThread *rrthr = RRShared_LookupThread(rrlog, rrentry->threadId);
+    rrthr->usedOff += 1;
 }
 
 #endif /* __CASTOR_RRLOG_H__ */

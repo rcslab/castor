@@ -117,12 +117,9 @@ DrainQueue(void *arg)
 void *
 TXGQProc(void *arg)
 {
-    uint64_t i;
-    RRLogEntry *entry;
-    uint64_t numEntries;
-
     while (1) {
-	entry = RRGlobalQueue_Dequeue(&rrgq, &numEntries);
+	uint64_t numEntries;
+	RRLogEntry *entry = RRGlobalQueue_Dequeue(&rrgq, &numEntries);
 
 	if (numEntries) {
 	    if (ftMode) {
@@ -132,7 +129,7 @@ TXGQProc(void *arg)
 	    }
 	}
 
-	for (i = 0; i < numEntries; i++) {
+	for (uint64_t i = 0; i < numEntries; i++) {
 	    if (entry[i].event == RREVENT_EXIT) {
 		printf("TXGQ Done\n");
 		return NULL;
@@ -149,16 +146,18 @@ TXGQProc(void *arg)
 void *
 FeedQueue(void *arg)
 {
-    uint64_t i;
-    uint64_t numEntries;
-    RRLogEntry *entry;
-
     while (1) {
+	uint64_t numEntries;
+	RRLogEntry *entry;
+
 	do {
 	    entry = RRGlobalQueue_Dequeue(&rrgq, &numEntries);
 	} while (numEntries == 0);
 
-	for (i = 0; i < numEntries; i++) {
+	for (uint64_t i = 0; i < numEntries; i++) {
+	    if (!RRShared_ThreadPresent(rrlog, entry[i].threadId)) {
+		RRShared_SetupThread(rrlog, entry[i].threadId);
+	    }
 	    RRPlay_AppendThread(rrlog, &entry[i]);
 	    if (entry[i].event == RREVENT_EXIT) {
 		//printf("Feed Done\n");
@@ -174,12 +173,9 @@ FeedQueue(void *arg)
 void *
 RXGQProc(void *arg)
 {
-    uint64_t i;
-    uint64_t numEntries;
-    RRLogEntry entries[512];
-
     while (1) {
-	numEntries = 512;
+	uint64_t numEntries = 512;
+	RRLogEntry entries[512];
 
 	if (ftMode) {
 	    numEntries = RRFT_Recv(numEntries, (RRLogEntry *)&entries);
@@ -196,7 +192,7 @@ RXGQProc(void *arg)
 	    numEntries = result / sizeof(RRLogEntry);
 	}
 
-	for (i = 0; i < numEntries; i++) {
+	for (uint64_t i = 0; i < numEntries; i++) {
 	    RRGlobalQueue_Append(&rrgq, &entries[i]);
 	    if (entries[i].event == RREVENT_EXIT) {
 		//printf("RXGQ Done\n");
@@ -280,31 +276,33 @@ DumpLog()
     printf("Last Event: %08ld\n", rrlog->lastEvent);
 
     for (int i = 0; i < RRLOG_MAX_THREADS; i++) {
-	printf("Thread %02d:\n", i);
-	printf("  Offsets Free: %02ld Used: %02ld\n",
-		rrlog->threads[i].freeOff, rrlog->threads[i].usedOff);
-	printf("  Status: %016lx\n", rrlog->threads[i].status);
+	RRLogThread *rrthr = RRShared_LookupThread(rrlog, i);
+	if (RRShared_ThreadPresent(rrlog ,i)) {
+	    printf("Thread %02d:\n", i);
+	    printf("  Offsets Free: %02ld Used: %02ld\n",
+		    rrthr->freeOff, rrthr->usedOff);
+	    printf("  Status: %016lx\n", rrthr->status);
+	}
     }
 
     printf("GlobalQueue:\n");
     printf("%-16s  %-8s  %-16s  %-16s  %-16s  %-16s  %-16s  %-16s  %-16s\n",
 	    "Event #", "Thread #", "Event", "Object ID",
 	    "Value[0]", "Value[1]", "Value[2]", "Value[3]", "Value[4]");
+
     len = RRGlobalQueue_Length(&rrgq);
     if (len > 10)
 	len = 10;
 
-    printf("%ld\n", len);
     entry = RRGlobalQueue_Dequeue(&rrgq, &len);
-    printf("%ld\n", len);
     printf("Head: %08ld Tail: %08ld\n", rrgq.head, rrgq.tail);
-    for (int i = 0; i < len; i++) {
+    for (uint64_t i = 0; i < len; i++) {
 	dumpEntry(&entry[i]);
     }
 }
 
 void
-OpenLog(const char *logfile, bool forRecord)
+OpenLog(const char *logfile, uintptr_t regionSz, uint32_t numEvents, bool forRecord)
 {
     char buf[4096];
 
@@ -315,15 +313,15 @@ OpenLog(const char *logfile, bool forRecord)
 	abort();
     }
 
-    memset(&buf, 0, 4096);
-    for (int i = 0; i <= (sizeof(*rrlog)/4096); i++)
-	write(shmfd, buf, 4096);
+    memset(&buf, 0, PAGESIZE);
+    for (uint64_t i = 0; i <= (regionSz/PAGESIZE); i++)
+	write(shmfd, buf, PAGESIZE);
 
     ASSERT(shmfd == 3);
 
-    rrlog = mmap(NULL, sizeof(*rrlog), PROT_READ|PROT_WRITE,
+    rrlog = mmap(NULL, regionSz, PROT_READ|PROT_WRITE,
 		MAP_NOSYNC|MAP_SHARED, shmfd, 0);
-    if (rrlog == NULL) {
+    if (rrlog == MAP_FAILED) {
 	perror("mmap");
 	abort();
     }
@@ -340,10 +338,10 @@ OpenLog(const char *logfile, bool forRecord)
 	snprintf(str,255,"Could not open log the file: %s",logfile);
 	perror(str);
 	abort();
-	return;
     }
 
-    RRLog_Init(rrlog);
+    RRLog_Init(rrlog, numEvents);
+    rrlog->regionSz = regionSz;
     RRGlobalQueue_Init(&rrgq);
 }
 

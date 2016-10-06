@@ -20,9 +20,11 @@
 #include <castor/rrlog.h>
 #include <castor/rrplay.h>
 #include <castor/rrgq.h>
+#include <castor/mtx.h>
 #include <castor/events.h>
 
 #include "system.h"
+#include "util.h"
 
 extern void Events_Init();
 
@@ -79,18 +81,16 @@ DrainQueue(void *arg)
 void *
 TXGQProc(void *arg)
 {
-    uint64_t i;
-    RRLogEntry *entry;
-    uint64_t numEntries;
 
     while (1) {
-	entry = RRGlobalQueue_Dequeue(&rrgq, &numEntries);
+	uint64_t numEntries;
+	RRLogEntry *entry = RRGlobalQueue_Dequeue(&rrgq, &numEntries);
 
 	if (numEntries) {
 	    SystemWrite(logfd, entry, numEntries * sizeof(RRLogEntry));
 	}
 
-	for (i = 0; i < numEntries; i++) {
+	for (uint64_t i = 0; i < numEntries; i++) {
 	    if (entry[i].event == RREVENT_EXIT) {
 		SystemWrite(1, "TXGQ Done\n", 10);
 		fsync(logfd);
@@ -109,19 +109,18 @@ TXGQProc(void *arg)
 void *
 FeedQueue(void *arg)
 {
-    uint64_t i;
-    uint64_t numEntries;
-    RRLogEntry *entry;
-
     if (primeSawExit)
 	pthread_exit(NULL);
 
     while (1) {
+	uint64_t numEntries;
+	RRLogEntry *entry;
+
 	do {
 	    entry = RRGlobalQueue_Dequeue(&rrgq, &numEntries);
 	} while (numEntries == 0);
 
-	for (i = 0; i < numEntries; i++) {
+	for (uint64_t i = 0; i < numEntries; i++) {
 	    RRPlay_AppendThread(rrlog, &entry[i]);
 	    if (entry[i].event == RREVENT_EXIT) {
 		//printf("Feed Done\n");
@@ -137,12 +136,9 @@ FeedQueue(void *arg)
 void *
 RXGQProc(void *arg)
 {
-    uint64_t i;
-    uint64_t numEntries;
-    RRLogEntry entries[512];
-
     while (1) {
-	numEntries = 512;
+	uint64_t numEntries = 512;
+	RRLogEntry entries[512];
 
 	int result = SystemRead(logfd, &entries, numEntries * sizeof(RRLogEntry));
 	if (result < 0) {
@@ -155,7 +151,7 @@ RXGQProc(void *arg)
 
 	numEntries = result / sizeof(RRLogEntry);
 
-	for (i = 0; i < numEntries; i++) {
+	for (uint64_t i = 0; i < numEntries; i++) {
 	    RRGlobalQueue_Append(&rrgq, &entries[i]);
 	    if (entries[i].event == RREVENT_EXIT) {
 		//printf("RXGQ Done\n");
@@ -219,26 +215,26 @@ OldInit()
 	rrMode = RRMODE_REPLAY;
     } else if (strcmp(mode, "MASTER") == 0) {
 	fprintf(stderr, "MASTER\n");
-	abort();
 	ftMode = true;
 	rrMode = RRMODE_RECORD;
+	abort();
     } else if (strcmp(mode, "SLAVE") == 0) {
 	fprintf(stderr, "SLAVE\n");
-	abort();
 	ftMode = true;
 	rrMode = RRMODE_REPLAY;
+	abort();
     } else {
 	fprintf(stderr, "Error: Unknown CASTOR_MODE\n");
     }
 
-    rrlog = malloc(sizeof(*rrlog));
+    rrlog = malloc(RRLOG_DEFAULT_REGIONSZ);
     if (!rrlog){
 	fprintf(stderr, "Could not allocate record/replay log\n");
 	abort();
-	return;
     }
 
-    RRLog_Init(rrlog);
+    RRLog_Init(rrlog, (PAGESIZE - 4*CACHELINE)/CACHELINE);
+    threadId = RRShared_AllocThread(rrlog);
     RRGlobalQueue_Init(&rrgq);
     Events_Init();
 
@@ -247,7 +243,6 @@ OldInit()
     if (logpath == NULL) {
 	fprintf(stderr, "Error: Must specify log path CASTOR_LOGFILE\n");
 	abort();
-	return;
     }
 
     if (rrMode == RRMODE_RECORD)
@@ -257,7 +252,6 @@ OldInit()
     if (logfd < 0) {
 	perror("open");
 	abort();
-	return;
     }
 
     if (rrMode == RRMODE_RECORD) {
@@ -278,7 +272,7 @@ log_init()
 
     status = fstat(/* shmfd */3, &sb);
     if (status < 0) {
-	//perror("fstat");
+	perror("fstat");
 	OldInit();
 	return;
     }
@@ -294,12 +288,18 @@ log_init()
     // Make sure LogDone returns immediately
     atomic_store(&drainDone, 1);
 
-    rrlog = mmap(NULL, sizeof(*rrlog), PROT_READ|PROT_WRITE,
+    rrlog = mmap(NULL, RRLOG_DEFAULT_REGIONSZ, PROT_READ|PROT_WRITE,
 		MAP_NOSYNC|MAP_SHARED, /* shmfd */3, 0);
-    if (rrlog == NULL) {
+    if (rrlog == MAP_FAILED) {
 	perror("mmap");
 	abort();
     }
+
+    RRShared_SetupThread(rrlog, 0);
+    threadId = 0;
+
+    // XXX: Need to remap the region again to the right size
+    assert(RRLOG_DEFAULT_REGIONSZ == rrlog->regionSz);
 
     char *sandbox = getenv("CASTOR_SANDBOX");
     if (sandbox) {

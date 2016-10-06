@@ -8,10 +8,11 @@
 
 #include <time.h>
 #include <pthread.h>
+#include <sys/mman.h>
 
 #include <castor/rrlog.h>
 
-static RRLog rrlog;
+RRLog *rrlog;
 
 #define TEST_THREADS		1ULL
 #define EVENTS_PER_THREAD	100000000ULL
@@ -20,13 +21,12 @@ void *
 test_producer(void *arg)
 {
     uint64_t i;
-    uint32_t threadId = (uint32_t)arg;
+    uint64_t threadId = (uint64_t)arg;
 
     for (i = 0; i < EVENTS_PER_THREAD; i++) {
-        RRLogEntry *e = RRLog_Alloc(&rrlog, threadId);
+        RRLogEntry *e = RRLog_Alloc(rrlog, threadId);
 	e->objectId = 1;
-	e->event = 1;
-        RRLog_Append(&rrlog, e);
+        RRLog_Append(rrlog, e);
     }
 
     return NULL;
@@ -41,10 +41,10 @@ test_consumer()
 	RRLogEntry *entry = NULL;
 
 	do {
-	    entry = RRLog_Dequeue(&rrlog);
+	    entry = RRLog_Dequeue(rrlog);
 	} while (entry == NULL);
 
-	RRLog_Free(&rrlog, entry);
+	RRLog_Free(rrlog, entry);
     }
 }
 
@@ -54,9 +54,20 @@ main(int argc, const char *argv[])
     uint64_t i;
     pthread_t tid;
 
-    RRLog_Init(&rrlog);
+    rrlog = mmap(NULL, RRLOG_DEFAULT_REGIONSZ, PROT_READ|PROT_WRITE,
+		MAP_NOSYNC|MAP_ANONYMOUS, -1, 0);
+    if (rrlog == MAP_FAILED) {
+	perror("mmap");
+	abort();
+    }
+
+    memset(rrlog, 0, RRLOG_DEFAULT_REGIONSZ);
+
+    RRLog_Init(rrlog, (PAGESIZE - 4*CACHELINE)/CACHELINE);
+    rrlog->regionSz = RRLOG_DEFAULT_REGIONSZ;
 
     for (i = 0; i < TEST_THREADS; i++) {
+	RRShared_SetupThread(rrlog, i);
 	pthread_create(&tid, NULL, test_producer, (void *)i);
     }
 

@@ -60,7 +60,7 @@ def GetNumCPUs(env):
 env.SetOption('num_jobs', GetNumCPUs(env))
 
 env.Append(CXXFLAGS = ["-std=c++11"])
-env.Append(CPPFLAGS = ["-Wall", "-Werror", "-g", "-O2"])
+env.Append(CPPFLAGS = ["-Wall", "-Wsign-compare", "-Werror", "-g", "-O2"])
 
 if (env["BUILDTYPE"] == "DEBUG"):
     env.Append(CPPFLAGS = ["-DCASTOR_DEBUG"])

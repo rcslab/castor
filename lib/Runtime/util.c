@@ -45,7 +45,7 @@ Lookup(uint32_t event)
 }
 
 void
-AssertEvent(RRLogEntry *e, int evt)
+AssertEvent(RRLogEntry *e, uint32_t evt)
 {
     if (e->event != evt) {
 	rrMode = RRMODE_NORMAL;
@@ -105,6 +105,7 @@ logData(uint8_t *buf, size_t len)
     if (rrMode == RRMODE_RECORD) {
 	for (i = 0; i < recs; i++) {
 	    e = RRLog_Alloc(rrlog, threadId);
+	    e->threadId = threadId;
 	    e->event = RREVENT_DATA;
 	    uint8_t *dst = ((uint8_t *)e) + RREVENT_DATA_OFFSET;
 	    memcpy(dst, buf, RREVENT_DATA_LEN);
@@ -113,6 +114,7 @@ logData(uint8_t *buf, size_t len)
 	}
 	if (rlen) {
 	    e = RRLog_Alloc(rrlog, threadId);
+	    e->threadId = threadId;
 	    e->event = RREVENT_DATA;
 	    uint8_t *dst = ((uint8_t *)e) + RREVENT_DATA_OFFSET;
 	    memcpy(dst, buf, rlen);

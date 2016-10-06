@@ -9,6 +9,8 @@
 #include <sys/wait.h>
 
 #include <castor/debug.h>
+#include <castor/archconfig.h>
+#include <castor/rrshared.h>
 #include <castor/Common/proc.h>
 #include <castor/Common/runtime.h>
 
@@ -16,6 +18,8 @@ void
 usage()
 {
     printf("record [options] [program] [args]\n");
+    printf("  -r [size]     Size of shared region\n");
+    printf("  -e [entries]  Number of entries per thread\n");
     printf("  -c [cores]    Maximum number of application cores\n");
     printf("  -o [log]      Log file\n");
     printf("  -p            Pin threads\n");
@@ -27,13 +31,23 @@ main(int argc, char *argv[])
 {
     int status;
     int ch;
+    uintptr_t regionSz = RRLOG_DEFAULT_REGIONSZ;
+    uint32_t numEvents = RRLOG_DEFAULT_EVENTS;
     int maxcpus = 64;
     bool ft = false;
     bool pinned = false;
     const char *logfile = "default.rr";
 
-    while ((ch = getopt(argc, argv, "c:ho:p")) != -1) {
+    while ((ch = getopt(argc, argv, "r:e:c:ho:p")) != -1) {
 	switch (ch) {
+	    case 'r': {
+		regionSz = atoi(optarg) * 1024*1024;
+		break;
+	    }
+	    case 'e': {
+		numEvents = atoi(optarg);
+		break;
+	    }
 	    case 'c': {
 		maxcpus = atoi(optarg);
 		break;
@@ -71,7 +85,7 @@ main(int argc, char *argv[])
 	fprintf(stderr, "ft not supported");
 	abort();
     } else {
-	OpenLog(logfile, true);
+	OpenLog(logfile, regionSz, numEvents, true);
     }
 
     setenv("CASTOR_MODE", "RECORD", 1);

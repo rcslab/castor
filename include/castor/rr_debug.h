@@ -1,14 +1,15 @@
 #ifndef RR_DEBUG_H
 #define RR_DEBUG_H 1
 
+#include <stdbool.h>
 #include <threads.h>
 #include <sys/cdefs.h>
 
 #include <castor/archconfig.h>
+#include <castor/rrshared.h>
 #include <castor/rr_fdprintf.h>
 
 extern enum RRMODE rrMode;
-
 
 void __rr_assert(const char *, const char *, int, const char *) __dead2;
 

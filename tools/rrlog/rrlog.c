@@ -11,6 +11,7 @@
 #include <fcntl.h>
 
 #include <castor/archconfig.h>
+#include <castor/rrshared.h>
 #include <castor/events.h>
 
 static int logfd;
@@ -95,7 +96,9 @@ int main(int argc, const char *argv[])
 
     printf("\n%-8s      %s\n", "Thread", "# Events");
     for (i = 0; i < RRLOG_MAX_THREADS; i++) {
-	printf("%-8d      %lu\n", i, eventsPerThread[i]);
+	if (eventsPerThread[i] > 0) {
+	    printf("%-8d      %lu\n", i, eventsPerThread[i]);
+	}
     }
 
     return 0;
