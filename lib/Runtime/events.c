@@ -776,42 +776,6 @@ __rr_fstatat(int fd, const char *path, struct stat *buf, int flag)
     return result;
 }
 
-int
-__rr_fstat(int fd, struct stat *sb)
-{
-    ssize_t result;
-    RRLogEntry *e;
-
-    if (rrMode == RRMODE_NORMAL) {
-	return syscall(SYS_fstat, fd, sb);
-    }
-
-    if (rrMode == RRMODE_RECORD) {
-	result = syscall(SYS_fstat, fd, sb);
-
-	e = RRLog_Alloc(rrlog, threadId);
-	e->event = RREVENT_FSTAT;
-	e->threadId = threadId;
-	e->value[0] = result;
-	RRLog_Append(rrlog, e);
-
-	if (result == 0) {
-	    logData((uint8_t*)sb, sizeof(*sb));
-	}
-    } else {
-	e = RRPlay_Dequeue(rrlog, threadId);
-	result = e->value[0];
-	AssertEvent(e, RREVENT_FSTAT);
-	RRPlay_Free(rrlog, e);
-
-	if (result == 0) {
-	    logData((uint8_t*)sb, sizeof(*sb));
-	}
-    }
-
-    return result;
-}
-
 ssize_t
 __rr_readlink(const char *restrict path, char *restrict buf, size_t bufsize)
 {
@@ -1820,6 +1784,58 @@ __sys_umask(mode_t numask)
 }
 
 int
+__rr_fstat(int fd, struct stat *sb)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_fstat, fd, sb);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_fstat, fd, sb);
+	    RRRecordOI(RREVENT_FSTAT, fd, result);
+	    if (result == 0) {
+		logData((uint8_t*)sb, sizeof(*sb));
+	    }
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_FSTAT, &fd, &result);
+	    if (result == 0) {
+		logData((uint8_t*)sb, sizeof(*sb));
+	    }
+	    break;
+    }
+
+    return result;
+}
+
+int
+__rr_stat(const char * restrict path, struct stat * restrict sb)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_stat, path, sb);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_stat, path, sb);
+	    RRRecordI(RREVENT_STAT, result);
+	    if (result == 0) {
+		logData((uint8_t*)sb, sizeof(*sb));
+	    }
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_STAT, &result);
+	    if (result == 0) {
+		logData((uint8_t*)sb, sizeof(*sb));
+	    }
+	    break;
+    }
+
+    return result;
+}
+
+int
 __sys_getrlimit(int resource, struct rlimit *rlp)
 {
     int result;
@@ -2030,6 +2046,8 @@ void log_msg(struct msghdr *msg)
     }
 }
 
+
+
 ssize_t
 __rr_recvmsg(int s, struct msghdr *msg, int flags)
 {
@@ -2172,8 +2190,10 @@ __strong_reference(__rr_openat, _openat);
 __strong_reference(__sys_close, _close);
 __strong_reference(__sys_ioctl, ioctl);
 __strong_reference(__sys_ioctl, _ioctl);
-__strong_reference(__rr_fstat, fstat);
 __strong_reference(__rr_fcntl, fcntl);
+__strong_reference(__rr_stat, stat);
+__strong_reference(__rr_stat, _stat);
+__strong_reference(__rr_fstat, fstat);
 __strong_reference(__rr_fstat, _fstat);
 __strong_reference(__rr_fstatfs, fstatfs);
 __strong_reference(__rr_fstatfs, _fstatfs);
