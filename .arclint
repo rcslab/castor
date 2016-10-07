@@ -1,0 +1,24 @@
+{
+    "exclude": ["(sysroot*|llvm|apps)", "(lib/Runtime/xxhash.[ch])"],
+    "linters": { "cppcheck": {
+	    "type": "cppcheck",
+	    "include": ["(include)", "(lib)", "(tools)"]
+	},
+	"spelling": {
+	    "type": "spelling"
+	},
+	"chmod": {
+	    "type": "chmod"
+	},
+	"merge-conflict": {
+	    "type": "merge-conflict"
+	},
+	"filename": {
+	    "type": "filename"
+	},
+	"json": {
+	    "type": "json",
+	    "include": "(\\.arclint|\\.json$)"
+	}
+    }
+}
