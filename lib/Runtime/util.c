@@ -98,6 +98,10 @@ logData(uint8_t *buf, size_t len)
     int32_t rlen = len % RREVENT_DATA_LEN;
     RRLogEntry *e;
 
+    if (buf == NULL) {
+	PANIC();
+    }
+
     if (rrMode == RRMODE_RECORD) {
 	for (i = 0; i < recs; i++) {
 	    e = RRLog_Alloc(rrlog, threadId);

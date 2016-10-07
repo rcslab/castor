@@ -10,19 +10,8 @@
 
 #include <castor/rr_debug.h>
 
-int main(int argc, const char *argv[])
+void dump_statb(struct stat sb)
 {
-    struct stat sb;
-    int fd;
-    int len;
-    char rr[2048];
-    char norm[2048];
-
-    fd = open("read.c", O_RDONLY);
-    fstat(fd, &sb);
-    len = read(fd, (void *)&rr, sb.st_size);
-    assert(len == sb.st_size);
-
     printf("stat.st_dev     = 0x%08x\n", sb.st_dev);
     printf("stat.st_ino     = 0x%08x\n", sb.st_ino);
     printf("stat.st_mode    = 0x%08x\n", sb.st_mode);
@@ -36,6 +25,24 @@ int main(int argc, const char *argv[])
     printf("stat.st_blocks  = 0x%016lx\n", sb.st_blocks);
     printf("stat.st_blksize = 0x%08x\n", sb.st_blksize);
     printf("stat.st_flags   = 0x%08x\n", sb.st_flags);
+}
+
+
+int main(int argc, const char *argv[])
+{
+    struct stat sb;
+    int fd;
+    int len;
+    char rr[2048];
+    char norm[2048];
+
+    fd = open("read.c", O_RDONLY);
+    fstat(fd, &sb);
+    dump_statb(sb);
+    stat("read.c", &sb);
+    dump_statb(sb);
+    len = read(fd, (void *)&rr, sb.st_size);
+    assert(len == sb.st_size);
 
     lseek(fd, 0, SEEK_SET);
     if (rrMode != RRMODE_REPLAY) {
