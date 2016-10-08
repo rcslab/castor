@@ -530,6 +530,7 @@ __sys_read(int fd, void *buf, size_t nbytes)
     return result;
 }
 
+//XXX: remove eventually
 ssize_t
 _read(int fd, void *buf, size_t nbytes)
 {
@@ -562,7 +563,7 @@ __sys_write(int fd, const void *buf, size_t nbytes)
 	 * recording.  The output divergence test is more conservative than it 
 	 * needs to be.  We can assert only on bytes actually written out.
 	 */
-	if (fd == 1) {
+	if (fd == STDOUT_FILENO || fd == STDERR_FILENO) {
 	    // Print console output
 	    syscall(SYS_write, fd, buf, nbytes);
 	}
@@ -577,6 +578,7 @@ __sys_write(int fd, const void *buf, size_t nbytes)
     return result;
 }
 
+//XXX: remove eventually
 ssize_t
 _write(int fd, const void *buf, size_t nbytes)
 {
@@ -1456,6 +1458,33 @@ __sys_link(const char *name1, const char *name2)
 
     return result;
 }
+
+ssize_t
+pread(int fd, void *buf, size_t nbytes, off_t offset)
+{
+    ssize_t result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_pread, buf, nbytes, offset);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_pread, buf, nbytes, offset);
+	    RRRecordOS(RREVENT_PREAD, fd, result);
+	    if (result != -1) {
+		logData((uint8_t*)buf, nbytes );
+	    }
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOS(RREVENT_PREAD, &fd, &result);
+	    if (result != -1) {
+		logData((uint8_t*)buf, nbytes );
+	    }
+	    break;
+    }
+
+    return result;
+}
+
 
 int
 __sys_symlink(const char *name1, const char *name2)
