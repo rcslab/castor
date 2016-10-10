@@ -1947,17 +1947,19 @@ __rr_getpeername(int s, struct sockaddr * restrict name,
 	    return syscall(SYS_getpeername, s, name, namelen);
 	case RRMODE_RECORD:
 	    result = syscall(SYS_getpeername, s, name, namelen);
-	    RRRecordI(RREVENT_GETPEERNAME, result);
+	    RRRecordOI(RREVENT_GETPEERNAME, s, result);
 	    if (result == 0) {
-		logData((uint8_t*)name, sizeof(*name));
+		//XXX: slow, store in value[] directly
 		logData((uint8_t*)namelen, sizeof(*namelen));
+		logData((uint8_t*)name, *namelen);
 	    }
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_GETPEERNAME, &result);
+	    RRReplayOI(RREVENT_GETPEERNAME, &s, &result);
 	    if (result == 0) {
-		logData((uint8_t*)name, sizeof(*name));
+		//XXX: slow, store in value[] directly
 		logData((uint8_t*)namelen, sizeof(*namelen));
+		logData((uint8_t*)name, *namelen);
 	    }
 	    break;
     }
@@ -1976,17 +1978,19 @@ __rr_getsockname(int s, struct sockaddr * restrict name,
 	    return syscall(SYS_getsockname, s, name, namelen);
 	case RRMODE_RECORD:
 	    result = syscall(SYS_getsockname, s, name, namelen);
-	    RRRecordI(RREVENT_GETSOCKNAME, result);
+	    RRRecordOI(RREVENT_GETSOCKNAME, s, result);
 	    if (result == 0) {
-		logData((uint8_t*)name, sizeof(*name));
 		logData((uint8_t*)namelen, sizeof(*namelen));
+		logData((uint8_t*)name, *namelen);
+		//XXX:slow, store directly in value
 	    }
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_GETSOCKNAME, &result);
+	    RRReplayOI(RREVENT_GETSOCKNAME, &s, &result);
 	    if (result == 0) {
-		logData((uint8_t*)name, sizeof(*name));
 		logData((uint8_t*)namelen, sizeof(*namelen));
+		logData((uint8_t*)name, *namelen);
+		//XXX:slow, store directly in value
 	    }
 	    break;
     }
@@ -2064,18 +2068,14 @@ void log_msg(struct msghdr *msg)
 
     if ((msg->msg_iov != NULL) && (msg->msg_iovlen > 0)) {
 	logData((uint8_t*)msg->msg_iov, msg->msg_iovlen * sizeof(*msg->msg_iov));
+	for (int i = 0; i < msg->msg_iovlen; i++) {
+	    logData(msg->msg_iov[i].iov_base, msg->msg_iov[i].iov_len);
+	}
     }
-
-    for (int i = 0; i < msg->msg_iovlen; i++) {
-	logData(msg->msg_iov[i].iov_base, msg->msg_iov[i].iov_len);
-    }
-
     if ((msg->msg_control != NULL) && (msg->msg_controllen > 0)) {
 	logData((uint8_t*)msg->msg_control, msg->msg_controllen);
     }
 }
-
-
 
 ssize_t
 __rr_recvmsg(int s, struct msghdr *msg, int flags)
