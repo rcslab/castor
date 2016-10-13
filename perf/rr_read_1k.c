@@ -37,12 +37,7 @@ int main(int argc, const char *argv[])
 	return 1;
     }
 
-    readBench(512);
     readBench(1024);
-    readBench(2*1024);
-    readBench(4*1024);
-    readBench(8*1024);
-    readBench(16*1024);
 
     return 0;
 }
