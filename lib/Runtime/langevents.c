@@ -33,7 +33,6 @@ __castor_rdtsc()
 	    e = RRLog_Alloc(rrlog, threadId);
 	    e->event = RREVENT_RDTSC;
 	    e->objectId = 0;
-	    e->threadId = threadId;
 	    e->value[0] = val;
 	    RRLog_Append(rrlog, e);
 	    break;
@@ -75,7 +74,6 @@ __castor_load_end(void *ptr)
 	    e = RRLog_LAlloc(threadId);
 	    e->event = RREVENT_ATOMIC_LOAD;
 	    e->objectId = (uint64_t)ptr;
-	    e->threadId = threadId;
 	    RRLog_LAppend(e);
 	    break;
 	case RRMODE_REPLAY:
@@ -115,7 +113,6 @@ __castor_store_end(void *ptr)
 	    e = RRLog_LAlloc(threadId);
 	    e->event = RREVENT_ATOMIC_STORE;
 	    e->objectId = (uint64_t)ptr;
-	    e->threadId = threadId;
 	    RRLog_LAppend(e);
 	    break;
 	case RRMODE_REPLAY:
@@ -155,7 +152,6 @@ __castor_cmpxchg_end(void *ptr)
 	    e = RRLog_LAlloc(threadId);
 	    e->event = RREVENT_ATOMIC_XCHG;
 	    e->objectId = (uint64_t)ptr;
-	    e->threadId = threadId;
 	    RRLog_LAppend(e);
 	    break;
 	case RRMODE_REPLAY:
@@ -195,7 +191,6 @@ __castor_rmw_end(void *ptr)
 	    e = RRLog_LAlloc(threadId);
 	    e->event = RREVENT_ATOMIC_RMW;
 	    e->objectId = (uint64_t)ptr;
-	    e->threadId = threadId;
 	    RRLog_LAppend(e);
 	    break;
 	case RRMODE_REPLAY:
@@ -235,7 +230,6 @@ __castor_asm_end()
 	    e = RRLog_LAlloc(threadId);
 	    e->event = RREVENT_INLINE_ASM;
 	    e->objectId = (uint64_t)0;
-	    e->threadId = threadId;
 	    RRLog_LAppend(e);
 	    break;
 	case RRMODE_REPLAY:

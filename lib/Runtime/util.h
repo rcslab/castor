@@ -31,7 +31,6 @@ RRLog_LEnter(uint32_t threadId, uint64_t objId)
 {
     RRLogEntry *e = RRLog_Alloc(rrlog, threadId);
     e->event = RREVENT_LOCKED_EVENT;
-    e->threadId = threadId;
     e->objectId = objId;
     Mutex_Lock(GETLOCK(objId));
     RRLog_Append(rrlog, e);
@@ -83,7 +82,6 @@ RRRecordI(uint32_t eventNum, int i)
 
     e = RRLog_Alloc(rrlog, threadId);
     e->event = eventNum;
-    e->threadId = threadId;
     e->objectId = 0;
     e->value[0] = i;
     RRLog_Append(rrlog, e);
@@ -107,7 +105,6 @@ RRRecordOI(uint32_t eventNum, int od, int i)
 
     e = RRLog_Alloc(rrlog, threadId);
     e->event = eventNum;
-    e->threadId = threadId;
     e->objectId = od;
     e->value[0] = i;
     RRLog_Append(rrlog, e);
@@ -136,7 +133,6 @@ RRRecordOU(uint32_t eventNum, int od, uint64_t u)
 
     e = RRLog_Alloc(rrlog, threadId);
     e->event = eventNum;
-    e->threadId = threadId;
     e->objectId = od;
     e->value[0] = u;
     RRLog_Append(rrlog, e);
@@ -165,7 +161,6 @@ RRRecordOS(uint32_t eventNum, int od, ssize_t s)
 
     e = RRLog_Alloc(rrlog, threadId);
     e->event = eventNum;
-    e->threadId = threadId;
     e->objectId = od;
     e->value[0] = s;
     RRLog_Append(rrlog, e);
