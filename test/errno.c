@@ -20,6 +20,7 @@
 
 #define BAD_FD 5555
 #define BAD_PATH "/$#@%!!"
+#define BAD_ID 666
 
 int main()
 {
@@ -84,7 +85,6 @@ int main()
     result = getrusage(0, NULL);
     assert((result == -1) && (errno == EFAULT));
     result = select(-1, 0, 0, 0, 0);
-    perror("");
     assert((result == -1) && (errno == EINVAL));
     /* open(BAD_PATH, 0, 0); */
     /* assert((result == -1) && (errno == ENOENT)); */
@@ -92,6 +92,14 @@ int main()
     assert((result == -1) && (errno == EBADF));
     statfs(BAD_PATH, NULL);
     assert((result == -1) && (errno == ENOENT));
+    result = setuid(BAD_ID);
+    assert((result == -1) && (errno == EPERM));
+    result = seteuid(BAD_ID);
+    assert((result == -1) && (errno == EPERM));
+    result = setgid(BAD_ID);
+    assert((result == -1) && (errno == EPERM));
+    result = setegid(BAD_ID);
+    assert((result == -1) && (errno == EPERM));
 
     return 0;
 }
