@@ -113,10 +113,10 @@ ksprintn(char *nbuf, uintmax_t num, int base, int *lenp, int upper)
 	p = nbuf;
 	*p = '\0';
 	do {
-		c = upper ? hex2ascii_upper(num % base) :
-		    hex2ascii(num % base);
+		c = upper ? hex2ascii_upper(num % (uint64_t)base) :
+		    hex2ascii(num % (uint64_t)base);
 		*++p = c;
-	} while (num /= base);
+	} while (num /= (uint64_t)base);
 	if (lenp)
 		*lenp = p - nbuf;
 	return (p);
@@ -270,7 +270,7 @@ reswitch:	switch (ch = (u_char)*fmt++) {
 			else if (lflag)
 				*(va_arg(ap, long *)) = retval;
 			else if (zflag)
-				*(va_arg(ap, size_t *)) = retval;
+				*(va_arg(ap, size_t *)) = (size_t)retval;
 			else if (hflag)
 				*(va_arg(ap, short *)) = retval;
 			else if (cflag)
@@ -337,43 +337,43 @@ reswitch:	switch (ch = (u_char)*fmt++) {
 handle_nosign:
 			sign = 0;
 			if (jflag)
-				num = va_arg(ap, uintmax_t);
+				num = (uintmax_t)va_arg(ap, uintmax_t);
 			else if (qflag)
-				num = va_arg(ap, u_quad_t);
+				num = (uintmax_t)va_arg(ap, u_quad_t);
 			else if (tflag)
-				num = va_arg(ap, ptrdiff_t);
+				num = (uintmax_t)va_arg(ap, ptrdiff_t);
 			else if (lflag)
-				num = va_arg(ap, u_long);
+				num = (uintmax_t)va_arg(ap, u_long);
 			else if (zflag)
-				num = va_arg(ap, size_t);
+				num = (uintmax_t)va_arg(ap, size_t);
 			else if (hflag)
-				num = (u_short)va_arg(ap, int);
+				num = (uintmax_t)(u_short)va_arg(ap, int);
 			else if (cflag)
-				num = (u_char)va_arg(ap, int);
+				num = (uintmax_t)(u_char)va_arg(ap, int);
 			else
-				num = va_arg(ap, u_int);
+				num = (uintmax_t)va_arg(ap, u_int);
 			goto number;
 handle_sign:
 			if (jflag)
-				num = va_arg(ap, intmax_t);
+				num = (uintmax_t)va_arg(ap, intmax_t);
 			else if (qflag)
-				num = va_arg(ap, quad_t);
+				num = (uintmax_t)va_arg(ap, quad_t);
 			else if (tflag)
-				num = va_arg(ap, ptrdiff_t);
+				num = (uintmax_t)va_arg(ap, ptrdiff_t);
 			else if (lflag)
-				num = va_arg(ap, long);
+				num = (uintmax_t)va_arg(ap, long);
 			else if (zflag)
-				num = va_arg(ap, ssize_t);
+				num = (uintmax_t)va_arg(ap, ssize_t);
 			else if (hflag)
-				num = (short)va_arg(ap, int);
+				num = (uintmax_t)(short)va_arg(ap, int);
 			else if (cflag)
-				num = (char)va_arg(ap, int);
+				num = (uintmax_t)(char)va_arg(ap, int);
 			else
-				num = va_arg(ap, int);
+				num = (uintmax_t)va_arg(ap, int);
 number:
 			if (sign && (intmax_t)num < 0) {
 				neg = 1;
-				num = -(intmax_t)num;
+				num = (uintmax_t)(-(intmax_t)num);
 			}
 			p = ksprintn(nbuf, num, base, &n, upper);
 			tmp = 0;
