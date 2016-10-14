@@ -150,7 +150,7 @@ RXGQProc(void *arg)
 	    return NULL;
 	}
 
-	numEntries = result / sizeof(RRLogEntry);
+	numEntries = (uint64_t)result / sizeof(RRLogEntry);
 
 	for (uint64_t i = 0; i < numEntries; i++) {
 	    RRGlobalQueue_Append(&rrgq, &entries[i]);
@@ -175,7 +175,7 @@ PrimeQ()
 	abort();
     }
 
-    numEntries = result / sizeof(RRLogEntry);
+    numEntries = (uint64_t)result / sizeof(RRLogEntry);
 
     for (uint64_t i = 0; i < numEntries; i++) {
 	RRPlay_AppendThread(rrlog, &entries[i]);

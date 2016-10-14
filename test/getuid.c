@@ -4,9 +4,9 @@
 
 int main(int argc, const char *argv[])
 {
-    int result;
+    uid_t result;
     printf("start test\n");
     fflush(NULL);
     result = getuid();
-    printf("result %d\n",result);
+    printf("result %d\n", result);
 }

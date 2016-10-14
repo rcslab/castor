@@ -257,7 +257,7 @@ _pthread_mutex_lock(pthread_mutex_t *mtx)
 	    e = RRLog_LAlloc(threadId);
 	    e->event = RREVENT_MUTEX_LOCK;
 	    e->objectId = (uint64_t)mtx;
-	    e->value[0] = result;
+	    e->value[0] = (uint64_t)result;
 	    RRLog_LAppend(e);
 	    break;
 	}
@@ -308,13 +308,13 @@ pthread_mutex_trylock(pthread_mutex_t *mtx)
 	    e->event = RREVENT_MUTEX_TRYLOCK;
 	    e->objectId = (uint64_t)mtx;
 	    result = _pthread_mutex_trylock(mtx);
-	    e->value[0] = result;
+	    e->value[0] = (uint64_t)result;
 	    RRLog_Append(rrlog, e);
 	    break;
 	}
 	case RRMODE_REPLAY: {
 	    e = RRPlay_Dequeue(rrlog, threadId);
-	    result = e->value[0];
+	    result = (int)e->value[0];
 	    RRPlay_Free(rrlog, e);
 	    break;
 	}
@@ -354,7 +354,7 @@ pthread_mutex_unlock(pthread_mutex_t *mtx)
 	    e = RRLog_Alloc(rrlog, threadId);
 	    e->event = RREVENT_MUTEX_UNLOCK;
 	    e->objectId = (uint64_t)mtx;
-	    e->value[0] = result;
+	    e->value[0] = (uint64_t)result;
 	    RRLog_Append(rrlog, e);
 	    break;
 	}
@@ -404,12 +404,12 @@ __sys_open(const char *path, int flags, ...)
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_OPEN;
 	e->objectId = 0;
-	e->value[0] = result;
+	e->value[0] = (uint64_t)result;
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_OPEN);
-	result = e->value[0];
+	result = (int)e->value[0];
 	RRPlay_Free(rrlog, e);
     }
 
@@ -439,12 +439,12 @@ __rr_openat(int fd, const char *path, int flags, ...)
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_OPENAT;
 	e->objectId = 0;
-	e->value[0] = result;
+	e->value[0] = (uint64_t)result;
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_OPENAT);
-	result = e->value[0];
+	result = (int)e->value[0];
 	RRPlay_Free(rrlog, e);
     }
 
@@ -467,13 +467,13 @@ __sys_close(int fd)
 
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CLOSE;
-	e->objectId = fd;
-	e->value[0] = result;
+	e->objectId = (uint64_t)fd;
+	e->value[0] = (uint64_t)result;
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_CLOSE);
-	result = e->value[0];
+	result = (int)e->value[0];
 	RRPlay_Free(rrlog, e);
     }
 
@@ -496,20 +496,20 @@ __sys_read(int fd, void *buf, size_t nbytes)
 
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_READ;
-	e->value[0] = result;
+	e->value[0] = (uint64_t)result;
 	RRLog_Append(rrlog, e);
 
 	if (result > 0) {
-	    logData(buf, result);
+	    logData(buf, (size_t)result);
 	}
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
-	result = e->value[0];
+	result = (int)e->value[0];
 	AssertEvent(e, RREVENT_READ);
 	RRPlay_Free(rrlog, e);
 
 	if (result > 0) {
-	    logData(buf, result);
+	    logData(buf, (size_t)result);
 	}
     }
 
@@ -540,8 +540,8 @@ __sys_write(int fd, const void *buf, size_t nbytes)
 
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_WRITE;
-	e->objectId = fd;
-	e->value[0] = result;
+	e->objectId = (uint64_t)fd;
+	e->value[0] = (uint64_t)result;
 	e->value[1] = hashData((uint8_t *)buf, nbytes);
 	RRLog_Append(rrlog, e);
     } else {
@@ -558,7 +558,7 @@ __sys_write(int fd, const void *buf, size_t nbytes)
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_WRITE);
 	AssertOutput(e, e->value[1], (uint8_t *)buf, nbytes);
-	result = e->value[0];
+	result = (int)e->value[0];
 	RRPlay_Free(rrlog, e);
     }
 
@@ -596,22 +596,22 @@ __sys_ioctl(int fd, unsigned long request, ...)
 
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_IOCTL;
-	e->objectId = fd;
-	e->value[0] = result;
+	e->objectId = (uint64_t)fd;
+	e->value[0] = (uint64_t)result;
 	e->value[1] = request;
 	RRLog_Append(rrlog, e);
 
 	if ((result == 0) && output) {
-	    logData((uint8_t *)argp, datalen);
+	    logData((uint8_t *)argp, (size_t)datalen);
 	}
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_IOCTL);
-	result = e->value[0];
+	result = (int)e->value[0];
 	RRPlay_Free(rrlog, e);
 
 	if ((result == 0) && output) {
-	    logData((uint8_t *)argp, datalen);
+	    logData((uint8_t *)argp, (size_t)datalen);
 	}
     }
 
@@ -639,14 +639,14 @@ __rr_fcntl(int fd, int cmd, ...)
 	result = syscall(SYS_fcntl, fd, cmd, arg);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FCNTL;
-	e->objectId = fd;
-	e->value[0] = result;
-	e->value[1] = arg;
+	e->objectId = (uint64_t)fd;
+	e->value[0] = (uint64_t)result;
+	e->value[1] = (uint64_t)arg;
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_FCNTL);
-	result = e->value[0];
+	result = (int)e->value[0];
 	RRPlay_Free(rrlog, e);
     }
 
@@ -668,23 +668,23 @@ __rr_getdirentries(int fd, char *buf, int nbytes, long *basep)
 	result = syscall(SYS_getdirentries, fd, buf, nbytes, basep);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETDIRENTRIES;
-	e->objectId = fd;
-	e->value[0] = result;
-	e->value[2] = *basep;
+	e->objectId = (uint64_t)fd;
+	e->value[0] = (uint64_t)result;
+	e->value[2] = (uint64_t)*basep;
 	RRLog_Append(rrlog, e);
 
 	if (result >= 0) {
-	    logData((uint8_t*)buf, result);
+	    logData((uint8_t*)buf, (size_t)result);
 	}
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_GETDIRENTRIES);
-	result = e->value[0];
-	*basep = e->value[2];
+	result = (int)e->value[0];
+	*basep = (long)e->value[2];
 	RRPlay_Free(rrlog, e);
 
 	if (result >= 0) {
-	    logData((uint8_t*)buf, result);
+	    logData((uint8_t*)buf, (size_t)result);
 	}
     }
 
@@ -707,7 +707,7 @@ __rr_readlink(const char *restrict path, char *restrict buf, size_t bufsize)
 
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_READLINK;
-	e->value[0] = result;
+	e->value[0] = (uint64_t)result;
 	RRLog_Append(rrlog, e);
 
 	if (result > 0) {
@@ -715,7 +715,7 @@ __rr_readlink(const char *restrict path, char *restrict buf, size_t bufsize)
 	}
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
-	result = e->value[0];
+	result = (int)e->value[0];
 	AssertEvent(e, RREVENT_READLINK);
 	RRPlay_Free(rrlog, e);
 
@@ -742,17 +742,17 @@ __clock_gettime(clockid_t clock_id, struct timespec *tp)
 
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETTIME;
-	e->objectId = clock_id;
-	e->value[0] = tp->tv_sec;
-	e->value[1] = tp->tv_nsec;
-	e->value[2] = result;
+	e->objectId = (uint64_t)clock_id;
+	e->value[0] = (uint64_t)tp->tv_sec;
+	e->value[1] = (uint64_t)tp->tv_nsec;
+	e->value[2] = (uint64_t)result;
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_GETTIME);
-	tp->tv_sec = e->value[0];
-	tp->tv_nsec = e->value[1];
-	result = e->value[2];
+	tp->tv_sec = (time_t)e->value[0];
+	tp->tv_nsec = (long)e->value[1];
+	result = (int)e->value[2];
 	RRPlay_Free(rrlog, e);
     }
 
@@ -775,7 +775,7 @@ int __rr_sysctl(const int *name, u_int namelen, void *oldp,
 
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SYSCTL;
-	e->value[0] = result;
+	e->value[0] = (uint64_t)result;
 	if (oldp) {
 		e->value[1] = *oldlenp;
 	}
@@ -786,7 +786,7 @@ int __rr_sysctl(const int *name, u_int namelen, void *oldp,
 	}
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
-	result = e->value[0];
+	result = (int)e->value[0];
 	if (oldp) {
 	    *oldlenp = e->value[1];
 	}
@@ -843,12 +843,12 @@ __socket(int domain, int type, int protocol)
 	result = syscall(SYS_socket, domain, type, protocol);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SOCKET;
-	e->value[0] = result;
+	e->value[0] = (uint64_t)result;
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_SOCKET);
-	result = e->value[0];
+	result = (int)e->value[0];
 	RRPlay_Free(rrlog, e);
     }
 
@@ -870,12 +870,12 @@ __bind(int s, const struct sockaddr *addr, socklen_t addrlen)
 	result = syscall(SYS_bind, s, addr, addrlen);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_BIND;
-	e->value[0] = result;
+	e->value[0] = (uint64_t)result;
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_BIND);
-	result = e->value[0];
+	result = (int)e->value[0];
 	RRPlay_Free(rrlog, e);
     }
 
@@ -897,12 +897,12 @@ __listen(int s, int backlog)
 	result = syscall(SYS_listen, s, backlog);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_LISTEN;
-	e->value[0] = result;
+	e->value[0] = (uint64_t)result;
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_LISTEN);
-	result = e->value[0];
+	result = (int)e->value[0];
 	RRPlay_Free(rrlog, e);
     }
 
@@ -924,12 +924,12 @@ __connect(int s, const struct sockaddr *name, socklen_t namelen)
 	result = syscall(SYS_connect, s, name, namelen);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CONNECT;
-	e->value[0] = result;
+	e->value[0] = (uint64_t)result;
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_CONNECT);
-	result = e->value[0];
+	result = (int)e->value[0];
 	RRPlay_Free(rrlog, e);
     }
 
@@ -951,7 +951,7 @@ __accept(int s, struct sockaddr *addr, socklen_t *addrlen)
 	result = syscall(SYS_accept, s, addr, addrlen);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_ACCEPT;
-	e->value[0] = result;
+	e->value[0] = (uint64_t)result;
 	e->value[1] = *addrlen;
 	RRLog_Append(rrlog, e);
 
@@ -961,7 +961,7 @@ __accept(int s, struct sockaddr *addr, socklen_t *addrlen)
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_ACCEPT);
-	result = e->value[0];
+	result = (int)e->value[0];
 	if (result >= 0) {
 	    *addrlen = e->value[1];
 	}
@@ -990,7 +990,7 @@ __poll(struct pollfd fds[], nfds_t nfds, int timeout)
 	result = syscall(SYS_poll, fds, nfds, timeout);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_POLL;
-	e->value[0] = result;
+	e->value[0] = (uint64_t)result;
 	e->value[1] = nfds;
 	RRLog_Append(rrlog, e);
 	if (result > 0) {
@@ -999,7 +999,7 @@ __poll(struct pollfd fds[], nfds_t nfds, int timeout)
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_POLL);
-	result = e->value[0];
+	result = (int)e->value[0];
 	assert(e->value[1] == nfds);
 	RRPlay_Free(rrlog, e);
 	if (result > 0) {
@@ -1025,9 +1025,9 @@ __getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen)
 	result = syscall(SYS_getsockopt, s, level, optname, optval, optlen);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETSOCKOPT;
-	e->value[0] = result;
-	e->value[1] = optname;
-	e->value[2] = *optlen;
+	e->value[0] = (uint64_t)result;
+	e->value[1] = (uint64_t)optname;
+	e->value[2] = (uint64_t)*optlen;
 	RRLog_Append(rrlog, e);
 	if (result > 0) {
 	    logData((uint8_t *)optval, *optlen);
@@ -1035,8 +1035,8 @@ __getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen)
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_GETSOCKOPT);
-	result = e->value[0];
-	*optlen = e->value[2];
+	result = (int)e->value[0];
+	*optlen = (socklen_t)e->value[2];
 	RRPlay_Free(rrlog, e);
 	if (result > 0) {
 	    logData((uint8_t *)optval, *optlen);
@@ -1061,14 +1061,14 @@ __setsockopt(int s, int level, int optname, const void *optval, socklen_t optlen
 	result = syscall(SYS_setsockopt, s, level, optname, optval, optlen);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETSOCKOPT;
-	e->value[0] = result;
-	e->value[1] = optname;
-	e->value[2] = optlen;
+	e->value[0] = (uint64_t)result;
+	e->value[1] = (uint64_t)optname;
+	e->value[2] = (uint64_t)optlen;
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_SETSOCKOPT);
-	result = e->value[0];
+	result = (int)e->value[0];
 	RRPlay_Free(rrlog, e);
     }
 
@@ -1090,12 +1090,12 @@ __kqueue()
 	result = syscall(SYS_kqueue);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_KQUEUE;
-	e->value[0] = result;
+	e->value[0] = (uint64_t)result;
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_KQUEUE);
-	result = e->value[0];
+	result = (int)e->value[0];
 	RRPlay_Free(rrlog, e);
     }
 
@@ -1121,21 +1121,21 @@ __kevent(int kq, const struct kevent *changelist, int nchanges,
 			 eventlist, nevents, timeout);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_KEVENT;
-	e->objectId = kq;
-	e->value[0] = result;
-	e->value[1] = nchanges;
-	e->value[2] = nevents;
+	e->objectId = (uint64_t)kq;
+	e->value[0] = (uint64_t)result;
+	e->value[1] = (uint64_t)nchanges;
+	e->value[2] = (uint64_t)nevents;
 	RRLog_Append(rrlog, e);
 	if (result > 0) {
-	    logData((uint8_t *)eventlist, sizeof(struct kevent) * result);
+	    logData((uint8_t *)eventlist, sizeof(struct kevent) * (uint64_t)result);
 	}
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_KEVENT);
-	result = e->value[0];
+	result = (int)e->value[0];
 	RRPlay_Free(rrlog, e);
 	if (result > 0) {
-	    logData((uint8_t *)eventlist, sizeof(struct kevent) * result);
+	    logData((uint8_t *)eventlist, sizeof(struct kevent) * (uint64_t)result);
 	}
     }
 
@@ -1164,8 +1164,8 @@ __rr_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 	e->event = RREVENT_MMAPFD;
 	e->value[0] = (uint64_t)result;
 	e->value[1] = len;
-	e->value[2] = prot;
-	e->value[3] = flags;
+	e->value[2] = (uint64_t)prot;
+	e->value[3] = (uint64_t)flags;
 	RRLog_Append(rrlog, e);
 
 	if (result != 0) {
@@ -1200,18 +1200,18 @@ __sys_getgroups(int gidsetlen, gid_t *gidset)
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETGROUPS;
 	e->objectId = 0;
-	e->value[0] = result;
+	e->value[0] = (uint64_t)result;
 	RRLog_Append(rrlog, e);
 	if (result > 0) {
-	    logData((uint8_t *)gidset, result * sizeof(gid_t));
+	    logData((uint8_t *)gidset, (uint64_t)result * sizeof(gid_t));
 	}
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_GETGROUPS);
-	result = e->value[0];
+	result = (int)e->value[0];
 	RRPlay_Free(rrlog, e);
 	if (result > 0) {
-	    logData((uint8_t *)gidset, result * sizeof(gid_t));
+	    logData((uint8_t *)gidset, (uint64_t)result * sizeof(gid_t));
 	}
     }
 
@@ -1235,12 +1235,12 @@ __sys_setgroups(int ngroups, const gid_t *gidset)
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETGROUPS;
 	e->objectId = 0;
-	e->value[0] = result;
+	e->value[0] = (uint64_t)result;
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_SETGROUPS);
-	result = e->value[0];
+	result = (int)e->value[0];
 	RRPlay_Free(rrlog, e);
     }
 
@@ -1263,13 +1263,13 @@ id_set(int syscallNum, uint32_t eventNum, id_t id)
 
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = eventNum;
-	e->objectId = id;
-	e->value[0] = result;
+	e->objectId = (uint64_t)id;
+	e->value[0] = (uint64_t)result;
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, eventNum);
-	result = e->value[0];
+	result = (int)e->value[0];
 	RRPlay_Free(rrlog, e);
     }
 
@@ -1316,12 +1316,12 @@ id_get(int syscallNum, uint32_t eventNum)
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = eventNum;
 	e->objectId = 0;
-	e->value[0] = result;
+	e->value[0] = (uint64_t)result;
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, eventNum);
-	result = e->value[0];
+	result = (int)e->value[0];
 	RRPlay_Free(rrlog, e);
     }
     return result;
@@ -1383,13 +1383,13 @@ pread(int fd, void *buf, size_t nbytes, off_t offset)
 	    result = syscall(SYS_pread, fd, buf, nbytes, offset);
 	    RRRecordOS(RREVENT_PREAD, fd, result);
 	    if (result != -1) {
-		logData((uint8_t*)buf, nbytes );
+		logData((uint8_t*)buf, nbytes);
 	    }
 	    break;
 	case RRMODE_REPLAY:
 	    RRReplayOS(RREVENT_PREAD, &fd, &result);
 	    if (result != -1) {
-		logData((uint8_t*)buf, nbytes );
+		logData((uint8_t*)buf, nbytes);
 	    }
 	    break;
     }
@@ -2059,7 +2059,7 @@ void log_msg(struct msghdr *msg)
     }
 
     if ((msg->msg_iov != NULL) && (msg->msg_iovlen > 0)) {
-	logData((uint8_t*)msg->msg_iov, msg->msg_iovlen * sizeof(*msg->msg_iov));
+	logData((uint8_t*)msg->msg_iov, (uint64_t)msg->msg_iovlen * sizeof(*msg->msg_iov));
 	for (int i = 0; i < msg->msg_iovlen; i++) {
 	    logData(msg->msg_iov[i].iov_base, msg->msg_iov[i].iov_len);
 	}

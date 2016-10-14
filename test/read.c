@@ -49,7 +49,7 @@ int main(int argc, const char *argv[])
 {
     struct stat sb;
     int fd;
-    int len;
+    ssize_t len;
     char rr[2048];
 
     fd = open("read.c", O_RDONLY);
@@ -57,11 +57,11 @@ int main(int argc, const char *argv[])
     dump_statb(sb);
     stat("read.c", &sb);
     dump_statb(sb);
-    len = read(fd, (void *)&rr, sb.st_size);
+    len = read(fd, (void *)&rr, (size_t)sb.st_size);
     assert(len == sb.st_size);
     check(fd, rr, &sb);
-    bzero(rr, len);
-    len = pread(fd, (void *)&rr, sb.st_size, 0);
+    bzero(rr, (size_t)len);
+    len = pread(fd, (void *)&rr, (size_t)sb.st_size, 0);
     assert(len == sb.st_size);
     check(fd, rr, &sb);
     return 0;

@@ -90,10 +90,14 @@ readMap(int pid)
     string path = "/proc/" + to_string(pid) + "/map";
     int mapfd = open(path.c_str(), O_RDONLY);
     char *buf = new char[4096];
-    int len;
 
-    len = read(mapfd, buf, 4096);
-    string str(buf, len);
+    ssize_t len = read(mapfd, buf, 4096);
+    if (len == -1) {
+	perror("read");
+	abort();
+    }
+
+    string str(buf, (size_t)len);
 
     vector<string> lines = split(str, '\n');
     for (const string &l : lines) {

@@ -96,9 +96,9 @@ AssertOutput(RRLogEntry *e, uint64_t hash, uint8_t *buf, size_t nbytes)
 void
 logData(uint8_t *buf, size_t len)
 {
-    int32_t i;
-    int32_t recs = len / RREVENT_DATA_LEN;
-    int32_t rlen = len % RREVENT_DATA_LEN;
+    uint64_t i;
+    uint64_t recs = len / RREVENT_DATA_LEN;
+    uint64_t rlen = len % RREVENT_DATA_LEN;
     RRLogEntry *e;
 
     if (buf == NULL) {

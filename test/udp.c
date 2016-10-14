@@ -111,7 +111,7 @@ write_sendto(void *arg)
     struct sockaddr_in name;
     struct hostent *hp;
     hp = gethostbyname("localhost");
-    bcopy(hp->h_addr, (struct sockaddr *)&name.sin_addr, hp->h_length);
+    bcopy(hp->h_addr, (struct sockaddr *)&name.sin_addr, (size_t)hp->h_length);
     name.sin_family = AF_INET;
     name.sin_port = 5555;
     int result = sendto(sock, DATA, sizeof(DATA), 0, (struct sockaddr *) &name,
@@ -134,7 +134,7 @@ write_sendmsg(void *arg)
     struct sockaddr_in dst_addr;
     struct hostent *hp;
     hp = gethostbyname("localhost");
-    bcopy(hp->h_addr, (struct sockaddr *)&dst_addr.sin_addr, hp->h_length);
+    bcopy(hp->h_addr, (struct sockaddr *)&dst_addr.sin_addr, (size_t)hp->h_length);
     dst_addr.sin_family = AF_INET;
     dst_addr.sin_port = 5555;
 
