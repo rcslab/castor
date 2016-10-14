@@ -113,7 +113,7 @@ RRFT_InitSlave(const char *hostname)
 }
 
 void
-RRFT_Send(int count, RRLogEntry *evt)
+RRFT_Send(uint64_t count, RRLogEntry *evt)
 {
     int result;
 
@@ -124,8 +124,8 @@ RRFT_Send(int count, RRLogEntry *evt)
     }
 }
 
-int
-RRFT_Recv(int count, RRLogEntry *evt)
+uint64_t
+RRFT_Recv(uint64_t count, RRLogEntry *evt)
 {
     int result;
 
@@ -135,6 +135,6 @@ RRFT_Recv(int count, RRLogEntry *evt)
 	abort();
     }
 
-    return result / sizeof(RRLogEntry);
+    return (uint64_t)result / sizeof(RRLogEntry);
 }
 

@@ -118,7 +118,6 @@ pthread_create(pthread_t * thread, const pthread_attr_t * attr,
 
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_THREAD_CREATE;
-	//e->value[0] = result;
 	e->value[1] = thrNo;
 	RRLog_Append(rrlog, e);
 
@@ -127,12 +126,10 @@ pthread_create(pthread_t * thread, const pthread_attr_t * attr,
 	threadState[thrNo].arg = arg;
 
 	result = _pthread_create(thread, attr, thrwrapper, (void *)thrNo);
+	NOT_IMPLEMENTED(result == 0);
     } else {
-	int savedResult;
-
 	e = RRPlay_Dequeue(rrlog, threadId);
 	thrNo = e->value[1];
-	savedResult = e->value[0];
 	AssertEvent(e, RREVENT_THREAD_CREATE);
 	RRPlay_Free(rrlog, e);
 
@@ -142,8 +139,7 @@ pthread_create(pthread_t * thread, const pthread_attr_t * attr,
 	threadState[thrNo].arg = arg;
 
 	result = _pthread_create(thread, attr, thrwrapper, (void *)thrNo);
-
-	assert(result == savedResult);
+	NOT_IMPLEMENTED(result == 0);
     }
 
     return result;

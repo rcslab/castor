@@ -6,7 +6,7 @@
 
 extern enum RRMODE rrMode;
 extern RRLog *rrlog;
-extern thread_local int threadId;
+extern thread_local uint32_t threadId;
 extern Mutex lockTable[LOCKTABLE_SIZE];
 
 #if defined(CASTOR_DEBUG)

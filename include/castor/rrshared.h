@@ -129,7 +129,7 @@ RRShared_AllocThread(RRLog *rrlog)
 	memset((void *)&thr->entries[i], 0, sizeof(RRLogEntry));
     }
 
-    for (int i = 0; i < RRLOG_MAX_THREADS; i++) {
+    for (uint32_t i = 0; i < RRLOG_MAX_THREADS; i++) {
 	uintptr_t expected = 0;
 
 	if (atomic_compare_exchange_weak(&rrlog->threadInfo[i].offset, &expected, offset)) {

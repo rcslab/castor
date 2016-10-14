@@ -3,11 +3,11 @@
 #define __CASTOR_ARCHCONFIG_H__
 
 #if defined(__amd64__)
-#define PAGESIZE	4096
+#define PAGESIZE	4096U
 #ifdef USE_L3CACHELINE
-#define CACHELINE	128
+#define CACHELINE	128U
 #else
-#define CACHELINE	64
+#define CACHELINE	64U
 #endif
 #else
 #error "Unsupported Architecture"

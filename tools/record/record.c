@@ -41,11 +41,11 @@ main(int argc, char *argv[])
     while ((ch = getopt(argc, argv, "r:e:c:ho:p")) != -1) {
 	switch (ch) {
 	    case 'r': {
-		regionSz = atoi(optarg) * 1024*1024;
+		regionSz = strtoul(optarg, NULL, 10) * 1024*1024;
 		break;
 	    }
 	    case 'e': {
-		numEvents = atoi(optarg);
+		numEvents = strtoul(optarg, NULL, 10);
 		break;
 	    }
 	    case 'c': {

@@ -36,9 +36,9 @@ Debug_LogBacktrace()
 	return;
     }
 
-    int num = backtrace(array, MAX_FRAMES);
+    size_t num = backtrace(array, MAX_FRAMES);
     char **names = backtrace_symbols(array, num);
-    for (int i = 0; i < num; i++) {
+    for (size_t i = 0; i < num; i++) {
         LOG("%s", names[i]);
     }
     free(names);
@@ -55,9 +55,9 @@ Debug_PrintBacktrace()
 	return;
     }
 
-    int num = backtrace(array, MAX_FRAMES);
+    size_t num = backtrace(array, MAX_FRAMES);
     char **names = backtrace_symbols(array, num);
-    for (int i = 0; i < num; i++) {
+    for (size_t i = 0; i < num; i++) {
         rr_fdprintf(STDERR_FILENO, "%s\n", names[i]);
     }
     free(names);
@@ -76,7 +76,7 @@ Debug_Log(int level, const char *fmt, ...)
         return;
 #endif /* DEBUG */
 
-    off = rr_snprintf(buf, 32, "%016llx ", __builtin_readcyclecounter());
+    off = (size_t)rr_snprintf(buf, 32, "%016llx ", __builtin_readcyclecounter());
 
     switch (level) {
         case LEVEL_SYS:
@@ -113,20 +113,18 @@ Debug_Log(int level, const char *fmt, ...)
 void Debug_Sighandler(int signum)
 {
     const size_t MAX_FRAMES = 128;
-    int num;
     void *array[MAX_FRAMES];
-    char **names;
 
     Debug_Log(LEVEL_SYS, "Signal Caught: %d\n", signum);
 
-    num = backtrace(array, MAX_FRAMES);
-    names = backtrace_symbols(array, num);
+    size_t num = backtrace(array, MAX_FRAMES);
+    char **names = backtrace_symbols(array, num);
     Debug_Log(LEVEL_SYS, "Backtrace:\n");
-    for (int i = 0; i < num; i++) {
+    for (size_t i = 0; i < num; i++) {
 	if (names != NULL)
-	    Debug_Log(LEVEL_SYS, "[%d] %s\n", i, names[i]);
+	    Debug_Log(LEVEL_SYS, "[%zu] %s\n", i, names[i]);
 	else
-	    Debug_Log(LEVEL_SYS, "[%d] [0x%p]\n", i, array[i]);
+	    Debug_Log(LEVEL_SYS, "[%zu] [0x%p]\n", i, array[i]);
     }
     free(names);
 

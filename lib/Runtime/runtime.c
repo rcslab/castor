@@ -40,7 +40,7 @@ static bool volatile primeSawExit = false;
 atomic_bool drainDone = false;
 bool ftMode = false;
 enum RRMODE rrMode = RRMODE_NORMAL;
-thread_local int threadId = 0; //-1;
+thread_local uint32_t threadId = 0; //-1;
 
 extern int
 _pthread_create(pthread_t * thread, const pthread_attr_t * attr,
@@ -166,7 +166,7 @@ RXGQProc(void *arg)
 bool
 PrimeQ()
 {
-    int numEntries = 32;
+    uint64_t numEntries = 32;
     RRLogEntry entries[32];
 
     int result = SystemRead(logfd, &entries, numEntries * sizeof(RRLogEntry));
@@ -177,7 +177,7 @@ PrimeQ()
 
     numEntries = result / sizeof(RRLogEntry);
 
-    for (int i = 0; i < numEntries; i++) {
+    for (uint64_t i = 0; i < numEntries; i++) {
 	RRPlay_AppendThread(rrlog, &entries[i]);
 	if (entries[i].event == RREVENT_EXIT) {
 	    return true;

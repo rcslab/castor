@@ -4,8 +4,8 @@
 
 void RRFT_InitMaster();
 void RRFT_InitSlave();
-void RRFT_Send(int count, RRLogEntry *evt);
-int RRFT_Recv(int count, RRLogEntry *evt);
+void RRFT_Send(uint64_t count, RRLogEntry *evt);
+uint64_t RRFT_Recv(uint64_t count, RRLogEntry *evt);
 
 #endif /* __FT_H__ */
 

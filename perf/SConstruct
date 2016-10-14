@@ -10,7 +10,6 @@ rrperfs = [ ]
 perfs = [ ]
 for f in Glob('#perf/*.c'):
     fn = os.path.basename(f.rstr()[0:-2])
-    print fn
     if fn.startswith("rr_"):
         rrperfs.append(fn)
     else:

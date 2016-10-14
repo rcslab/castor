@@ -189,7 +189,7 @@ RXGQProc(void *arg)
 		return NULL;
 	    }
 
-	    numEntries = result / sizeof(RRLogEntry);
+	    numEntries = (uint64_t)result / sizeof(RRLogEntry);
 	}
 
 	for (uint64_t i = 0; i < numEntries; i++) {
@@ -206,7 +206,7 @@ int
 FillGlobalQueue()
 {
     int result;
-    int numEntries = 64;
+    uint64_t numEntries = 64;
     RRLogEntry entries[64];
 
     result = SystemRead(logfd, &entries, numEntries * sizeof(RRLogEntry));
@@ -218,9 +218,9 @@ FillGlobalQueue()
 	return 0;
     }
 
-    numEntries = result / sizeof(RRLogEntry);
+    numEntries = (uint64_t)result / sizeof(RRLogEntry);
 
-    for (int i = 0; i < numEntries; i++) {
+    for (uint64_t i = 0; i < numEntries; i++) {
 	RRGlobalQueue_Append(&rrgq, &entries[i]);
     }
 
@@ -275,9 +275,9 @@ DumpLog()
     printf("Next Event: %08ld\n", rrlog->nextEvent);
     printf("Last Event: %08ld\n", rrlog->lastEvent);
 
-    for (int i = 0; i < RRLOG_MAX_THREADS; i++) {
+    for (uint32_t i = 0; i < RRLOG_MAX_THREADS; i++) {
 	RRLogThread *rrthr = RRShared_LookupThread(rrlog, i);
-	if (RRShared_ThreadPresent(rrlog ,i)) {
+	if (RRShared_ThreadPresent(rrlog, i)) {
 	    printf("Thread %02d:\n", i);
 	    printf("  Offsets Free: %02ld Used: %02ld\n",
 		    rrthr->freeOff, rrthr->usedOff);

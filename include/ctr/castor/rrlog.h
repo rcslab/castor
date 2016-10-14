@@ -86,11 +86,10 @@ RRLogThreadDequeue(RRLog *rrlog, RRLogThread *rrthr)
 static inline RRLogEntry *
 RRLog_Dequeue(RRLog *rrlog)
 {
-    int i;
     uint64_t nextEvent = rrlog->nextEvent;
     RRLogEntry *entry;
 
-    for (i = 0; i < RRLOG_MAX_THREADS; i++) {
+    for (uint32_t i = 0; i < RRLOG_MAX_THREADS; i++) {
 	if (rrlog->threadInfo[i].offset != 0) {
 	    RRLogThread *rrthr = RRShared_LookupThread(rrlog, i);
 

@@ -22,7 +22,7 @@ Mutex_Init(Mutex *m)
 static inline void
 Mutex_Lock(Mutex *m)
 {
-    uint64_t tid = pthread_getthreadid_np();
+    uint64_t tid = (uint64_t)pthread_getthreadid_np();
 
     ASSERT(tid != 0);
 
@@ -42,7 +42,7 @@ Mutex_Lock(Mutex *m)
 static inline void
 Mutex_Unlock(Mutex *m)
 {
-    uint64_t tid = pthread_getthreadid_np();
+    uint64_t tid = (uint64_t)pthread_getthreadid_np();
 
     ASSERT(atomic_load(&m->lck) > 0);
     ASSERT(atomic_load(&m->thr) == tid);
