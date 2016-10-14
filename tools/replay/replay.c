@@ -102,6 +102,7 @@ main(int argc, char *argv[])
     }
 
     setenv("CASTOR_MODE", "REPLAY", 1);
+    setenv("CASTOR_SHMPATH", logfile, 1);
     if (sandboxed) {
 	setenv("CASTOR_SANDBOX", "1", 1);
     }

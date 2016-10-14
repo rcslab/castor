@@ -12,6 +12,9 @@
 #include <fcntl.h>
 #include <pthread.h>
 #include <sys/mman.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <sys/stat.h>
 
 #include <sys/syscall.h>
 
@@ -27,7 +30,7 @@
 static RRLog *rrlog;
 static alignas(PAGESIZE) RRGlobalQueue rrgq;
 static int logfd;
-static int shmfd;
+static int shmid = -1;
 pthread_t rrthr;
 pthread_t gqthr;
 
@@ -304,28 +307,6 @@ DumpLog()
 void
 OpenLog(const char *logfile, uintptr_t regionSz, uint32_t numEvents, bool forRecord)
 {
-    char buf[4096];
-
-    // Setup shared memory region
-    shmfd = open("rr.shm", O_RDWR|O_CREAT|O_TRUNC, 0755);
-    if (shmfd < 0) {
-	perror("open");
-	abort();
-    }
-
-    memset(&buf, 0, PAGESIZE);
-    for (uint64_t i = 0; i <= (regionSz/PAGESIZE); i++)
-	write(shmfd, buf, PAGESIZE);
-
-    ASSERT(shmfd == 3);
-
-    rrlog = mmap(NULL, regionSz, PROT_READ|PROT_WRITE,
-		MAP_NOSYNC|MAP_SHARED, shmfd, 0);
-    if (rrlog == MAP_FAILED) {
-	perror("mmap");
-	abort();
-    }
-
     // Open log file
     int flags = O_RDWR;
     if (forRecord) {
@@ -340,6 +321,25 @@ OpenLog(const char *logfile, uintptr_t regionSz, uint32_t numEvents, bool forRec
 	abort();
     }
 
+    // Setup shared memory region
+    key_t shmkey = ftok(logfile, 0);
+    if (shmkey == -1) {
+	perror("ftok");
+	abort();
+    }
+
+    shmid = shmget(shmkey, RRLOG_DEFAULT_REGIONSZ, IPC_CREAT | S_IRUSR | S_IWUSR);
+    if (shmid == -1) {
+	perror("shmget");
+	abort();
+    }
+
+    rrlog = shmat(shmid, NULL, 0);
+    if (rrlog == MAP_FAILED) {
+	perror("shmat");
+	abort();
+    }
+
     RRLog_Init(rrlog, numEvents);
     rrlog->regionSz = regionSz;
     RRGlobalQueue_Init(&rrgq);
@@ -350,6 +350,8 @@ LogDone()
 {
     pthread_join(rrthr, NULL);
     pthread_join(gqthr, NULL);
+    shmdt(rrlog);
+    shmctl(shmid, IPC_RMID, NULL);
 }
 
 void

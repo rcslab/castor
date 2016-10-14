@@ -15,6 +15,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
 #include <sys/capsicum.h>
 
 #include <castor/debug.h>
@@ -269,11 +271,9 @@ __attribute__((constructor)) void
 log_init()
 {
     int status;
-    struct stat sb;
 
-    status = fstat(/* shmfd */3, &sb);
-    if (status < 0) {
-	perror("fstat");
+    char *shmpath = getenv("CASTOR_SHMPATH");
+    if (shmpath == NULL) {
 	OldInit();
 	return;
     }
@@ -289,10 +289,21 @@ log_init()
     // Make sure LogDone returns immediately
     atomic_store(&drainDone, 1);
 
-    rrlog = mmap(NULL, RRLOG_DEFAULT_REGIONSZ, PROT_READ|PROT_WRITE,
-		MAP_NOSYNC|MAP_SHARED, /* shmfd */3, 0);
+    key_t shmkey = ftok(shmpath, 0);
+    if (shmkey == -1) {
+	perror("ftok");
+	abort();
+    }
+
+    int shmid = shmget(shmkey, RRLOG_DEFAULT_REGIONSZ, 0);
+    if (shmid == -1) {
+	perror("shmget");
+	abort();
+    }
+
+    rrlog = shmat(shmid, NULL, 0);
     if (rrlog == MAP_FAILED) {
-	perror("mmap");
+	perror("shmat");
 	abort();
     }
 

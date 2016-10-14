@@ -89,6 +89,7 @@ main(int argc, char *argv[])
     }
 
     setenv("CASTOR_MODE", "RECORD", 1);
+    setenv("CASTOR_SHMPATH", logfile, 1);
     if (Spawn(pinned, maxcpus, argv) < 0) {
 	exit(1);
     }
