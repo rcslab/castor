@@ -83,9 +83,9 @@ RRRecordI(uint32_t eventNum, int32_t result)
     e = RRLog_Alloc(rrlog, threadId);
     e->event = eventNum;
     e->objectId = 0;
-    e->value[0] = result;
+    e->value[0] = (uint64_t)result;
     if (result == -1) {
-	e->value[1] = errno;
+	e->value[1] = (uint64_t)errno;
     }
     RRLog_Append(rrlog, e);
 }
@@ -113,10 +113,10 @@ RRRecordOI(uint32_t eventNum, int od, int32_t result)
 
     e = RRLog_Alloc(rrlog, threadId);
     e->event = eventNum;
-    e->objectId = od;
-    e->value[0] = result;
+    e->objectId = (uint64_t)od;
+    e->value[0] = (uint64_t)result;
     if (result == -1) {
-	e->value[1] = errno;
+	e->value[1] = (uint64_t)errno;
     }
     RRLog_Append(rrlog, e);
 }
@@ -147,8 +147,8 @@ RRRecordOU(uint32_t eventNum, int od, uint64_t result)
 
     e = RRLog_Alloc(rrlog, threadId);
     e->event = eventNum;
-    e->objectId = od;
-    e->value[0] = result;
+    e->objectId = (uint64_t)od;
+    e->value[0] = (uint64_t)result;
     RRLog_Append(rrlog, e);
 }
 
@@ -175,10 +175,10 @@ RRRecordOS(uint32_t eventNum, int od, int64_t result)
 
     e = RRLog_Alloc(rrlog, threadId);
     e->event = eventNum;
-    e->objectId = od;
-    e->value[0] = result;
+    e->objectId = (uint64_t)od;
+    e->value[0] = (uint64_t)result;
     if (result == -1) {
-	e->value[1] = errno;
+	e->value[1] = (uint64_t)errno;
     }
     RRLog_Append(rrlog, e);
 }
@@ -194,9 +194,9 @@ RRReplayOS(uint32_t eventNum, int *od, int64_t * result)
 	*od = e->objectId;
     }
     if (result != NULL) {
-	*result = e->value[0];
+	*result = (int64_t)e->value[0];
 	if (*result == -1) {
-	    errno = e->value[1];
+	    errno = (int64_t)e->value[1];
 	}
     }
     RRPlay_Free(rrlog, e);

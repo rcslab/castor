@@ -31,4 +31,8 @@ int main()
     assert(ru2.ru_stime.tv_usec > ru1.ru_stime.tv_usec);
     result = cap_enter();
     assert(result == 0);
+    gid_t gidset[255];
+    result = getgroups(255, gidset);
+    assert(result != -1);
+
 }

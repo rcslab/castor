@@ -1218,30 +1218,48 @@ __sys_getgroups(int gidsetlen, gid_t *gidset)
     return result;
 }
 
-//XXX: convert
+
 int
-__sys_setgroups(int ngroups, const gid_t *gidset)
+__rr_getgroups(int gidsetlen, gid_t *gidset)
 {
     int result;
-    RRLogEntry *e;
 
-    if (rrMode == RRMODE_NORMAL) {
-	return syscall(SYS_setgroups, ngroups, gidset);
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_getgroups, gidsetlen, gidset);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_getgroups, gidsetlen, gidset);
+	    RRRecordI(RREVENT_GETGROUPS, result);
+	    if (result > 0) {
+		logData((uint8_t *)gidset, (uint64_t)result * sizeof(gid_t));
+	    }
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_GETGROUPS, &result);
+	    if (result > 0) {
+		logData((uint8_t *)gidset, (uint64_t)result * sizeof(gid_t));
+	    }
+	    break;
     }
 
-    if (rrMode == RRMODE_RECORD) {
-	result = syscall(SYS_setgroups, ngroups, gidset);
+    return result;
+}
 
-	e = RRLog_Alloc(rrlog, threadId);
-	e->event = RREVENT_SETGROUPS;
-	e->objectId = 0;
-	e->value[0] = (uint64_t)result;
-	RRLog_Append(rrlog, e);
-    } else {
-	e = RRPlay_Dequeue(rrlog, threadId);
-	AssertEvent(e, RREVENT_SETGROUPS);
-	result = (int)e->value[0];
-	RRPlay_Free(rrlog, e);
+int
+__rr_setgroups(int ngroups, const gid_t *gidset)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_setgroups, ngroups, gidset);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_setgroups, ngroups, gidset);
+	    RRRecordI(RREVENT_SETGROUPS, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_SETGROUPS, &result);
+	    break;
     }
 
     return result;
@@ -1707,21 +1725,21 @@ __rr_lstat(const char *path, struct stat *sb)
 mode_t
 __rr_umask(mode_t numask)
 {
-    mode_t result;
+    uint64_t result;
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
 	    return syscall(SYS_umask, numask);
 	case RRMODE_RECORD:
-	    result = syscall(SYS_umask, numask);
-	    RRRecordOU(RREVENT_UMASK, 0, (uint64_t)result);
+	    result = (uint64_t)syscall(SYS_umask, numask);
+	    RRRecordOU(RREVENT_UMASK, 0, result);
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayOU(RREVENT_UMASK, NULL, (uint64_t *)&result);
+	    RRReplayOU(RREVENT_UMASK, NULL, &result);
 	    break;
     }
 
-    return result;
+    return (mode_t)result;
 }
 
 int
@@ -2251,7 +2269,8 @@ BIND_REF(link);
 BIND_REF(symlink);
 BIND_REF(unlink);
 BIND_REF(rename);
-
+BIND_REF(setgroups);
+BIND_REF(getgroups);
 
 __strong_reference(__sys_open, _open);
 __strong_reference(__sys_close, _close);
@@ -2277,7 +2296,5 @@ __strong_reference(__sys_setuid, setuid);
 __strong_reference(__sys_seteuid, seteuid);
 __strong_reference(__sys_setgid, setgid);
 __strong_reference(__sys_setegid, setegid);
-__strong_reference(__sys_getgroups, getgroups);
-__strong_reference(__sys_setgroups, setgroups);
 
 
