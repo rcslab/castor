@@ -7,6 +7,7 @@
 #include <threads.h>
 
 #include <unistd.h>
+#include <errno.h>
 #include <pthread.h>
 
 #include <castor/debug.h>

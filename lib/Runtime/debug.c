@@ -9,6 +9,7 @@
 #include <threads.h>
 
 #include <unistd.h>
+#include <errno.h>
 #include <signal.h>
 #include <execinfo.h>
 

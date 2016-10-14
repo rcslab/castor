@@ -1,6 +1,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -27,6 +28,22 @@ void dump_statb(struct stat sb)
     printf("stat.st_flags   = 0x%08x\n", sb.st_flags);
 }
 
+void check(int fd, char * rr, const struct stat * sb) 
+{
+    int len;
+    char norm[2048];
+    lseek(fd, 0, SEEK_SET);
+    if (rrMode != RRMODE_REPLAY) {
+	len = syscall(SYS_read, fd, (void *)&norm, sb->st_size);
+	assert(len == sb->st_size);
+
+	for (int i = 0; i < sb->st_size; i++) {
+	    if (rr[i] != norm[i]) {
+		printf("Mismatch at %d\n", i);
+	    }
+	}
+    }
+}
 
 int main(int argc, const char *argv[])
 {
@@ -34,7 +51,6 @@ int main(int argc, const char *argv[])
     int fd;
     int len;
     char rr[2048];
-    char norm[2048];
 
     fd = open("read.c", O_RDONLY);
     fstat(fd, &sb);
@@ -43,19 +59,11 @@ int main(int argc, const char *argv[])
     dump_statb(sb);
     len = read(fd, (void *)&rr, sb.st_size);
     assert(len == sb.st_size);
-
-    lseek(fd, 0, SEEK_SET);
-    if (rrMode != RRMODE_REPLAY) {
-	len = syscall(SYS_read, fd, (void *)&norm, sb.st_size);
-	assert(len == sb.st_size);
-
-	for (int i = 0; i < sb.st_size; i++) {
-	    if (rr[i] != norm[i]) {
-		printf("Mismatch at %d\n", i);
-	    }
-	}
-    }
-
+    check(fd, rr, &sb);
+    bzero(rr, len);
+    len = pread(fd, (void *)&rr, sb.st_size, 0);
+    assert(len == sb.st_size);
+    check(fd, rr, &sb);
     return 0;
 }
 

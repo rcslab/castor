@@ -139,7 +139,7 @@ write_sendmsg(void *arg)
     dst_addr.sin_port = 5555;
 
     char buffer[128];
-    strcpy(buffer, DATA);
+    strlcpy(buffer, DATA, sizeof(DATA));
 
     struct iovec iov[1];
     iov[0].iov_base=buffer;

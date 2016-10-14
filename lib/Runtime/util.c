@@ -6,6 +6,9 @@
 #include <stdatomic.h>
 #include <threads.h>
 
+#include <unistd.h>
+#include <errno.h>
+
 #include <castor/debug.h>
 #include <castor/rrlog.h>
 #include <castor/rrplay.h>

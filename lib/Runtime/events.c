@@ -11,9 +11,10 @@
 #include <threads.h>
 
 #include <unistd.h>
+#include <sys/types.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
-#include <sys/types.h>
 
 #include <sys/cdefs.h>
 #include <sys/syscall.h>
@@ -120,6 +121,7 @@ pthread_create(pthread_t * thread, const pthread_attr_t * attr,
 	//e->value[0] = result;
 	e->value[1] = thrNo;
 	RRLog_Append(rrlog, e);
+
 
 	threadState[thrNo].start = start_routine;
 	threadState[thrNo].arg = arg;
@@ -383,6 +385,7 @@ pthread_mutex_unlock(pthread_mutex_t *mtx)
     return result;
 }
 
+//XXX: convert
 int
 __sys_open(const char *path, int flags, ...)
 {
@@ -417,6 +420,7 @@ __sys_open(const char *path, int flags, ...)
     return result;
 }
 
+//XXX: convert
 int
 __rr_openat(int fd, const char *path, int flags, ...)
 {
@@ -451,8 +455,7 @@ __rr_openat(int fd, const char *path, int flags, ...)
     return result;
 }
 
-
-
+//XXX: convert
 int
 __sys_close(int fd)
 {
@@ -481,6 +484,7 @@ __sys_close(int fd)
     return result;
 }
 
+//XXX: convert
 ssize_t
 __sys_read(int fd, void *buf, size_t nbytes)
 {
@@ -523,6 +527,8 @@ _read(int fd, void *buf, size_t nbytes)
     return read(fd, buf, nbytes);
 }
 
+
+//XXX: convert
 ssize_t
 __sys_write(int fd, const void *buf, size_t nbytes)
 {
@@ -570,6 +576,7 @@ _write(int fd, const void *buf, size_t nbytes)
     return write(fd, buf, nbytes);
 }
 
+//XXX: convert
 int
 __sys_ioctl(int fd, unsigned long request, ...)
 {
@@ -615,6 +622,7 @@ __sys_ioctl(int fd, unsigned long request, ...)
     return result;
 }
 
+//XXX: convert
 int
 __rr_fcntl(int fd, int cmd, ...)
 {
@@ -649,42 +657,7 @@ __rr_fcntl(int fd, int cmd, ...)
     return result;
 }
 
-int
-__rr_fstatfs(int fd, struct statfs *buf)
-{
-    ssize_t result;
-    RRLogEntry *e;
-
-    if (rrMode == RRMODE_NORMAL) {
-	return syscall(SYS_fstatfs, fd, buf);
-    }
-
-    if (rrMode == RRMODE_RECORD) {
-	result = syscall(SYS_fstatfs, fd, buf);
-
-	e = RRLog_Alloc(rrlog, threadId);
-	e->event = RREVENT_FSTATFS;
-	e->objectId = fd;
-	e->value[0] = result;
-	RRLog_Append(rrlog, e);
-
-	if (result == 0) {
-	    logData((uint8_t*)buf, sizeof(*buf));
-	}
-    } else {
-	e = RRPlay_Dequeue(rrlog, threadId);
-	result = e->value[0];
-	AssertEvent(e, RREVENT_FSTATFS);
-	RRPlay_Free(rrlog, e);
-
-	if (result == 0) {
-	    logData((uint8_t*)buf, sizeof(*buf));
-	}
-    }
-
-    return result;
-}
-
+//XXX: convert
 int
 __rr_getdirentries(int fd, char *buf, int nbytes, long *basep)
 {
@@ -722,42 +695,7 @@ __rr_getdirentries(int fd, char *buf, int nbytes, long *basep)
     return result;
 }
 
-int
-__rr_fstatat(int fd, const char *path, struct stat *buf, int flag)
-{
-    ssize_t result;
-    RRLogEntry *e;
-
-    if (rrMode == RRMODE_NORMAL) {
-	return syscall(SYS_fstatat, fd, path, buf, flag);
-    }
-
-    if (rrMode == RRMODE_RECORD) {
-	result = syscall(SYS_fstatat, fd, path, buf, flag);
-
-	e = RRLog_Alloc(rrlog, threadId);
-	e->event = RREVENT_FSTATAT;
-	e->objectId = fd;
-	e->value[0] = result;
-	RRLog_Append(rrlog, e);
-
-	if (result == 0) {
-	    logData((uint8_t*)buf, sizeof(*buf));
-	}
-    } else {
-	e = RRPlay_Dequeue(rrlog, threadId);
-	result = e->value[0];
-	AssertEvent(e, RREVENT_FSTATAT);
-	RRPlay_Free(rrlog, e);
-
-	if (result == 0) {
-	    logData((uint8_t*)buf, sizeof(*buf));
-	}
-    }
-
-    return result;
-}
-
+//XXX: convert
 ssize_t
 __rr_readlink(const char *restrict path, char *restrict buf, size_t bufsize)
 {
@@ -792,6 +730,7 @@ __rr_readlink(const char *restrict path, char *restrict buf, size_t bufsize)
     return result;
 }
 
+//XXX: convert
 int
 __clock_gettime(clockid_t clock_id, struct timespec *tp)
 {
@@ -824,6 +763,7 @@ __clock_gettime(clockid_t clock_id, struct timespec *tp)
     return result;
 }
 
+//XXX: convert
 int __rr_sysctl(const int *name, u_int namelen, void *oldp,
 	     size_t *oldlenp, const void *newp, size_t newlen)
 {
@@ -865,6 +805,7 @@ int __rr_sysctl(const int *name, u_int namelen, void *oldp,
     return result;
 }
 
+//XXX: convert
 void
 __rr_exit(int status)
 {
@@ -891,6 +832,7 @@ __rr_exit(int status)
     syscall(SYS_exit, status);
 }
 
+//XXX: convert
 int
 __socket(int domain, int type, int protocol)
 {
@@ -917,6 +859,7 @@ __socket(int domain, int type, int protocol)
     return result;
 }
 
+//XXX: convert
 int
 __bind(int s, const struct sockaddr *addr, socklen_t addrlen)
 {
@@ -943,6 +886,7 @@ __bind(int s, const struct sockaddr *addr, socklen_t addrlen)
     return result;
 }
 
+//XXX: convert
 int
 __listen(int s, int backlog)
 {
@@ -969,6 +913,7 @@ __listen(int s, int backlog)
     return result;
 }
 
+//XXX: convert
 int
 __connect(int s, const struct sockaddr *name, socklen_t namelen)
 {
@@ -995,6 +940,7 @@ __connect(int s, const struct sockaddr *name, socklen_t namelen)
     return result;
 }
 
+//XXX: convert
 int
 __accept(int s, struct sockaddr *addr, socklen_t *addrlen)
 {
@@ -1033,6 +979,7 @@ __accept(int s, struct sockaddr *addr, socklen_t *addrlen)
     return result;
 }
 
+//XXX: convert
 int
 __poll(struct pollfd fds[], nfds_t nfds, int timeout)
 {
@@ -1067,6 +1014,7 @@ __poll(struct pollfd fds[], nfds_t nfds, int timeout)
     return result;
 }
 
+//XXX: convert
 int
 __getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen)
 {
@@ -1102,6 +1050,7 @@ __getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen)
     return result;
 }
 
+//XXX: convert
 int
 __setsockopt(int s, int level, int optname, const void *optval, socklen_t optlen)
 {
@@ -1130,6 +1079,7 @@ __setsockopt(int s, int level, int optname, const void *optval, socklen_t optlen
     return result;
 }
 
+//XXX: convert
 int
 __kqueue()
 {
@@ -1156,6 +1106,7 @@ __kqueue()
     return result;
 }
 
+//XXX: convert
 int
 __kevent(int kq, const struct kevent *changelist, int nchanges,
 	struct kevent *eventlist, int nevents,
@@ -1195,6 +1146,7 @@ __kevent(int kq, const struct kevent *changelist, int nchanges,
     return result;
 }
 
+//XXX: convert
 void *
 __rr_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 {
@@ -1235,6 +1187,7 @@ __rr_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
     return result;
 }
 
+//XXX: convert
 int
 __sys_getgroups(int gidsetlen, gid_t *gidset)
 {
@@ -1269,6 +1222,7 @@ __sys_getgroups(int gidsetlen, gid_t *gidset)
     return result;
 }
 
+//XXX: convert
 int
 __sys_setgroups(int ngroups, const gid_t *gidset)
 {
@@ -1297,6 +1251,7 @@ __sys_setgroups(int ngroups, const gid_t *gidset)
     return result;
 }
 
+//XXX: convert all
 static inline int
 id_set(int syscallNum, uint32_t eventNum, id_t id)
 {
@@ -1427,9 +1382,9 @@ pread(int fd, void *buf, size_t nbytes, off_t offset)
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-	    return syscall(SYS_pread, buf, nbytes, offset);
+	    return syscall(SYS_pread, fd, buf, nbytes, offset);
 	case RRMODE_RECORD:
-	    result = syscall(SYS_pread, buf, nbytes, offset);
+	    result = syscall(SYS_pread, fd, buf, nbytes, offset);
 	    RRRecordOS(RREVENT_PREAD, fd, result);
 	    if (result != -1) {
 		logData((uint8_t*)buf, nbytes );
@@ -1588,7 +1543,7 @@ __sys_access(const char *path, int mode)
 }
 
 int
-__sys_truncate(const char *path, off_t length)
+__rr_truncate(const char *path, off_t length)
 {
     int result;
 
@@ -1608,7 +1563,7 @@ __sys_truncate(const char *path, off_t length)
 }
 
 int
-__sys_ftruncate(int fd, off_t length)
+__rr_ftruncate(int fd, off_t length)
 {
     int result;
 
@@ -1617,10 +1572,10 @@ __sys_ftruncate(int fd, off_t length)
 	    return syscall(SYS_ftruncate, fd, length);
 	case RRMODE_RECORD:
 	    result = syscall(SYS_ftruncate, fd, length);
-	    RRRecordOI(RREVENT_TRUNCATE, fd, result);
+	    RRRecordOI(RREVENT_FTRUNCATE, fd, result);
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayOI(RREVENT_TRUNCATE, &fd, &result);
+	    RRReplayOI(RREVENT_FTRUNCATE, &fd, &result);
 	    break;
     }
 
@@ -1668,7 +1623,7 @@ __rr_fsync(int fd)
 }
 
 off_t
-__sys_lseek(int fildes, off_t offset, int whence)
+__rr_lseek(int fildes, off_t offset, int whence)
 {
     off_t result;
 
@@ -1677,10 +1632,10 @@ __sys_lseek(int fildes, off_t offset, int whence)
 	    return syscall(SYS_lseek, fildes, offset, whence);
 	case RRMODE_RECORD:
 	    result = syscall(SYS_lseek, fildes, offset, whence);
-	    RRRecordOU(RREVENT_LSEEK, fildes, (uint64_t)result);
+	    RRRecordOS(RREVENT_LSEEK, fildes, result);
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayOU(RREVENT_LSEEK, &fildes, (uint64_t *)&result);
+	    RRReplayOS(RREVENT_LSEEK, &fildes, &result);
 	    break;
     }
 
@@ -1728,7 +1683,7 @@ __sys_fchdir(int fd)
 }
 
 int
-__sys_lstat(const char *path, struct stat *sb)
+__rr_lstat(const char *path, struct stat *sb)
 {
     int result;
 
@@ -1774,6 +1729,33 @@ __sys_umask(mode_t numask)
 }
 
 int
+__rr_fstatat(int fd, const char *path, struct stat *buf, int flag)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_fstatat, fd, path, buf, flag);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_fstatat, fd, path, buf, flag);
+	    RRRecordOI(RREVENT_FSTATAT, fd, result);
+	    if (result == 0) {
+		logData((uint8_t*)buf, sizeof(*buf));
+	    }
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_FSTATAT, &fd, &result);
+	    if (result == 0) {
+		logData((uint8_t*)buf, sizeof(*buf));
+	    }
+	    break;
+    }
+
+    return result;
+}
+
+
+int
 __rr_fstat(int fd, struct stat *sb)
 {
     int result;
@@ -1792,6 +1774,59 @@ __rr_fstat(int fd, struct stat *sb)
 	    RRReplayOI(RREVENT_FSTAT, &fd, &result);
 	    if (result == 0) {
 		logData((uint8_t*)sb, sizeof(*sb));
+	    }
+	    break;
+    }
+
+    return result;
+}
+
+int
+__rr_statfs(const char * path, struct statfs *buf)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_statfs, path, buf);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_statfs, path, buf);
+	    RRRecordI(RREVENT_STATFS, result);
+	    if (result == 0) {
+		logData((uint8_t*)buf, sizeof(*buf));
+	    }
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_STATFS, &result);
+	    if (result == 0) {
+		logData((uint8_t*)buf, sizeof(*buf));
+	    }
+	    break;
+    }
+
+    return result;
+}
+
+
+int
+__rr_fstatfs(int fd, struct statfs *buf)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_fstatfs, fd, buf);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_fstatfs, fd, buf);
+	    RRRecordOI(RREVENT_FSTATFS, fd, result);
+	    if (result == 0) {
+		logData((uint8_t*)buf, sizeof(*buf));
+	    }
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_FSTATFS, &fd, &result);
+	    if (result == 0) {
+		logData((uint8_t*)buf, sizeof(*buf));
 	    }
 	    break;
     }
@@ -2185,6 +2220,7 @@ __strong_reference(__rr_stat, stat);
 __strong_reference(__rr_stat, _stat);
 __strong_reference(__rr_fstat, fstat);
 __strong_reference(__rr_fstat, _fstat);
+__strong_reference(__rr_statfs, statfs);
 __strong_reference(__rr_fstatfs, fstatfs);
 __strong_reference(__rr_fstatfs, _fstatfs);
 __strong_reference(__rr_fstatat, fstatat);
@@ -2228,12 +2264,12 @@ __strong_reference(__sys_chdir, chdir);
 __strong_reference(__sys_fchdir, fchdir);
 __strong_reference(__sys_chmod, chmod);
 __strong_reference(__sys_access, access);
-__strong_reference(__sys_truncate, truncate);
-__strong_reference(__sys_ftruncate, ftruncate);
+__strong_reference(__rr_truncate, truncate);
+__strong_reference(__rr_ftruncate, ftruncate);
 __strong_reference(__rr_flock, flock);
 __strong_reference(__rr_fsync, fsync);
-__strong_reference(__sys_lseek, lseek);
-__strong_reference(__sys_lstat, lstat);
+__strong_reference(__rr_lseek, lseek);
+__strong_reference(__rr_lstat, lstat);
 __strong_reference(__sys_umask, umask);
 __strong_reference(__sys_getrlimit, getrlimit);
 __strong_reference(__sys_setrlimit, setrlimit);

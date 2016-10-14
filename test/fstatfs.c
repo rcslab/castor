@@ -14,5 +14,7 @@ int main(int argc, const char *argv[])
     fd = open(".", O_RDONLY);
     fstatfs(fd, &buf);
     hex_dump((char *)&buf, sizeof(buf));
+    statfs(".", &buf);
+    hex_dump((char *)&buf, sizeof(buf));
     return 0;
 }

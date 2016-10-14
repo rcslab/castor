@@ -76,42 +76,53 @@ RRPlay_LFree(RRLogEntry *entry)
 }
 
 static inline void
-RRRecordI(uint32_t eventNum, int i)
+RRRecordI(uint32_t eventNum, int32_t result)
 {
     RRLogEntry *e;
 
     e = RRLog_Alloc(rrlog, threadId);
     e->event = eventNum;
     e->objectId = 0;
-    e->value[0] = i;
+    e->value[0] = result;
+    if (result == -1) {
+	e->value[1] = errno;
+    }
     RRLog_Append(rrlog, e);
 }
 
 static inline void
-RRReplayI(uint32_t eventNum, int *i)
+RRReplayI(uint32_t eventNum, int32_t *result)
 {
     RRLogEntry *e;
 
     e = RRPlay_Dequeue(rrlog, threadId);
     AssertEvent(e, eventNum);
-    *i = e->value[0];
+    if (result != NULL) {
+	*result =  e->value[0];
+	if (*result == -1) {
+	    errno = e->value[1];
+	}
+    }
     RRPlay_Free(rrlog, e);
 }
 
 static inline void
-RRRecordOI(uint32_t eventNum, int od, int i)
+RRRecordOI(uint32_t eventNum, int od, int32_t result)
 {
     RRLogEntry *e;
 
     e = RRLog_Alloc(rrlog, threadId);
     e->event = eventNum;
     e->objectId = od;
-    e->value[0] = i;
+    e->value[0] = result;
+    if (result == -1) {
+	e->value[1] = errno;
+    }
     RRLog_Append(rrlog, e);
 }
 
 static inline void
-RRReplayOI(uint32_t eventNum, int *od, int *i)
+RRReplayOI(uint32_t eventNum, int *od, int32_t *result)
 {
     RRLogEntry *e;
 
@@ -120,26 +131,29 @@ RRReplayOI(uint32_t eventNum, int *od, int *i)
     if (od != NULL) {
 	*od = e->objectId;
     }
-    if (i != NULL) {
-	*i =  e->value[0];
+    if (result != NULL) {
+	*result =  e->value[0];
+	if (*result == -1) {
+	    errno = e->value[1];
+	}
     }
     RRPlay_Free(rrlog, e);
 }
 
 static inline void
-RRRecordOU(uint32_t eventNum, int od, uint64_t u)
+RRRecordOU(uint32_t eventNum, int od, uint64_t result)
 {
     RRLogEntry *e;
 
     e = RRLog_Alloc(rrlog, threadId);
     e->event = eventNum;
     e->objectId = od;
-    e->value[0] = u;
+    e->value[0] = result;
     RRLog_Append(rrlog, e);
 }
 
 static inline void
-RRReplayOU(uint32_t eventNum, int *od, uint64_t *u)
+RRReplayOU(uint32_t eventNum, int *od, uint64_t *result)
 {
     RRLogEntry *e;
 
@@ -148,26 +162,29 @@ RRReplayOU(uint32_t eventNum, int *od, uint64_t *u)
     if (od != NULL) {
 	*od = e->objectId;
     }
-    if (u != NULL) {
-	*u =  e->value[0];
+    if (result != NULL) {
+	*result =  e->value[0];
     }
     RRPlay_Free(rrlog, e);
 }
 
 static inline void
-RRRecordOS(uint32_t eventNum, int od, ssize_t s)
+RRRecordOS(uint32_t eventNum, int od, int64_t result)
 {
     RRLogEntry *e;
 
     e = RRLog_Alloc(rrlog, threadId);
     e->event = eventNum;
     e->objectId = od;
-    e->value[0] = s;
+    e->value[0] = result;
+    if (result == -1) {
+	e->value[1] = errno;
+    }
     RRLog_Append(rrlog, e);
 }
 
 static inline void
-RRReplayOS(uint32_t eventNum, int *od, ssize_t *s)
+RRReplayOS(uint32_t eventNum, int *od, int64_t * result)
 {
     RRLogEntry *e;
 
@@ -176,8 +193,11 @@ RRReplayOS(uint32_t eventNum, int *od, ssize_t *s)
     if (od != NULL) {
 	*od = e->objectId;
     }
-    if (s != NULL) {
-	*s =  e->value[0];
+    if (result != NULL) {
+	*result = e->value[0];
+	if (*result == -1) {
+	    errno = e->value[1];
+	}
     }
     RRPlay_Free(rrlog, e);
 }
