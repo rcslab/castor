@@ -1356,7 +1356,7 @@ __sys_getegid(void)
 }
 
 int
-__sys_link(const char *name1, const char *name2)
+__rr_link(const char *name1, const char *name2)
 {
     int result;
 
@@ -1403,7 +1403,7 @@ pread(int fd, void *buf, size_t nbytes, off_t offset)
 
 
 int
-__sys_symlink(const char *name1, const char *name2)
+__rr_symlink(const char *name1, const char *name2)
 {
     int result;
 
@@ -1423,7 +1423,7 @@ __sys_symlink(const char *name1, const char *name2)
 }
 
 int
-__sys_unlink(const char *path)
+__rr_unlink(const char *path)
 {
     int result;
 
@@ -1443,7 +1443,7 @@ __sys_unlink(const char *path)
 }
 
 int
-__sys_rename(const char *name1, const char *name2)
+__rr_rename(const char *name1, const char *name2)
 {
     int result;
 
@@ -1463,7 +1463,7 @@ __sys_rename(const char *name1, const char *name2)
 }
 
 int
-__sys_mkdir(const char *path, mode_t mode)
+__rr_mkdir(const char *path, mode_t mode)
 {
     int result;
 
@@ -1483,7 +1483,7 @@ __sys_mkdir(const char *path, mode_t mode)
 }
 
 int
-__sys_rmdir(const char *path)
+__rr_rmdir(const char *path)
 {
     int result;
 
@@ -1503,7 +1503,7 @@ __sys_rmdir(const char *path)
 }
 
 int
-__sys_chmod(const char *path, mode_t mode)
+__rr_chmod(const char *path, mode_t mode)
 {
     int result;
 
@@ -1523,7 +1523,7 @@ __sys_chmod(const char *path, mode_t mode)
 }
 
 int
-__sys_access(const char *path, int mode)
+__rr_access(const char *path, int mode)
 {
     int result;
 
@@ -1643,7 +1643,7 @@ __rr_lseek(int fildes, off_t offset, int whence)
 }
 
 int
-__sys_chdir(const char *path)
+__rr_chdir(const char *path)
 {
     int result;
 
@@ -1663,7 +1663,7 @@ __sys_chdir(const char *path)
 }
 
 int
-__sys_fchdir(int fd)
+__rr_fchdir(int fd)
 {
     int result;
 
@@ -1709,7 +1709,7 @@ __rr_lstat(const char *path, struct stat *sb)
 }
 
 mode_t
-__sys_umask(mode_t numask)
+__rr_umask(mode_t numask)
 {
     mode_t result;
 
@@ -1861,7 +1861,7 @@ __rr_stat(const char * restrict path, struct stat * restrict sb)
 }
 
 int
-__sys_getrlimit(int resource, struct rlimit *rlp)
+__rr_getrlimit(int resource, struct rlimit *rlp)
 {
     int result;
 
@@ -1887,7 +1887,7 @@ __sys_getrlimit(int resource, struct rlimit *rlp)
 }
 
 int
-__sys_setrlimit(int resource, const struct rlimit *rlp)
+__rr_setrlimit(int resource, const struct rlimit *rlp)
 {
     int result;
 
@@ -1907,7 +1907,7 @@ __sys_setrlimit(int resource, const struct rlimit *rlp)
 }
 
 int
-__sys_getrusage(int who, struct rusage *rusage)
+__rr_getrusage(int who, struct rusage *rusage)
 {
     int result;
 
@@ -2209,27 +2209,59 @@ Events_Init()
     __libc_interposing[INTERPOS_openat] = (interpos_func_t)&__rr_openat;
 }
 
+__strong_reference(__rr_sysctl, __sysctl);
+__strong_reference(__rr_exit, _exit);
+
+#define BIND_REF(_name)\
+    __strong_reference(__rr_ ## _name, _name);\
+    __strong_reference(__rr_ ## _name, _ ## _name)\
+
+BIND_REF(stat);
+BIND_REF(openat);
+BIND_REF(fcntl);
+BIND_REF(fstat);
+BIND_REF(statfs);
+BIND_REF(fstatfs);
+BIND_REF(fstatat);
+BIND_REF(getdirentries);
+BIND_REF(readlink);
+BIND_REF(truncate);
+BIND_REF(ftruncate);
+BIND_REF(flock);
+BIND_REF(fsync);
+BIND_REF(lseek);
+BIND_REF(lstat);
+BIND_REF(umask);
+BIND_REF(getrlimit);
+BIND_REF(setrlimit);
+BIND_REF(getrusage);
+BIND_REF(getpeername);
+BIND_REF(getsockname);
+BIND_REF(cap_enter);
+BIND_REF(cap_rights_limit);
+BIND_REF(sendto);
+BIND_REF(sendmsg);
+BIND_REF(select);
+BIND_REF(recvmsg);
+BIND_REF(recvfrom);
+BIND_REF(mmap);
+BIND_REF(mkdir);
+BIND_REF(access);
+BIND_REF(chmod);
+BIND_REF(fchdir);
+BIND_REF(chdir);
+BIND_REF(rmdir);
+BIND_REF(link);
+BIND_REF(symlink);
+BIND_REF(unlink);
+BIND_REF(rename);
+
+
 __strong_reference(__sys_open, _open);
-__strong_reference(__rr_openat, openat);
-__strong_reference(__rr_openat, _openat);
 __strong_reference(__sys_close, _close);
 __strong_reference(__sys_ioctl, ioctl);
 __strong_reference(__sys_ioctl, _ioctl);
-__strong_reference(__rr_fcntl, fcntl);
-__strong_reference(__rr_stat, stat);
-__strong_reference(__rr_stat, _stat);
-__strong_reference(__rr_fstat, fstat);
-__strong_reference(__rr_fstat, _fstat);
-__strong_reference(__rr_statfs, statfs);
-__strong_reference(__rr_fstatfs, fstatfs);
-__strong_reference(__rr_fstatfs, _fstatfs);
-__strong_reference(__rr_fstatat, fstatat);
-__strong_reference(__rr_fstatat, _fstatat);
-__strong_reference(__rr_getdirentries, getdirentries);
-__strong_reference(__rr_getdirentries, _getdirentries);
 __strong_reference(__clock_gettime, clock_gettime);
-__strong_reference(__rr_sysctl, __sysctl);
-__strong_reference(__rr_exit, _exit);
 __strong_reference(__socket, socket);
 __strong_reference(__bind, bind);
 __strong_reference(__listen, listen);
@@ -2240,7 +2272,6 @@ __strong_reference(__getsockopt, getsockopt);
 __strong_reference(__setsockopt, setsockopt);
 __strong_reference(__kqueue, kqueue);
 __strong_reference(__kevent, kevent);
-__strong_reference(__rr_mmap, mmap);
 __strong_reference(_pthread_mutex_lock, pthread_mutex_lock);
 __strong_reference(__sys_getuid, getuid);
 __strong_reference(__sys_geteuid, geteuid);
@@ -2252,41 +2283,5 @@ __strong_reference(__sys_setgid, setgid);
 __strong_reference(__sys_setegid, setegid);
 __strong_reference(__sys_getgroups, getgroups);
 __strong_reference(__sys_setgroups, setgroups);
-__strong_reference(__sys_link, link);
-__strong_reference(__rr_readlink, readlink);
-__strong_reference(__rr_readlink, _readlink);
-__strong_reference(__sys_symlink, symlink);
-__strong_reference(__sys_unlink, unlink);
-__strong_reference(__sys_rename, rename);
-__strong_reference(__sys_mkdir, mkdir);
-__strong_reference(__sys_rmdir, rmdir);
-__strong_reference(__sys_chdir, chdir);
-__strong_reference(__sys_fchdir, fchdir);
-__strong_reference(__sys_chmod, chmod);
-__strong_reference(__sys_access, access);
-__strong_reference(__rr_truncate, truncate);
-__strong_reference(__rr_ftruncate, ftruncate);
-__strong_reference(__rr_flock, flock);
-__strong_reference(__rr_fsync, fsync);
-__strong_reference(__rr_lseek, lseek);
-__strong_reference(__rr_lstat, lstat);
-__strong_reference(__sys_umask, umask);
-__strong_reference(__sys_getrlimit, getrlimit);
-__strong_reference(__sys_setrlimit, setrlimit);
-__strong_reference(__sys_getrusage, getrusage);
-__strong_reference(__rr_getpeername, getpeername);
-__strong_reference(__rr_getsockname, getsockname);
-__strong_reference(__rr_cap_enter, cap_enter);
-__strong_reference(__rr_cap_enter, _cap_enter);
-__strong_reference(__rr_cap_rights_limit, cap_rights_limit);
-__strong_reference(__rr_cap_rights_limit, _cap_rights_limit);
-__strong_reference(__rr_sendto, sendto);
-__strong_reference(__rr_sendto, _sendto);
-__strong_reference(__rr_sendmsg, sendmsg);
-__strong_reference(__rr_sendmsg, _sendmsg);
-__strong_reference(__rr_select, _select);
-__strong_reference(__rr_select, select);
-__strong_reference(__rr_recvmsg, recvmsg);
-__strong_reference(__rr_recvmsg, _recvmsg);
-__strong_reference(__rr_recvfrom, recvfrom);
-__strong_reference(__rr_recvfrom, _recvfrom);
+
+
