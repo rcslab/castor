@@ -52,10 +52,10 @@ int Debug_Init(const char *logPath);
 	Debug_LogBacktrace(); \
 	abort(); \
     } while (0)
-#define NOT_IMPLEMENTED(_x) \
+#define ASSERT_IMPLEMENTED(_x) \
     do { \
 	if (!(_x)) { Debug_Log(LEVEL_SYS, \
-		"NOT_IMPLEMENTED(" #_x "): %s %s:%d\n", \
+		"ASSERT_IMPLEMENTED(" #_x "): %s %s:%d\n", \
 		__func__, __FILE__, __LINE__); \
 	    Debug_LogBacktrace(); \
 	    abort(); \

@@ -51,6 +51,7 @@ int main(int argc, const char *argv[])
     int fd;
     ssize_t len;
     char rr[2048];
+    int result;
 
     fd = open("read.c", O_RDONLY);
     fstat(fd, &sb);
@@ -64,6 +65,8 @@ int main(int argc, const char *argv[])
     len = pread(fd, (void *)&rr, (size_t)sb.st_size, 0);
     assert(len == sb.st_size);
     check(fd, rr, &sb);
+    result = close(fd);
+    assert(result == 0);
     return 0;
 }
 

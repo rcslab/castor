@@ -14,6 +14,8 @@ int main(int argc, const char *argv[])
     result = fcntl(fd, F_GETFL, flags);
     assert(result == flags);
     printf("flags %d\n", flags);
+    result = close(fd);
+    assert(result == 0);
     return 0;
 }
 
