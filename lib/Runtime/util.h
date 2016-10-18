@@ -91,22 +91,6 @@ RRRecordI(uint32_t eventNum, int32_t result)
 }
 
 static inline void
-RRReplayI(uint32_t eventNum, int32_t *result)
-{
-    RRLogEntry *e;
-
-    e = RRPlay_Dequeue(rrlog, threadId);
-    AssertEvent(e, eventNum);
-    if (result != NULL) {
-	*result =  e->value[0];
-	if (*result == -1) {
-	    errno = e->value[1];
-	}
-    }
-    RRPlay_Free(rrlog, e);
-}
-
-static inline void
 RRRecordOI(uint32_t eventNum, int od, int32_t result)
 {
     RRLogEntry *e;
@@ -122,15 +106,12 @@ RRRecordOI(uint32_t eventNum, int od, int32_t result)
 }
 
 static inline void
-RRReplayOI(uint32_t eventNum, int *od, int32_t *result)
+RRReplayI(uint32_t eventNum, int32_t *result)
 {
     RRLogEntry *e;
 
     e = RRPlay_Dequeue(rrlog, threadId);
     AssertEvent(e, eventNum);
-    if (od != NULL) {
-	*od = e->objectId;
-    }
     if (result != NULL) {
 	*result =  e->value[0];
 	if (*result == -1) {
@@ -153,15 +134,12 @@ RRRecordOU(uint32_t eventNum, int od, uint64_t result)
 }
 
 static inline void
-RRReplayOU(uint32_t eventNum, int *od, uint64_t *result)
+RRReplayU(uint32_t eventNum, uint64_t *result)
 {
     RRLogEntry *e;
 
     e = RRPlay_Dequeue(rrlog, threadId);
     AssertEvent(e, eventNum);
-    if (od != NULL) {
-	*od = e->objectId;
-    }
     if (result != NULL) {
 	*result =  e->value[0];
     }
@@ -184,15 +162,12 @@ RRRecordOS(uint32_t eventNum, int od, int64_t result)
 }
 
 static inline void
-RRReplayOS(uint32_t eventNum, int *od, int64_t * result)
+RRReplayS(uint32_t eventNum, int64_t * result)
 {
     RRLogEntry *e;
 
     e = RRPlay_Dequeue(rrlog, threadId);
     AssertEvent(e, eventNum);
-    if (od != NULL) {
-	*od = e->objectId;
-    }
     if (result != NULL) {
 	*result = (int64_t)e->value[0];
 	if (*result == -1) {
@@ -203,6 +178,4 @@ RRReplayOS(uint32_t eventNum, int *od, int64_t * result)
 }
 
 
-
 #endif /* __UTIL_H__ */
-
