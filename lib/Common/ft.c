@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 #include <unistd.h>
+#include <errno.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -30,13 +31,12 @@ RRFT_InitMaster()
 
     lsock = socket(AF_INET, SOCK_STREAM, 0);
     if (lsock < 0) {
-	perror("socket");
-	abort();
+	PERROR("socket");
     }
 
     if (setsockopt(lsock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
     {   
-	perror("setsockopt");
+	PERROR("setsockopt");
     }
 
     srvaddr.sin_family = AF_INET;
@@ -44,13 +44,11 @@ RRFT_InitMaster()
     srvaddr.sin_port = htons(RRFT_PORT);
 
     if (bind(lsock, (struct sockaddr *)&srvaddr, sizeof(srvaddr)) < 0) {
-	perror("bind");
-	abort();
+	PERROR("bind");
     }
 
     if (listen(lsock, 5) < 0) {
-	perror("listen");
-	abort();
+	PERROR("listen");
     }
 
     fprintf(stderr, "Waiting for slave ...\n");
@@ -58,8 +56,7 @@ RRFT_InitMaster()
     clilen = sizeof(cliaddr);
     rrsock = accept(lsock, (struct sockaddr *)&cliaddr, &clilen);
     if (rrsock < 0) {
-	perror("accept");
-	abort();
+	PERROR("accept");
     }
 
     // Handshake
@@ -83,8 +80,7 @@ RRFT_InitSlave(const char *hostname)
 
     rrsock = socket(AF_INET, SOCK_STREAM, 0);
     if (rrsock < 0) {
-	perror("socket");
-	abort();
+	PERROR("socket");
     }
 
     // XXX: gethostbyname
@@ -94,8 +90,7 @@ RRFT_InitSlave(const char *hostname)
     srvaddr.sin_port = htons(RRFT_PORT);
 
     if (connect(rrsock, (struct sockaddr *)&srvaddr, sizeof(srvaddr)) < 0) {
-	perror("connect");
-	abort();
+	PERROR("connect");
     }
 
     // Handshake
@@ -119,8 +114,7 @@ RRFT_Send(uint64_t count, RRLogEntry *evt)
 
     result = write(rrsock, evt, count * sizeof(RRLogEntry));
     if (result < 0) {
-	perror("write");
-	abort();
+	PERROR("write");
     }
 }
 
@@ -131,8 +125,7 @@ RRFT_Recv(uint64_t count, RRLogEntry *evt)
 
     result = read(rrsock, evt, count * sizeof(RRLogEntry));
     if (result < 0) {
-	perror("read");
-	abort();
+	PERROR("read");
     }
 
     return (uint64_t)result / sizeof(RRLogEntry);

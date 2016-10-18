@@ -54,7 +54,8 @@ Debug_Log(int level, const char *fmt, ...)
         return;
 #endif /* DEBUG */
 
-    off = (size_t)snprintf(buf, 32, "%016llx ", __builtin_readcyclecounter());
+    off = (size_t)snprintf(buf, sizeof(buf), "%016llx %d ",
+			   __builtin_readcyclecounter(), getpid());
 
     switch (level) {
         case LEVEL_SYS:

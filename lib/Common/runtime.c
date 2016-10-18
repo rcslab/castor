@@ -9,6 +9,7 @@
 #include <threads.h>
 
 #include <unistd.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <sys/mman.h>
@@ -69,6 +70,7 @@ SystemWrite(int fd, const void *buf, size_t nbytes)
 void *
 DrainQueue(void *arg)
 {
+    uint64_t procs = 1;
 #if !defined(CASTOR_CTR)
     uint64_t i = 0;
 #endif
@@ -105,9 +107,14 @@ DrainQueue(void *arg)
 
 	RRGlobalQueue_Append(&rrgq, entry);
 
-	if (entry->event == RREVENT_EXIT) {
-	    RRLog_Free(rrlog, entry);
-	    break;
+	if (entry->event == RREVENT_FORK) {
+	    procs++;
+	} else if (entry->event == RREVENT_EXIT) {
+	    procs--;
+	    if (procs == 0) {
+		RRLog_Free(rrlog, entry);
+		break;
+	    }
 	}
 
 	RRLog_Free(rrlog, entry);
@@ -120,6 +127,7 @@ DrainQueue(void *arg)
 void *
 TXGQProc(void *arg)
 {
+    uint64_t procs = 1;
     while (1) {
 	uint64_t numEntries;
 	RRLogEntry *entry = RRGlobalQueue_Dequeue(&rrgq, &numEntries);
@@ -133,9 +141,14 @@ TXGQProc(void *arg)
 	}
 
 	for (uint64_t i = 0; i < numEntries; i++) {
-	    if (entry[i].event == RREVENT_EXIT) {
-		printf("TXGQ Done\n");
-		return NULL;
+	    if (entry[i].event == RREVENT_FORK) {
+		procs++;
+	    } else if (entry[i].event == RREVENT_EXIT) {
+		procs--;
+		if (procs == 0) {
+		    printf("TXGQ Done\n");
+		    return NULL;
+		}
 	    }
 	}
 
@@ -149,6 +162,8 @@ TXGQProc(void *arg)
 void *
 FeedQueue(void *arg)
 {
+    uint64_t procs = 1;
+
     while (1) {
 	uint64_t numEntries;
 	RRLogEntry *entry;
@@ -162,10 +177,15 @@ FeedQueue(void *arg)
 		RRShared_SetupThread(rrlog, entry[i].threadId);
 	    }
 	    RRPlay_AppendThread(rrlog, &entry[i]);
-	    if (entry[i].event == RREVENT_EXIT) {
-		//printf("Feed Done\n");
-		pthread_exit(NULL);
-		__builtin_unreachable();
+	    if (entry[i].event == RREVENT_FORK) {
+		procs++;
+	    } else if (entry[i].event == RREVENT_EXIT) {
+		procs--;
+		if (procs == 0) {
+		    //printf("Feed Done\n");
+		    pthread_exit(NULL);
+		    __builtin_unreachable();
+		}
 	    }
 	}
 
@@ -176,6 +196,8 @@ FeedQueue(void *arg)
 void *
 RXGQProc(void *arg)
 {
+    uint64_t procs = 1;
+
     while (1) {
 	uint64_t numEntries = 512;
 	RRLogEntry entries[512];
@@ -185,8 +207,7 @@ RXGQProc(void *arg)
 	} else {
 	    int result = SystemRead(logfd, &entries, numEntries * sizeof(RRLogEntry));
 	    if (result < 0) {
-		perror("read");
-		abort();
+		PERROR("read");
 	    }
 	    if (result == 0) {
 		return NULL;
@@ -197,9 +218,12 @@ RXGQProc(void *arg)
 
 	for (uint64_t i = 0; i < numEntries; i++) {
 	    RRGlobalQueue_Append(&rrgq, &entries[i]);
-	    if (entries[i].event == RREVENT_EXIT) {
-		//printf("RXGQ Done\n");
-		return NULL;
+	    if (entries[i].event == RREVENT_FORK) {
+		procs++;
+	    } else if (entries[i].event == RREVENT_EXIT) {
+		procs--;
+		if (procs == 0)
+		    return NULL;
 	    }
 	}
     }
@@ -214,8 +238,7 @@ FillGlobalQueue()
 
     result = SystemRead(logfd, &entries, numEntries * sizeof(RRLogEntry));
     if (result < 0) {
-	perror("read");
-	return -1;
+	PERROR("read");
     }
     if (result == 0) {
 	return 0;
@@ -315,29 +338,25 @@ OpenLog(const char *logfile, uintptr_t regionSz, uint32_t numEvents, bool forRec
 
     logfd = open(logfile, flags, 0600);
     if (logfd < 0) {
-	char str[255];
-	snprintf(str,255,"Could not open log the file: %s",logfile);
-	perror(str);
-	abort();
+	fprintf(stderr, "Could not open record/replay log '%s'", logfile);
+	PERROR("open");
     }
 
     // Setup shared memory region
     key_t shmkey = ftok(logfile, 0);
     if (shmkey == -1) {
-	perror("ftok");
-	abort();
+	PERROR("ftok");
     }
 
     shmid = shmget(shmkey, RRLOG_DEFAULT_REGIONSZ, IPC_CREAT | S_IRUSR | S_IWUSR);
     if (shmid == -1) {
-	perror("shmget");
-	abort();
+	PERROR("shmget");
     }
 
     rrlog = shmat(shmid, NULL, 0);
     if (rrlog == MAP_FAILED) {
-	perror("shmat");
-	abort();
+	shmctl(shmid, IPC_RMID, NULL);
+	PERROR("shmat");
     }
 
     RRLog_Init(rrlog, numEvents);
@@ -348,10 +367,19 @@ OpenLog(const char *logfile, uintptr_t regionSz, uint32_t numEvents, bool forRec
 void
 LogDone()
 {
+    int status;
+
     pthread_join(rrthr, NULL);
     pthread_join(gqthr, NULL);
-    shmdt(rrlog);
-    shmctl(shmid, IPC_RMID, NULL);
+    status = shmdt(rrlog);
+    if (status == -1) {
+	PERROR("shmdt");
+    }
+    status = shmctl(shmid, IPC_RMID, NULL);
+    if (status == -1) {
+	PERROR("shmctl");
+    }
+
 }
 
 void

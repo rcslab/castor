@@ -170,8 +170,7 @@ __rr_fork(void)
 	if (result == 0) {
 	    threadId = thrNo;
 	} else if (result < 0) {
-	    perror("FIXME: fork failed during record");
-	    abort();
+	    PERROR("FIXME: fork failed during record");
 	}
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
@@ -179,13 +178,14 @@ __rr_fork(void)
 	AssertEvent(e, RREVENT_FORK);
 	RRPlay_Free(rrlog, e);
 
+	RRShared_SetupThread(rrlog, thrNo);
+
 	result = __sys_fork();
 
 	if (result == 0) {
 	    threadId = thrNo;
 	} else if (result < 0) {
-	    perror("FIXME: fork failed during replay");
-	    abort();
+	    PERROR("FIXME: fork failed during replay");
 	}
     }
 

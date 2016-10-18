@@ -123,6 +123,9 @@ main(int argc, char *argv[])
 
 	LogDone();
 
+
+	// XXX: Handle forking programs better especially background ones
+
 	return WEXITSTATUS(status);
     }
 

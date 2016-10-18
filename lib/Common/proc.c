@@ -2,11 +2,15 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <unistd.h>
+#include <errno.h>
 #include <sys/param.h>
 #include <sys/cpuset.h>
 #include <sys/capsicum.h>
+
+#include <castor/debug.h>
 
 void
 PinAgent()
@@ -19,8 +23,7 @@ PinAgent()
 
     status = cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_PID, -1, sizeof(mask), &mask);
     if (status != 0) {
-	perror("cpuset_setaffinity");
-	abort();
+	PERROR("cpuset_setaffinity");
     }
 }
 
@@ -32,8 +35,7 @@ PinProcess(int maxcpus)
 
     status = cpuset_getaffinity(CPU_LEVEL_ROOT, CPU_WHICH_PID, -1, sizeof(all), &all);
     if (status != 0) {
-	perror("cpuset_getaffinity");
-	abort();
+	PERROR("cpuset_getaffinity");
     }
 
     CPU_ZERO(&mask);
@@ -46,8 +48,7 @@ PinProcess(int maxcpus)
 
     status = cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_PID, -1, sizeof(mask), &mask);
     if (status != 0) {
-	perror("cpuset_setaffinity");
-	abort();
+	PERROR("cpuset_setaffinity");
     }
 }
 
@@ -58,8 +59,7 @@ Spawn(bool pinned, int maxcpus, char *const argv[])
 
     pid = fork();
     if (pid == -1) {
-	perror("fork");
-	abort();
+	PERROR("fork");
     }
     if (pid != 0) {
 	return pid;
@@ -70,8 +70,7 @@ Spawn(bool pinned, int maxcpus, char *const argv[])
     }
 
     execvp(*argv, argv);
-    perror("execv");
-    abort();
+    PERROR("execv");
 
     return -1;
 }

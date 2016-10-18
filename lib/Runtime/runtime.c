@@ -145,8 +145,7 @@ RXGQProc(void *arg)
 
 	int result = SystemRead(logfd, &entries, numEntries * sizeof(RRLogEntry));
 	if (result < 0) {
-	    perror("read");
-	    abort();
+	    PERROR("read");
 	}
 	if (result == 0) {
 	    return NULL;
@@ -173,8 +172,7 @@ PrimeQ()
 
     int result = SystemRead(logfd, &entries, numEntries * sizeof(RRLogEntry));
     if (result < 0) {
-	perror("read");
-	abort();
+	PERROR("read");
     }
 
     numEntries = (uint64_t)result / sizeof(RRLogEntry);
@@ -253,8 +251,7 @@ OldInit()
 
     logfd = open(logpath, flags, 0600);
     if (logfd < 0) {
-	perror("open");
-	abort();
+	PERROR("open");
     }
 
     if (rrMode == RRMODE_RECORD) {
@@ -291,20 +288,17 @@ log_init()
 
     key_t shmkey = ftok(shmpath, 0);
     if (shmkey == -1) {
-	perror("ftok");
-	abort();
+	PERROR("ftok");
     }
 
     int shmid = shmget(shmkey, RRLOG_DEFAULT_REGIONSZ, 0);
     if (shmid == -1) {
-	perror("shmget");
-	abort();
+	PERROR("shmget");
     }
 
     rrlog = shmat(shmid, NULL, 0);
     if (rrlog == MAP_FAILED) {
-	perror("shmat");
-	abort();
+	PERROR("shmat");
     }
 
     RRShared_SetupThread(rrlog, 0);
@@ -317,8 +311,7 @@ log_init()
     if (sandbox) {
 	status = cap_enter();
 	if (status != 0) {
-	    perror("cap_enter");
-	    abort();
+	    PERROR("cap_enter");
 	}
     }
 

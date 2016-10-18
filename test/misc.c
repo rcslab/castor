@@ -26,9 +26,9 @@ int main()
     result = getrusage(0, &ru2);
     assert(result == 0);
 
-    printf("%ld\n", ru1.ru_stime.tv_usec);
-    printf("%ld\n", ru2.ru_stime.tv_usec);
-    assert(ru2.ru_stime.tv_usec > ru1.ru_stime.tv_usec);
+    printf("%ld %ld\n", ru1.ru_stime.tv_sec, ru1.ru_stime.tv_usec);
+    printf("%ld %ld\n", ru2.ru_stime.tv_sec, ru2.ru_stime.tv_usec);
+    assert(ru2.ru_stime.tv_sec >= ru1.ru_stime.tv_sec);
     result = cap_enter();
     assert(result == 0);
     gid_t gidset[255];

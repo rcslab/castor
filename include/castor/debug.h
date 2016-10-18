@@ -44,6 +44,18 @@ int Debug_Init(const char *logPath);
 #define ASSERT(_x)
 #endif
 
+#define PERROR(_str) \
+    do { \
+	char pstr[64]; \
+	Debug_Log(LEVEL_SYS, "PANIC: " \
+		"function %s, file %s, line %d\n", \
+		__func__, __FILE__, __LINE__); \
+	strerror_r(errno, &pstr[0], sizeof(pstr)); \
+	Debug_Log(LEVEL_SYS, "%s: %s\n", _str, pstr); \
+	Debug_LogBacktrace(); \
+	abort(); \
+    } while (0)
+
 #define PANIC() \
     do { \
 	Debug_Log(LEVEL_SYS, "PANIC: " \
@@ -52,6 +64,7 @@ int Debug_Init(const char *logPath);
 	Debug_LogBacktrace(); \
 	abort(); \
     } while (0)
+
 #define ASSERT_IMPLEMENTED(_x) \
     do { \
 	if (!(_x)) { Debug_Log(LEVEL_SYS, \
