@@ -7,7 +7,9 @@ src = [
     "util.c",
     "freebsd.c",
     "events.c",
-    "langevents.c",
+    "events_freebsd.c",
+    "events_thread.c",
+    "events_llvm.c",
     "rr_assert.c",
     "rr_fdprintf.c",
     # Backtrace Support
