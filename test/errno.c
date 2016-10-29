@@ -86,8 +86,8 @@ int main()
     assert((result == -1) && (errno == EFAULT));
     result = select(-1, 0, 0, 0, 0);
     assert((result == -1) && (errno == EINVAL));
-    /* open(BAD_PATH, 0, 0); */
-    /* assert((result == -1) && (errno == ENOENT)); */
+    open(BAD_PATH, 0, 0);
+    assert((result == -1) && (errno == ENOENT));
     fstatfs(BAD_FD, NULL);
     assert((result == -1) && (errno == EBADF));
     statfs(BAD_PATH, NULL);
@@ -100,6 +100,14 @@ int main()
     assert((result == -1) && (errno == EPERM));
     result = setegid(BAD_ID);
     assert((result == -1) && (errno == EPERM));
+    result = setgroups(0, NULL);
+    assert((result == -1) && (errno == EPERM));
+    result = getpeername(BAD_FD, NULL, NULL);
+    assert((result == -1) && (errno == EFAULT));
+    result = getsockname(BAD_FD, NULL, NULL);
+    assert((result == -1) && (errno == EFAULT));
+    result = getsockopt(BAD_FD, 0, 0, NULL, NULL);
+    assert((result == -1) && (errno == EBADF));
 
     return 0;
 }
