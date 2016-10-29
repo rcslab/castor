@@ -58,7 +58,7 @@ int main()
     assert((result == -1) && (errno == EFAULT));
     result = getsockname(BAD_FD, NULL, NULL);
     assert((result == -1) && (errno == EFAULT));
-    cap_rights_limit(BAD_FD, NULL);
+    result = cap_rights_limit(BAD_FD, NULL);
     assert((result == -1) && (errno == EFAULT));
     result = link(BAD_PATH, BAD_PATH);
     assert((result == -1) && (errno == ENOENT));
@@ -86,7 +86,7 @@ int main()
     assert((result == -1) && (errno == EFAULT));
     result = select(-1, 0, 0, 0, 0);
     assert((result == -1) && (errno == EINVAL));
-    open(BAD_PATH, 0, 0);
+    result = open(BAD_PATH, 0, 0);
     assert((result == -1) && (errno == ENOENT));
     fstatfs(BAD_FD, NULL);
     assert((result == -1) && (errno == EBADF));

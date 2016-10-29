@@ -208,7 +208,9 @@ __rr_getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen)
 	e->event = RREVENT_GETSOCKOPT;
 	e->value[0] = (uint64_t)result;
 	e->value[1] = (uint64_t)optname;
-	e->value[2] = (uint64_t)*optlen;
+	if (optlen != NULL) {
+	    e->value[2] = (uint64_t)*optlen;
+	}
 	if (result == -1) {
 	    e->value[3] = (uint64_t)errno;
 	}
@@ -221,7 +223,9 @@ __rr_getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen)
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_GETSOCKOPT);
 	result = (int)e->value[0];
-	*optlen = (socklen_t)e->value[2];
+	if (optlen != NULL) {
+	    *optlen = (socklen_t)e->value[2];
+	}
 	if (result == -1) {
 	    errno = e->value[3];
 	}
