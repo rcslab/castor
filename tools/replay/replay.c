@@ -106,9 +106,12 @@ main(int argc, char *argv[])
     if (sandboxed) {
 	setenv("CASTOR_SANDBOX", "1", 1);
     }
-    if (Spawn(pinned, maxcpus, argv) < 0) {
+    int pid = Spawn(pinned, maxcpus, argv);
+    if (pid < 0) {
 	exit(1);
     }
+
+    setproctitle("Castor pid=%d log=%s", pid, logfile);
 
     if (interactive) {
 	CLI_Start();

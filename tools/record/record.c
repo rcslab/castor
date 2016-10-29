@@ -91,9 +91,12 @@ main(int argc, char *argv[])
 
     setenv("CASTOR_MODE", "RECORD", 1);
     setenv("CASTOR_SHMPATH", logfile, 1);
-    if (Spawn(pinned, maxcpus, argv) < 0) {
+    int pid = Spawn(pinned, maxcpus, argv);
+    if (pid < 0) {
 	exit(1);
     }
+
+    setproctitle("Castor pid=%d log=%s", pid, logfile);
 
     RecordLog();
 
