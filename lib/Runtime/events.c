@@ -61,7 +61,6 @@
 
 #include "util.h"
 
-extern int __rr_fork(void);
 extern int __vdso_clock_gettime(clockid_t clock_id, struct timespec *tp);
 extern void *__sys_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
 extern interpos_func_t __libc_interposing[] __hidden;
@@ -1548,7 +1547,6 @@ __rr_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
 void
 Events_Init()
 {
-    __libc_interposing[INTERPOS_fork] = (interpos_func_t)&__rr_fork;
     __libc_interposing[INTERPOS_read] = (interpos_func_t)&__rr_read;
     __libc_interposing[INTERPOS_write] = (interpos_func_t)&__rr_write;
     __libc_interposing[INTERPOS_openat] = (interpos_func_t)&__rr_openat;
