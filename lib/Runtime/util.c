@@ -63,11 +63,26 @@ AssertEvent(RRLogEntry *e, uint32_t evt)
 }
 
 void
+AssertObject(RRLogEntry *e, uint64_t od)
+{
+    if (e->objectId != (uint64_t)od) {
+	rrMode = RRMODE_NORMAL;
+	SYSERROR("Object Mismatch Divergence!");
+	SYSERROR("Event %s(%08x) Expected %08lx, Encountered %08lx",
+		 Lookup(e->event), e->event, e->objectId, od);
+	SYSERROR("Event #%lu, Thread #%d", e->eventId, e->threadId);
+	SYSERROR("NextEvent #%lu, LastEvent #%lu",
+			rrlog->nextEvent, rrlog->lastEvent);
+	PANIC();
+    }
+}
+
+void
 AssertReplay(RRLogEntry *e, bool test)
 {
     if (!test) {
 	rrMode = RRMODE_NORMAL;
-	SYSERROR("Event Assertion Divergence!"); 
+	SYSERROR("Event Assertion Divergence!");
 	SYSERROR("Encountered %s(%08x)", Lookup(e->event), e->event);
 	SYSERROR("Event #%lu, Thread #%d", e->eventId, e->threadId);
 	SYSERROR("NextEvent #%lu, LastEvent #%lu",

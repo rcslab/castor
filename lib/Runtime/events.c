@@ -62,10 +62,63 @@
 #include "util.h"
 
 extern int __vdso_clock_gettime(clockid_t clock_id, struct timespec *tp);
+extern int __vdso_gettimeofday(struct timeval *tv, struct timezone *tz);
 extern void *__sys_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
 extern interpos_func_t __libc_interposing[] __hidden;
 
 extern void LogDone();
+
+int
+__rr_gettimeofday(struct timeval *tp, struct timezone *tzp)
+{
+    int result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return __vdso_gettimeofday(tp, tzp);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result =  __vdso_gettimeofday(tp, tzp);
+
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_GETTIMEOFDAY;
+	e->value[0] = (uint64_t)result;
+
+	if (result == -1) {
+	    e->value[1] = (uint64_t)errno;
+	} else {
+	    if (tp != NULL) {
+		e->value[1] = (uint64_t)tp->tv_sec;
+		e->value[2] = (uint64_t)tp->tv_usec;
+	    }
+	    if (tzp != NULL) {
+		e->value[3] = (uint64_t)tzp->tz_minuteswest;
+		e->value[4] = (uint64_t)tzp->tz_dsttime;
+	    }
+	}
+	RRLog_Append(rrlog, e);
+    } else {
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_GETTIMEOFDAY);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = (int)e->value[1];
+	} else {
+	    if (tp != NULL) {
+		tp->tv_sec = (time_t)e->value[1];
+		tp->tv_usec = (suseconds_t)e->value[2];
+	    }
+	    if (tzp != NULL) {
+		tzp->tz_minuteswest = (int)e->value[3];
+		tzp->tz_dsttime = (int)e->value[4];
+	    }
+	}
+	RRPlay_Free(rrlog, e);
+    }
+
+    return result;
+}
 
 int
 __rr_clock_gettime(clockid_t clock_id, struct timespec *tp)
@@ -327,7 +380,7 @@ __rr_read(int fd, void *buf, size_t nbytes)
 	    }
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayS(RREVENT_READ, &result);
+	    RRReplayOS(RREVENT_READ, fd, &result);
 	    if (result != -1) {
 		logData((uint8_t*)buf, nbytes);
 	    }
@@ -463,7 +516,7 @@ __rr_readlink(const char *restrict path, char *restrict buf, size_t bufsize)
 	    }
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayS(RREVENT_READLINK, &result);
+	    RRReplayOS(RREVENT_READLINK, 0, &result);
 	    if (result != -1) {
 		logData((uint8_t*)buf, bufsize);
 	    }
@@ -776,7 +829,7 @@ pread(int fd, void *buf, size_t nbytes, off_t offset)
 	    }
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayS(RREVENT_PREAD, &result);
+	    RRReplayOS(RREVENT_PREAD, fd, &result);
 	    if (result != -1) {
 		logData((uint8_t*)buf, nbytes);
 	    }
@@ -928,6 +981,26 @@ __rr_access(const char *path, int mode)
 }
 
 int
+__rr_eaccess(const char *path, int mode)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_eaccess, path, mode);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_eaccess, path, mode);
+	    RRRecordI(RREVENT_EACCESS, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_EACCESS, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
 __rr_truncate(const char *path, off_t length)
 {
     int result;
@@ -1020,7 +1093,7 @@ __rr_lseek(int fildes, off_t offset, int whence)
 	    RRRecordOS(RREVENT_LSEEK, fildes, result);
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayS(RREVENT_LSEEK, &result);
+	    RRReplayOS(RREVENT_LSEEK, fildes, &result);
 	    break;
     }
 
@@ -1106,7 +1179,7 @@ __rr_umask(mode_t numask)
 	    RRRecordOU(RREVENT_UMASK, 0, result);
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayU(RREVENT_UMASK, &result);
+	    RRReplayOU(RREVENT_UMASK, 0, &result);
 	    break;
     }
 
@@ -1392,7 +1465,7 @@ __rr_sendmsg(int s, const struct msghdr *msg, int flags)
 	    RRRecordOS(RREVENT_SENDMSG, s, result);
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayS(RREVENT_SENDMSG, &result);
+	    RRReplayOS(RREVENT_SENDMSG, s, &result);
 	    break;
     }
 
@@ -1434,7 +1507,7 @@ __rr_recvmsg(int s, struct msghdr *msg, int flags)
 	    }
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayS(RREVENT_RECVMSG, &result);
+	    RRReplayOS(RREVENT_RECVMSG, s, &result);
 	    if (result != -1) {
 		log_msg(msg);
 	    }
@@ -1443,7 +1516,6 @@ __rr_recvmsg(int s, struct msghdr *msg, int flags)
 
     return result;
 }
-
 
 ssize_t
 __rr_sendto(int s, const void *msg, size_t len, int flags,
@@ -1459,7 +1531,7 @@ __rr_sendto(int s, const void *msg, size_t len, int flags,
 	    RRRecordOS(RREVENT_SENDTO, s, result);
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayS(RREVENT_SENDTO, &result);
+	    RRReplayOS(RREVENT_SENDTO, s, &result);
 	    break;
     }
 
@@ -1487,7 +1559,7 @@ __rr_recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *
 	    }
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayS(RREVENT_RECVFROM, &result);
+	    RRReplayOS(RREVENT_RECVFROM, s, &result);
 	    if (result != -1) {
 		logData((uint8_t*)buf, len);
 		if (from != NULL) {
@@ -1590,6 +1662,7 @@ BIND_REF(recvfrom);
 BIND_REF(mmap);
 BIND_REF(mkdir);
 BIND_REF(access);
+BIND_REF(eaccess);
 BIND_REF(chmod);
 BIND_REF(fchdir);
 BIND_REF(chdir);
@@ -1612,6 +1685,7 @@ BIND_REF(open);
 BIND_REF(ioctl);
 BIND_REF(setsockopt);
 BIND_REF(clock_gettime);
+BIND_REF(gettimeofday);
 BIND_REF(socket);
 BIND_REF(bind);
 BIND_REF(listen);
@@ -1619,4 +1693,3 @@ BIND_REF(connect);
 BIND_REF(accept);
 BIND_REF(poll);
 BIND_REF(getsockopt);
-

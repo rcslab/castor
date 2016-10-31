@@ -1,15 +1,21 @@
-
+#include <assert.h>
 #include <stdio.h>
 #include <time.h>
+#include <sys/time.h>
 
 int main(int argc, const char *argv[])
 {
-    time_t tm;
+    int result;
     char *t;
+    time_t tm;
 
     time(&tm);
     t = ctime(&tm);
-
     printf("%s", t);
+
+    struct timeval tv;
+    result = gettimeofday(&tv,NULL);
+    assert(result == 0);
+    printf("%lx,%lx\n", tv.tv_sec, tv.tv_usec);
 }
 

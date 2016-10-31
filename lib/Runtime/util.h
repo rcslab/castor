@@ -10,10 +10,12 @@ extern thread_local uint32_t threadId;
 extern Mutex lockTable[LOCKTABLE_SIZE];
 
 #if defined(CASTOR_DEBUG)
+void AssertObject(RRLogEntry *e, uint64_t od);
 void AssertEvent(RRLogEntry *e, uint32_t evt);
 void AssertReplay(RRLogEntry *e, bool test);
 void AssertOutput(RRLogEntry *e, uint64_t hash, uint8_t *buf, size_t nbytes);
 #elif defined(CASTOR_RELEASE)
+#define AssertObject(_e, _od)
 #define AssertEvent(_e, _evt)
 #define AssertReplay(_e, _tst)
 #define AssertOutput(_e, _hash, _buf, _len)
@@ -122,6 +124,24 @@ RRReplayI(uint32_t eventNum, int32_t *result)
 }
 
 static inline void
+RRReplayOI(uint32_t eventNum, int od, int32_t *result)
+{
+    RRLogEntry *e;
+
+    e = RRPlay_Dequeue(rrlog, threadId);
+    AssertEvent(e, eventNum);
+    AssertObject(e, (uint64_t)od);
+    if (result != NULL) {
+	*result =  e->value[0];
+	if (*result == -1) {
+	    errno = e->value[1];
+	}
+    }
+    RRPlay_Free(rrlog, e);
+}
+
+
+static inline void
 RRRecordOU(uint32_t eventNum, int od, uint64_t result)
 {
     RRLogEntry *e;
@@ -134,12 +154,13 @@ RRRecordOU(uint32_t eventNum, int od, uint64_t result)
 }
 
 static inline void
-RRReplayU(uint32_t eventNum, uint64_t *result)
+RRReplayOU(uint32_t eventNum, int od, uint64_t *result)
 {
     RRLogEntry *e;
 
     e = RRPlay_Dequeue(rrlog, threadId);
     AssertEvent(e, eventNum);
+    AssertObject(e, (uint64_t)od);
     if (result != NULL) {
 	*result =  e->value[0];
     }
@@ -162,12 +183,13 @@ RRRecordOS(uint32_t eventNum, int od, int64_t result)
 }
 
 static inline void
-RRReplayS(uint32_t eventNum, int64_t * result)
+RRReplayOS(uint32_t eventNum, int od, int64_t * result)
 {
     RRLogEntry *e;
 
     e = RRPlay_Dequeue(rrlog, threadId);
     AssertEvent(e, eventNum);
+    AssertObject(e, (uint64_t)od);
     if (result != NULL) {
 	*result = (int64_t)e->value[0];
 	if (*result == -1) {
@@ -176,6 +198,5 @@ RRReplayS(uint32_t eventNum, int64_t * result)
     }
     RRPlay_Free(rrlog, e);
 }
-
 
 #endif /* __UTIL_H__ */
