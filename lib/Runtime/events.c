@@ -434,7 +434,7 @@ __rr_fcntl(int fd, int cmd, ...)
 	case RRMODE_NORMAL:
 	    return syscall(SYS_fcntl, fd, cmd, arg);
 	case RRMODE_RECORD:
-	    ASSERT_IMPLEMENTED((cmd == F_GETFL) || (cmd == F_SETFL));
+	    ASSERT_IMPLEMENTED((cmd == F_GETFL) || (cmd == F_SETFL) || (cmd == F_SETFD));
 	    result = syscall(SYS_fcntl, fd, cmd, arg);
 	    RRRecordOI(RREVENT_FCNTL, fd, result);
 	    break;
