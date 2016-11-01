@@ -56,6 +56,10 @@
 
 extern void *__sys_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
 extern interpos_func_t __libc_interposing[] __hidden;
+extern int __sys_pipe(int fildes[2]);
+extern int __sys_dup2(int oldd, int newd);
+extern int __sys_close(int fd);
+
 
 extern void LogDone();
 
@@ -146,6 +150,64 @@ __rr_getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen)
 	}
     }
 
+    return result;
+}
+
+int
+__rr_pipe(int fildes[2])
+{
+    int result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return __sys_pipe(fildes);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = __sys_pipe(fildes);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_PIPE;
+	e->value[0] = (uint64_t)result;
+
+	if (result == -1) {
+	    e->value[1] = (uint64_t)errno;
+	} else {
+	    e->value[2] = (uint64_t)fildes[0];
+	    e->value[3] = (uint64_t)fildes[1];
+	}
+
+	RRLog_Append(rrlog, e);
+    } else {
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_PIPE);
+	result = (int)e->value[0];
+
+	if (result == -1) {
+	    errno = (int)e->value[1];
+	} else {
+	    int status;
+	    int n_fildes[2];
+
+	    status = __sys_pipe(n_fildes);
+	    ASSERT(status != -1);
+
+	    fildes[0] = (int)e->value[2];
+	    fildes[1] = (int)e->value[3];
+
+	    if (fildes[1] != n_fildes[1]) {
+		status = __sys_dup2(n_fildes[1], fildes[1]);
+		ASSERT(status != -1);
+		__sys_close(n_fildes[1]);
+	    }
+	    if (fildes[0] != n_fildes[0]) {
+		status = __sys_dup2(n_fildes[0], fildes[0]);
+		ASSERT(status != -1);
+		__sys_close(n_fildes[0]);
+	    }
+	}
+
+	RRPlay_Free(rrlog, e);
+    }
     return result;
 }
 
@@ -1340,6 +1402,46 @@ __rr_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
     return result;
 }
 
+int
+__rr_dup2(int oldd, int newd)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_dup2, oldd, newd);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_dup2, oldd, newd);
+	    RRRecordOI(RREVENT_DUP2, oldd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_DUP2, oldd, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
+__rr_dup(int oldd)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_dup, oldd);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_dup, oldd);
+	    RRRecordOI(RREVENT_DUP, oldd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_DUP, oldd, &result);
+	    break;
+    }
+
+    return result;
+}
+
 void
 Events_Init()
 {
@@ -1400,4 +1502,6 @@ BIND_REF(connect);
 BIND_REF(accept);
 BIND_REF(poll);
 BIND_REF(getsockopt);
-
+BIND_REF(dup2);
+BIND_REF(dup);
+BIND_REF(pipe);
