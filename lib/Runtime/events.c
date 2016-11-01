@@ -181,12 +181,12 @@ __rr_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_MMAPFD;
 	e->value[0] = (uint64_t)result;
-	e->value[1] = len;
-	e->value[2] = (uint64_t)prot;
-	e->value[3] = (uint64_t)flags;
 	if (result == MAP_FAILED) {
-	    e->value[4] = (uint64_t)errno;
+	    e->value[1] = (uint64_t)errno;
 	}
+	e->value[2] = len;
+	e->value[3] = (uint64_t)prot;
+	e->value[4] = (uint64_t)flags;
 	RRLog_Append(rrlog, e);
 
 	if (result != MAP_FAILED) {
@@ -197,13 +197,22 @@ __rr_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 	AssertEvent(e, RREVENT_MMAPFD);
 	result = (void *)e->value[0];
 	if (result == MAP_FAILED) {
-	    errno = (int)e->value[4];
+	    errno = (int)e->value[1];
 	}
 	RRPlay_Free(rrlog, e);
 
 	if (result != MAP_FAILED) {
-	    result = __sys_mmap(addr, len, prot, flags | MAP_ANON, -1, 0);
+	    void *origAddr = result;
+	    result = __sys_mmap(origAddr, len, prot | PROT_WRITE, flags | MAP_ANON, -1, 0);
+	    ASSERT_IMPLEMENTED(result != MAP_FAILED);
+	    if (origAddr != result) {
+		WARNING("mmap replay didn't use the same address (%p -> %p)", origAddr, result);
+	    }
 	    logData(result, len);
+	    if ((prot & PROT_WRITE) == 0) {
+		int status = syscall(SYS_mprotect, addr, len, prot);
+		ASSERT_IMPLEMENTED(status == 0);
+	    }
 	}
     }
 
