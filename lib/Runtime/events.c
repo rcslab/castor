@@ -184,18 +184,27 @@ __rr_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 	e->value[1] = len;
 	e->value[2] = (uint64_t)prot;
 	e->value[3] = (uint64_t)flags;
+	if (result == MAP_FAILED) {
+	    e->value[4] = (uint64_t)errno;
+	}
 	RRLog_Append(rrlog, e);
 
-	if (result != 0) {
+	if (result != MAP_FAILED) {
 	    logData((uint8_t *)result, len);
 	}
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_MMAPFD);
+	result = (void *)e->value[0];
+	if (result == MAP_FAILED) {
+	    errno = (int)e->value[4];
+	}
 	RRPlay_Free(rrlog, e);
 
-	result = __sys_mmap(addr, len, prot, flags | MAP_ANON, -1, 0);
-	logData(result, len);
+	if (result != MAP_FAILED) {
+	    result = __sys_mmap(addr, len, prot, flags | MAP_ANON, -1, 0);
+	    logData(result, len);
+	}
     }
 
     return result;
