@@ -473,10 +473,6 @@ __rr_wait(int *status)
 __strong_reference(__rr_exit, _exit);
 __strong_reference(_pthread_mutex_lock, pthread_mutex_lock);
 
-#define BIND_REF(_name)\
-    __strong_reference(__rr_ ## _name, _name);\
-    __strong_reference(__rr_ ## _name, _ ## _name)\
-
 BIND_REF(getpid);
 BIND_REF(wait);
 BIND_REF(fork);

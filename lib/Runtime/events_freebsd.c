@@ -251,10 +251,6 @@ __rr_cap_rights_limit(int fd, const cap_rights_t *rights)
     return result;
 }
 
-#define BIND_REF(_name)\
-    __strong_reference(__rr_ ## _name, _name);\
-    __strong_reference(__rr_ ## _name, _ ## _name)\
-
 BIND_REF(getdirentries);
 BIND_REF(cap_enter);
 BIND_REF(cap_rights_limit);

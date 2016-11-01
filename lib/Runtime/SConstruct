@@ -8,6 +8,8 @@ src = [
     "freebsd.c",
     "events.c",
     "events_freebsd.c",
+    "events_id.c",
+    "events_mem.c",
     "events_thread.c",
     "events_llvm.c",
     "rr_assert.c",
