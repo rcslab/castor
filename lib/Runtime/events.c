@@ -358,6 +358,54 @@ __rr_write(int fd, const void *buf, size_t nbytes)
     return result;
 }
 
+ssize_t
+__rr_pwrite(int fd, const void *buf, size_t nbytes, off_t offset)
+{
+    ssize_t result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_pwrite, fd, buf, nbytes, offset);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_pwrite, fd, buf, nbytes, offset);
+
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_PWRITE;
+	e->objectId = (uint64_t)fd;
+	e->value[0] = (uint64_t)result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t)errno;
+	} else {
+	    e->value[2] = hashData((uint8_t *)buf, nbytes);
+	}
+	RRLog_Append(rrlog, e);
+    } else {
+	/*
+	 * We should only write the same number of bytes as we did during 
+	 * recording.  The output divergence test is more conservative than it 
+	 * needs to be.  We can assert only on bytes actually written out.
+	 */
+	if (fd == STDOUT_FILENO || fd == STDERR_FILENO) {
+	    // Print console output
+	    syscall(SYS_write, fd, buf, nbytes);
+	}
+
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_PWRITE);
+	result = (ssize_t)e->value[0];
+	if (result == -1) {
+	    errno = (int)e->value[1];
+	} else {
+	    AssertOutput(e, e->value[2], (uint8_t *)buf, nbytes);
+	}
+	RRPlay_Free(rrlog, e);
+    }
+
+    return result;
+}
+
 int
 __rr_ioctl(int fd, unsigned long request, ...)
 {
@@ -407,7 +455,8 @@ __rr_fcntl(int fd, int cmd, ...)
 	case RRMODE_NORMAL:
 	    return syscall(SYS_fcntl, fd, cmd, arg);
 	case RRMODE_RECORD:
-	    ASSERT_IMPLEMENTED((cmd == F_GETFL) || (cmd == F_SETFL) || (cmd == F_SETFD));
+	    ASSERT_IMPLEMENTED((cmd == F_GETFL) || (cmd == F_SETFL) ||
+			       (cmd == F_SETFD) || (cmd == F_SETOWN));
 	    result = syscall(SYS_fcntl, fd, cmd, arg);
 	    RRRecordOI(RREVENT_FCNTL, fd, result);
 	    break;
@@ -1505,3 +1554,4 @@ BIND_REF(getsockopt);
 BIND_REF(dup2);
 BIND_REF(dup);
 BIND_REF(pipe);
+BIND_REF(pwrite);
