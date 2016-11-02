@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <signal.h>
 #include <sys/mman.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -67,6 +68,13 @@ SystemWrite(int fd, const void *buf, size_t nbytes)
     return syscall(SYS_write, fd, buf, nbytes);
 }
 
+void
+EnablePThreadCancel()
+{
+    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+}
+
 void *
 DrainQueue(void *arg)
 {
@@ -74,6 +82,8 @@ DrainQueue(void *arg)
 #if !defined(CASTOR_CTR)
     uint64_t i = 0;
 #endif
+
+    EnablePThreadCancel();
 
     while (1) {
 	RRLogEntry *entry = NULL;
@@ -128,6 +138,9 @@ void *
 TXGQProc(void *arg)
 {
     uint64_t procs = 1;
+
+    EnablePThreadCancel();
+
     while (1) {
 	uint64_t numEntries;
 	RRLogEntry *entry = RRGlobalQueue_Dequeue(&rrgq, &numEntries);
@@ -164,6 +177,8 @@ FeedQueue(void *arg)
 {
     uint64_t procs = 1;
 
+    EnablePThreadCancel();
+
     while (1) {
 	uint64_t numEntries;
 	RRLogEntry *entry;
@@ -197,6 +212,8 @@ void *
 RXGQProc(void *arg)
 {
     uint64_t procs = 1;
+
+    EnablePThreadCancel();
 
     while (1) {
 	uint64_t numEntries = 512;
@@ -328,6 +345,32 @@ DumpLog()
 }
 
 void
+SignalCloseLog(int sig)
+{
+    int status;
+
+    pthread_cancel(rrthr);
+    pthread_cancel(gqthr);
+    pthread_join(rrthr, NULL);
+    pthread_join(gqthr, NULL);
+
+    RRLog *rl = rrlog;
+    if (rl != NULL) {
+	status = shmdt(rrlog);
+	if (status == -1) {
+	    LOG("shmdt");
+	}
+	status = shmctl(shmid, IPC_RMID, NULL);
+	if (status == -1) {
+	    LOG("shmctl");
+	}
+    }
+
+    LOG("Forced exiting of record");
+    exit(1);
+}
+
+void
 OpenLog(const char *logfile, uintptr_t regionSz, uint32_t numEvents, bool forRecord)
 {
     // Open log file
@@ -341,6 +384,9 @@ OpenLog(const char *logfile, uintptr_t regionSz, uint32_t numEvents, bool forRec
 	fprintf(stderr, "Could not open record/replay log '%s'", logfile);
 	PERROR("open");
     }
+
+    signal(SIGINT, &SignalCloseLog);
+    signal(SIGKILL, &SignalCloseLog);
 
     // Setup shared memory region
     key_t shmkey = ftok(logfile, 0);
@@ -372,6 +418,7 @@ LogDone()
     pthread_join(rrthr, NULL);
     pthread_join(gqthr, NULL);
     status = shmdt(rrlog);
+    rrlog = NULL;
     if (status == -1) {
 	PERROR("shmdt");
     }
@@ -379,7 +426,6 @@ LogDone()
     if (status == -1) {
 	PERROR("shmctl");
     }
-
 }
 
 void
