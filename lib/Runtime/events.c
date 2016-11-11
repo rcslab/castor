@@ -131,6 +131,8 @@ __rr_getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen)
 	RRLog_Append(rrlog, e);
 
 	if (result == 0) {
+	    ASSERT(optval != NULL);
+	    ASSERT(optlen != NULL);
 	    logData((uint8_t *)optval, *optlen);
 	}
     } else {
@@ -146,6 +148,8 @@ __rr_getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen)
 	RRPlay_Free(rrlog, e);
 
 	if (result == 0) {
+	    ASSERT(optval != NULL);
+	    ASSERT(optlen != NULL);
 	    logData((uint8_t *)optval, *optlen);
 	}
     }
