@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include <pthread.h>
 
@@ -36,6 +37,12 @@ server(void *arg)
     status = setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
     assert(status >= 0);
 
+    int optval;
+    socklen_t optlen;
+    status = getsockopt(s, SOL_SOCKET, SO_REUSEADDR, &optval, &optlen);
+    assert(status == 0);
+    assert(optval);
+
     status = bind(s, (struct sockaddr *)&local, sizeof(local));
     assert(status >= 0);
 
@@ -46,6 +53,23 @@ server(void *arg)
 
     socklen_t sz = sizeof(remote);
     fd = accept(s, (struct sockaddr *)&remote, &sz);
+
+    struct sockaddr_in name;
+    socklen_t namelen = sizeof(name);
+    status = getpeername(fd, (struct sockaddr *)&name, &namelen);
+    assert(status == 0);
+    char *ip = inet_ntoa(name.sin_addr);
+    assert(!strcmp(ip, "127.0.0.1"));
+    printf("getpeername() %s:%hu\n", ip, ntohs(name.sin_port));
+
+    status = getsockname(fd, (struct sockaddr *)&name, &namelen);
+    assert(status == 0);
+    ip = inet_ntoa(name.sin_addr);
+    uint16_t port = ntohs(name.sin_port);
+    assert(!strcmp(ip, "127.0.0.1"));
+    assert(port == 7777);
+    printf("getsockname() %s:%hu\n", ip, port);
+
     close(fd);
 
     return NULL;

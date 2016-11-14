@@ -76,6 +76,8 @@ int main()
     assert((result == -1) && (errno == ENOENT));
     result = access(BAD_PATH, 0);
     assert((result == -1) && (errno == ENOENT));
+    result = eaccess(BAD_PATH, 0);
+    assert((result == -1) && (errno == ENOENT));
     result = chdir(BAD_PATH);
     assert((result == -1) && (errno == ENOENT));
     result = getrlimit(0, NULL);

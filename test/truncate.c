@@ -27,6 +27,7 @@ int main()
     assert(sb.st_size == 1);
 
     write(fd, str, strlen(str));
+    pwrite(fd, str, strlen(str), 0);
     close(fd);
     chmod(PATH, S_IRUSR | S_IWUSR);
     stat(PATH, &sb);

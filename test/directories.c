@@ -66,6 +66,9 @@ int main()
     assert(result == 0);
     result = access(DIR_B, R_OK);
     assert(result == 0);
+    result = eaccess(DIR_B, R_OK);
+    assert(result == 0);
+
     struct stat sb;
     result = lstat(DIR_B, &sb);
     assert(result == 0);
