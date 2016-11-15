@@ -37,6 +37,7 @@
 #include "util.h"
 
 extern pid_t __sys_getpid();
+extern pid_t __sys_getppid();
 
 extern int
 _pthread_create(pthread_t * thread, const pthread_attr_t * attr,
@@ -426,6 +427,32 @@ __rr_getpid()
     return pid;
 }
 
+pid_t
+__rr_getppid()
+{
+    pid_t pid;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return __sys_getppid();
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	pid = __sys_getppid();
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_GETPPID;
+	e->value[0] = (uint64_t)pid;
+	RRLog_Append(rrlog, e);
+    } else {
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_GETPPID);	
+	pid = (pid_t)e->value[0];
+	RRPlay_Free(rrlog, e);
+    }
+
+    return pid;
+}
+
 /*
  * Will remove this function and replace is it with wait4/6 through the 
  * interposing table once pidmap is checked in.
@@ -474,6 +501,7 @@ __strong_reference(__rr_exit, _exit);
 __strong_reference(_pthread_mutex_lock, pthread_mutex_lock);
 
 BIND_REF(getpid);
+BIND_REF(getppid);
 BIND_REF(wait);
 BIND_REF(fork);
 
