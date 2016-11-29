@@ -55,6 +55,7 @@ typedef struct RRLog {
     uint64_t numThreads;			    // Max number of threads
     uint64_t numEvents;				    // Max number of events
     RRLogThreadInfo threadInfo[RRLOG_MAX_THREADS];
+    atomic_uintptr_t sysvmap;
 } RRLog;
 
 #define ROUNDUP(_x, _n) ((_x + _n - 1) & ~(_n - 1))

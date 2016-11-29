@@ -32,6 +32,8 @@ RRLog_Init(RRLog *rrlog, uint32_t numEvents)
     for (int i = 0; i < RRLOG_MAX_THREADS; i++) {
 	rrlog->threadInfo[i].offset = 0;
     }
+
+    rrlog->sysvmap = 0;
 }
 
 static inline RRLogEntry *

@@ -101,6 +101,7 @@ AssertOutput(RRLogEntry *e, uint64_t hash, uint8_t *buf, size_t nbytes)
 	SYSERROR("Event #%lu, Thread #%d", e->eventId, e->threadId);
 	SYSERROR("NextEvent #%lu, LastEvent #%lu",
 			rrlog->nextEvent, rrlog->lastEvent);
+	Debug_LogHex((char *)buf, nbytes);
 	PANIC();
     }
 }

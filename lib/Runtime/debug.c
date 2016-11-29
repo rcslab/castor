@@ -112,6 +112,32 @@ Debug_Log(int level, const char *fmt, ...)
     SystemWrite(STDERR_FILENO, buf, strlen(buf));
 }
 
+void Debug_LogHex(char *buf, size_t len)
+{
+    size_t off;
+    char hbuf[128];
+    size_t bufoff = 0;
+
+    for (off = 0; off < len;) {
+	for (size_t i = 0; i < 16 && off+i < len; i++) {
+	    rr_snprintf(hbuf + bufoff, 128UL - bufoff, "%02X ", buf[off + i]);
+	    bufoff += 3;
+	}
+
+	hbuf[bufoff] = '|';
+	bufoff++;
+	for (size_t i = 0; i < 16 && off < len; i++) {
+	    rr_snprintf(hbuf + bufoff, 128UL - bufoff, "%c", buf[off]);
+	    bufoff += 1;
+	    off += 1;
+	}
+	hbuf[bufoff] = '|';
+	bufoff++;
+
+	Debug_Log(LEVEL_LOG, "%s\n", buf);
+    }
+}
+
 void Debug_Sighandler(int signum)
 {
     const size_t MAX_FRAMES = 128;
