@@ -314,6 +314,32 @@ __rr_read(int fd, void *buf, size_t nbytes)
     return result;
 }
 
+int
+__rr_getcwd(char * buf, size_t size)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS___getcwd, buf, size);
+	case RRMODE_RECORD:
+	    result = syscall(SYS___getcwd, buf, size);
+	    RRRecordI(RREVENT_GETCWD, result);
+	    if (result == 0) {
+		logData((uint8_t*)buf, size);
+	    }
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_GETCWD, &result);
+	    if (result == 0) {
+		logData((uint8_t*)buf, size);
+	    }
+	    break;
+    }
+
+    return result;
+}
+
 ssize_t
 __rr_write(int fd, const void *buf, size_t nbytes)
 {
@@ -1509,6 +1535,8 @@ __strong_reference(__rr_read, _read);
 __strong_reference(__rr_write, _write);
 __strong_reference(__rr_close, _close);
 __strong_reference(__rr_fcntl, _fcntl);
+
+__strong_reference(__rr_getcwd, __getcwd);
 
 BIND_REF(stat);
 BIND_REF(openat);
