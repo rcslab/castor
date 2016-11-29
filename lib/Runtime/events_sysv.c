@@ -12,6 +12,9 @@
 
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <sys/sem.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
@@ -72,6 +75,7 @@ sysv_insert(int key, int val)
 	int exp = 0;
 	if (atomic_compare_exchange_strong(&sysvdesc->entries[i].val, &exp, val)) {
 	    atomic_store(&sysvdesc->entries[i].key, key);
+	    return;
 	}
     }
 }
@@ -87,11 +91,15 @@ sysv_lookup(int key)
 	}
     }
 
+    assert(false);
     return -1;
 }
 
 extern int __sys_shmget(key_t key, size_t size, int flag);
 extern void *__sys_shmat(int shmid, const void *addr, int flag);
+extern int __sys_semget(key_t key, int nsems, int flag);
+extern int __sys_semop(int semid, struct sembuf *array, size_t nops);
+extern int __sys___semctl(int semid, int semnum, int cmd, union semun *arg);
 
 /*
  * XXX: Several sources of nondeterminism left in shmget/shmat/shmdt/shmctl 
@@ -103,7 +111,6 @@ shmget(key_t key, size_t size, int flag)
 {
     int result = 0;
     RRLogEntry *e;
-
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
@@ -151,4 +158,110 @@ shmat(int shmid, const void *addr, int flag)
 	}
     }
 }
+
+int
+semget(key_t key, int nsems, int flag)
+{
+    int result = 0;
+    RRLogEntry *e;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return __sys_semget(key, nsems, flag);
+	case RRMODE_RECORD:
+	    result = __sys_semget(key, nsems, flag);
+	    e = RRLog_Alloc(rrlog, threadId);
+	    e->event = RREVENT_SEMGET;
+	    e->objectId = (uint64_t)result;
+	    if (result == -1) {
+		e->value[1] = (uint64_t)errno;
+	    }
+	    RRLog_Append(rrlog, e);
+	    break;
+	case RRMODE_REPLAY:
+	    e = RRPlay_Dequeue(rrlog, threadId);
+	    AssertEvent(e, RREVENT_SEMGET);
+	    if ((int)e->objectId == -1) {
+		errno = e->value[1];
+	    } else {
+		result = __sys_semget(key, nsems, flag);
+		sysv_insert(e->objectId, result);
+	    }
+	    result = e->objectId;
+	    RRPlay_Free(rrlog, e);
+	    break;
+    }
+
+    return result;
+}
+
+int
+semop(int semid, struct sembuf *array, size_t nops)
+{
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	case RRMODE_RECORD:
+	    return __sys_semop(semid, array, nops);
+	case RRMODE_REPLAY: {
+	    int rSemid = sysv_lookup(semid);
+	    return __sys_semop(rSemid, array, nops);
+	}
+    }
+}
+
+int
+__rr___semctl(int semid, int semnum, int cmd, union semun *arg)
+{
+    int result;
+    RRLogEntry *e;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return __sys___semctl(semid, semnum, cmd, arg);
+	case RRMODE_RECORD:
+	    Mutex_Lock(&rrlog->sysvlck);
+	    e = RRLog_Alloc(rrlog, threadId);
+	    result = __sys___semctl(semid, semnum, cmd, arg);
+	    e->event = RREVENT_SEMCTL;
+	    e->objectId = (uint64_t)semid;
+	    RRLog_Append(rrlog, e);
+	    Mutex_Unlock(&rrlog->sysvlck);
+	    break;
+	case RRMODE_REPLAY: {
+	    Mutex_Lock(&rrlog->sysvlck);
+	    e = RRPlay_Dequeue(rrlog, threadId);
+	    int rSemid = sysv_lookup(semid);
+	    result = __sys___semctl(rSemid, semnum, cmd, arg);
+	    AssertEvent(e, RREVENT_SEMCTL);
+	    RRPlay_Free(rrlog, e);
+	    Mutex_Unlock(&rrlog->sysvlck);
+	    break;
+	}
+    }
+
+    return result;
+}
+
+int
+__rr_semctl(int semid, int semnum, int cmd, ...)
+{
+	va_list ap;
+	union semun s;
+	union semun *ptr;
+
+	va_start(ap, cmd);
+	if ((cmd == IPC_SET) || (cmd == IPC_STAT) || (cmd == GETALL) ||
+	    (cmd == SETVAL) || (cmd == SETALL)) {
+		s = va_arg(ap, union semun);
+		ptr = &s;
+	} else {
+		ptr = NULL;
+	}
+	va_end(ap);
+
+	return __rr___semctl(semid, semnum, cmd, ptr);
+}
+
+__strong_reference(__rr___semctl, __semctl);
+__strong_reference(__rr_semctl, semctl);
 

@@ -33,7 +33,9 @@ RRLog_Init(RRLog *rrlog, uint32_t numEvents)
 	rrlog->threadInfo[i].offset = 0;
     }
 
+    // System V
     rrlog->sysvmap = 0;
+    Mutex_Init(&rrlog->sysvlck);
 }
 
 static inline RRLogEntry *

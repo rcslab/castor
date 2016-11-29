@@ -7,6 +7,10 @@
 #include <stdint.h>
 #include <stdatomic.h>
 #include <string.h>
+#include <stdlib.h>
+
+#include "debug.h"
+#include "mtx.h"
 
 enum RRMODE {
     RRMODE_NORMAL, // Normal
@@ -56,6 +60,7 @@ typedef struct RRLog {
     uint64_t numEvents;				    // Max number of events
     RRLogThreadInfo threadInfo[RRLOG_MAX_THREADS];
     atomic_uintptr_t sysvmap;
+    Mutex sysvlck;
 } RRLog;
 
 #define ROUNDUP(_x, _n) ((_x + _n - 1) & ~(_n - 1))
