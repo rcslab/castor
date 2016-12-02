@@ -135,6 +135,11 @@ for t in tests:
 
 if len(failed) != 0:
     print str(len(failed)) + " tests failed"
+    print "Cleaning any left over System V shared memory segments."
+    t = subprocess.Popen(["ipcrm", "-W"],
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+    t.wait()
 
 sys.exit(len(failed))
 

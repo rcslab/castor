@@ -72,7 +72,7 @@ int main()
     struct stat sb;
     result = lstat(DIR_B, &sb);
     assert(result == 0);
-    unlink(DIR_A);
-    unlink(DIR_B);
+    rmdir(DIR_B);
+
     return 0;
 }

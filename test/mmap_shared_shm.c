@@ -28,7 +28,9 @@ int main(int argc, const char *argv[])
     p = fork();
     assert(p != -1);
 
+    // XXX: Hack until we deal with the uncovered fork issue
     printf("forking\n");
+
     // Test fd mmap
     fd = shm_open(TESTFILE, O_CREAT|O_RDWR, 0600);
     assert(fd != -1);
