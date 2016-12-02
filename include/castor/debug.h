@@ -75,6 +75,7 @@ int Debug_Init(const char *logPath);
 	    abort(); \
 	} \
     } while (0)
+#define NOT_IMPLEMENTED() ASSERT_IMPLEMENTED(false)
 
 #endif /* __CASTOR_DEBUG_H__ */
 

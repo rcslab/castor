@@ -52,6 +52,7 @@
 #include <castor/mtx.h>
 #include <castor/events.h>
 
+#include "fdinfo.h"
 #include "util.h"
 
 extern void *__sys_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
@@ -59,7 +60,6 @@ extern interpos_func_t __libc_interposing[] __hidden;
 extern int __sys_pipe(int fildes[2]);
 extern int __sys_dup2(int oldd, int newd);
 extern int __sys_close(int fd);
-
 
 extern void LogDone();
 
@@ -236,6 +236,9 @@ __rr_open(const char *path, int flags, ...)
 	    break;
 	case RRMODE_REPLAY:
 	    RRReplayI(RREVENT_OPEN, &result);
+	    if (result != -1) {
+		FDInfo_OpenFile(result, path, flags, mode);
+	    }
 	    break;
     }
 
@@ -282,6 +285,7 @@ __rr_close(int fd)
 	    break;
 	case RRMODE_REPLAY:
 	    RRReplayI(RREVENT_CLOSE, &result);
+	    FDInfo_Close(fd);
 	    break;
     }
 
@@ -899,6 +903,9 @@ __rr_ftruncate(int fd, off_t length)
 	    break;
 	case RRMODE_REPLAY:
 	    RRReplayI(RREVENT_FTRUNCATE, &result);
+	    if (result == 0) {
+		FDInfo_FTruncate(fd, length);
+	    }
 	    break;
     }
 
@@ -1495,6 +1502,7 @@ __rr_dup2(int oldd, int newd)
 	    break;
 	case RRMODE_REPLAY:
 	    RRReplayOI(RREVENT_DUP2, oldd, &result);
+	    // XXX: FDINFO
 	    break;
     }
 
@@ -1515,6 +1523,7 @@ __rr_dup(int oldd)
 	    break;
 	case RRMODE_REPLAY:
 	    RRReplayOI(RREVENT_DUP, oldd, &result);
+	    // XXX: FDINFO
 	    break;
     }
 
@@ -1587,3 +1596,4 @@ BIND_REF(dup2);
 BIND_REF(dup);
 BIND_REF(pipe);
 BIND_REF(pwrite);
+
