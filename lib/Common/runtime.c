@@ -345,6 +345,63 @@ DumpLog()
 }
 
 void
+dumpEntryDebug(RRLogEntry *entry)
+{
+    int i;
+    const char *evtStr = "UNKNOWN";
+
+    for (i = 0; rreventTable[i].str != 0; i++) {
+	if (rreventTable[i].evtid == entry->event) {
+	    evtStr = rreventTable[i].str;
+	    break;
+	}
+    }
+
+    LOG("%016ld  %08x  %-16s  %016lx  %016lx  %016lx  %016lx  %016lx  %016lx",
+	    entry->eventId, entry->threadId, evtStr, entry->objectId,
+	    entry->value[0], entry->value[1], entry->value[2],
+	    entry->value[3], entry->value[4]);
+}
+
+void
+DumpLogDebug()
+{
+    uint64_t len;
+    RRLogEntry *entry;
+
+    LOG("Next Event: %08ld", rrlog->nextEvent);
+    LOG("Last Event: %08ld", rrlog->lastEvent);
+
+    for (uint32_t i = 0; i < RRLOG_MAX_THREADS; i++) {
+	RRLogThread *rrthr = RRShared_LookupThread(rrlog, i);
+	if (RRShared_ThreadPresent(rrlog, i)) {
+	    LOG("Thread %02d:", i);
+	    LOG("  Offsets Free: %02ld Used: %02ld",
+		    rrthr->freeOff, rrthr->usedOff);
+	    LOG("  Status: %016lx", rrthr->status);
+	    for (uint64_t i = 0; i < rrlog->numEvents; i++) {
+		dumpEntryDebug((RRLogEntry *)&rrthr->entries[i]);
+	    }
+	}
+    }
+
+    LOG("GlobalQueue:");
+    LOG("%-16s  %-8s  %-16s  %-16s  %-16s  %-16s  %-16s  %-16s  %-16s",
+	    "Event #", "Thread #", "Event", "Object ID",
+	    "Value[0]", "Value[1]", "Value[2]", "Value[3]", "Value[4]");
+
+    len = RRGlobalQueue_Length(&rrgq);
+    if (len > 32)
+	len = 32;
+
+    entry = RRGlobalQueue_Dequeue(&rrgq, &len);
+    LOG("Head: %08ld Tail: %08ld", rrgq.head, rrgq.tail);
+    for (uint64_t i = 0; i < len; i++) {
+	dumpEntryDebug(&entry[i]);
+    }
+}
+
+void
 SignalCloseLog(int sig)
 {
     int status;

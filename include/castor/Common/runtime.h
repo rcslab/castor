@@ -8,6 +8,7 @@ void RecordLog();
 void ReplayLog();
 int QueueOne();
 void DumpLog();
+void DumpLogDebug();
 
 #endif /* __CASTOR_RUNTIME_H__ */
 

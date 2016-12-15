@@ -121,11 +121,11 @@ main(int argc, char *argv[])
 	wait(&status);
 	if (WIFSIGNALED(status)) {
 	    WARNING("Child exited unexpectedly: %08x", WTERMSIG(status));
+	    DumpLogDebug();
 	    exit(1);
 	}
 
 	LogDone();
-
 
 	// XXX: Handle forking programs better especially background ones
 

@@ -109,6 +109,7 @@ main(int argc, char *argv[])
 	}
 	if (WIFSIGNALED(status)) {
 	    WARNING("Child exited unexpectedly: %08x", WTERMSIG(status));
+	    DumpLogDebug();
 	    exit(1);
 	}
     }
