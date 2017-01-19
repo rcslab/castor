@@ -14,11 +14,12 @@
 
 #include <castor/debug.h>
 #include <castor/rrlog.h>
-#include "ft.h"
+#include <castor/Common/ft.h>
 
 #define RRFT_PORT	8051
 
 int rrsock = -1;
+extern bool ftMode;
 
 void
 RRFT_InitMaster()
@@ -63,14 +64,19 @@ RRFT_InitMaster()
     char handshake[8];
 
     memcpy(&handshake, "RRFTSRVR", 8);
+    uint64_t start = __builtin_readcyclecounter();
     write(rrsock, &handshake, 8);
     read(rrsock, &handshake, 8);
+    uint64_t stop = __builtin_readcyclecounter();
     if (memcmp(&handshake, "RRFTCLNT", 8) != 0) {
 	fprintf(stderr, "Handshake failed!\n");
 	abort();
     }
 
-    // XXX: Report RTT
+    // Report RTT
+    fprintf(stderr, "RTT = %lu\n", (stop-start));
+
+    ftMode = true;
 }
 
 void
@@ -105,6 +111,8 @@ RRFT_InitSlave(const char *hostname)
     write(rrsock, &handshake, 8);
 
     // XXX: Report RTT
+
+    ftMode = true;
 }
 
 void

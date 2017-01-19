@@ -105,6 +105,7 @@ SConscript("#build/tools/rrlog/SConstruct")
 SConscript("#build/tools/record/SConstruct")
 SConscript("#build/tools/replay/SConstruct")
 SConscript("#build/tools/baseline/SConstruct")
+SConscript("#build/tools/cft/SConstruct")
 
 cp = env.Command("#lib/Pass/libCastorPass.so",
             [ "lib/Pass/CastorPass.cc", "lib/Pass/CastorPass.h",
