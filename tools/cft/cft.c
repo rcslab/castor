@@ -99,8 +99,10 @@ main(int argc, char *argv[])
     setenv("CASTOR_SHMPATH", logfile, 1);
 
     if (master) {
+	setenv("CASTOR_MODE", "RECORD", 1);
 	RRFT_InitMaster();
     } else {
+	setenv("CASTOR_MODE", "REPLAY", 1);
 	RRFT_InitSlave(host);
     }
 

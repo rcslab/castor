@@ -11,6 +11,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netdb.h>
+#include <err.h>
 
 #include <castor/debug.h>
 #include <castor/rrlog.h>
@@ -82,21 +84,36 @@ RRFT_InitMaster()
 void
 RRFT_InitSlave(const char *hostname)
 {
-    struct sockaddr_in srvaddr;
+    int status;
+    struct addrinfo hints, *res, *res0;
 
-    rrsock = socket(AF_INET, SOCK_STREAM, 0);
-    if (rrsock < 0) {
-	PERROR("socket");
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+    status = getaddrinfo(hostname, "8051", &hints, &res0);
+    if (status) {
+	errx(1, "%s", gai_strerror(status));
     }
 
-    // XXX: gethostbyname
+    rrsock = -1;
+    for (res = res0; res; res = res->ai_next) {
+	rrsock = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+	if (rrsock < 0) {
+	    PERROR("socket");
+	}
 
-    srvaddr.sin_family = AF_INET;
-    srvaddr.sin_addr.s_addr = INADDR_ANY;
-    srvaddr.sin_port = htons(RRFT_PORT);
+	if (connect(rrsock, res->ai_addr, res->ai_addrlen) < 0) {
+	    PERROR("connect");
+	}
 
-    if (connect(rrsock, (struct sockaddr *)&srvaddr, sizeof(srvaddr)) < 0) {
-	PERROR("connect");
+	break;
+    }
+    freeaddrinfo(res0);
+
+    if (rrsock == -1) {
+	fprintf(stderr, "Couldn't connect to host!\n");
+	abort();
     }
 
     // Handshake
