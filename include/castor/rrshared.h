@@ -50,7 +50,10 @@ typedef struct RRLogThreadInfo {
     atomic_uintptr_t				offset; // Offset to RRLogThread struct
 } RRLogThreadInfo;
 
+#define RRLOG_MAGIC		0x436173746f724654
+
 typedef struct RRLog {
+    uint64_t magic;				    // Magic
     alignas(CACHELINE) volatile uint64_t nextEvent; // Next event to be read
     alignas(CACHELINE) volatile uint64_t lastEvent; // Last event to be allocated
     alignas(CACHELINE) atomic_uintptr_t freePtr;    // Next Free Region (4KB aligned)

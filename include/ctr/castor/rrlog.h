@@ -22,6 +22,7 @@ RRLog_Init(RRLog *rrlog, uint32_t numEvents)
 {
     assert((uintptr_t)rrlog % PAGESIZE == 0);
 
+    rrlog->magic = RRLOG_MAGIC;
     rrlog->nextEvent = 1;
     rrlog->lastEvent = 0;
     atomic_init(&rrlog->freePtr, ROUNDUP(sizeof(*rrlog), PAGESIZE));
