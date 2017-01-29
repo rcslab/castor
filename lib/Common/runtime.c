@@ -79,7 +79,7 @@ void *
 DrainQueue(void *arg)
 {
     uint64_t procs = 1;
-#if !defined(CASTOR_CTR)
+#if !(defined(CASTOR_CTR) || defined(CASTOR_TSC))
     uint64_t i = 0;
 #endif
 
@@ -88,11 +88,11 @@ DrainQueue(void *arg)
     while (1) {
 	RRLogEntry *entry = NULL;
 
-#if defined(CASTOR_CTR)
+#if defined(CASTOR_CTR) || defined(CASTOR_TSC)
 	do {
 	    entry = RRLog_Dequeue(rrlog);
 	} while (entry == NULL);
-#elif defined(CASTOR_TSC) || defined(CASTOR_TSX)
+#elif defined(CASTOR_TSX)
 
 #if defined(CASTOR_FT)
 	do {
