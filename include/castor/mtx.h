@@ -6,8 +6,8 @@
 #include <pthread_np.h>
 
 typedef struct Mutex {
-    alignas(CACHELINE) _Atomic(uint64_t)	lck;
-    _Atomic(uint64_t)				thr;
+    alignas(CACHELINE) atomic_uintptr_t		lck;
+    atomic_uintptr_t				thr;
 } Mutex;
 
 Mutex m;
@@ -15,40 +15,40 @@ Mutex m;
 static inline void
 Mutex_Init(Mutex *m)
 {
-    atomic_store(&m->lck, 0);
-    atomic_store(&m->thr, 0);
+    atomic_store(&m->lck, 0UL);
+    atomic_store(&m->thr, 0UL);
 }
 
 static inline void
 Mutex_Lock(Mutex *m)
 {
-    uint64_t tid = (uint64_t)pthread_getthreadid_np();
+    uintptr_t tid = (uintptr_t)pthread_getthreadid_np();
 
     ASSERT(tid != 0);
 
     if (atomic_load(&m->thr) == tid) {
-	atomic_fetch_add(&m->lck, 1);
+	atomic_fetch_add(&m->lck, 1UL);
 	return;
     }
 
-    uint64_t exp = 0;
+    uintptr_t exp = 0;
     while (!atomic_compare_exchange_strong(&m->thr, &exp, tid)) {
 	__asm__ volatile("pause\n");
 	exp = 0;
     }
-    atomic_fetch_add(&m->lck, 1);
+    atomic_fetch_add(&m->lck, 1UL);
 }
 
 static inline void
 Mutex_Unlock(Mutex *m)
 {
-    uint64_t tid = (uint64_t)pthread_getthreadid_np();
+    uintptr_t tid = (uintptr_t)pthread_getthreadid_np();
 
-    ASSERT(atomic_load(&m->lck) > 0);
+    ASSERT(atomic_load(&m->lck) > 0UL);
     ASSERT(atomic_load(&m->thr) == tid);
 
-    if (atomic_fetch_sub(&m->lck, 1) == 1)
-	atomic_store(&m->thr, 0);
+    if (atomic_fetch_sub(&m->lck, 1UL) == 1UL)
+	atomic_store(&m->thr, 0UL);
 }
 
 #endif /* __CASTOR_MTX_H__ */

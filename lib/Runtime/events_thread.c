@@ -93,7 +93,6 @@ pthread_create(pthread_t * thread, const pthread_attr_t * attr,
 	e->value[1] = thrNo;
 	RRLog_Append(rrlog, e);
 
-
 	threadState[thrNo].start = start_routine;
 	threadState[thrNo].arg = arg;
 
@@ -184,6 +183,7 @@ _pthread_mutex_lock(pthread_mutex_t *mtx)
 	    e->event = RREVENT_MUTEX_LOCK;
 	    e->objectId = (uint64_t)mtx;
 	    e->value[0] = (uint64_t)result;
+	    e->value[4] = __builtin_readcyclecounter();
 	    RRLog_LAppend(e);
 	    break;
 	}
@@ -281,6 +281,7 @@ pthread_mutex_unlock(pthread_mutex_t *mtx)
 	    e->event = RREVENT_MUTEX_UNLOCK;
 	    e->objectId = (uint64_t)mtx;
 	    e->value[0] = (uint64_t)result;
+	    e->value[4] = __builtin_readcyclecounter();
 	    RRLog_Append(rrlog, e);
 	    break;
 	}

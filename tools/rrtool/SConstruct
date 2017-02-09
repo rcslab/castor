@@ -1,0 +1,11 @@
+
+Import('env')
+
+src = [
+    "rrtool.cc"
+]
+
+env.Program("rrtool", src,
+            LIBPATH = ["#build/lib/Common"],
+            LIBS = ["CastorCommon", "execinfo", "c++"])
+

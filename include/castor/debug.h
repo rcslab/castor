@@ -2,12 +2,20 @@
 #ifndef __CASTOR_DEBUG_H__
 #define __CASTOR_DEBUG_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void Debug_PrintBacktrace();
 void Debug_LogBacktrace();
 void Debug_Log(int level, const char *fmt, ...)
     __attribute__((format(printf, 2, 3)));
 void Debug_LogHex(char *buf, size_t len);
 int Debug_Init(const char *logPath);
+
+#ifdef __cplusplus
+};
+#endif
 
 #define LEVEL_SYS       0 /* Assert/Panic/Abort/NotImplemented */
 #define LEVEL_ERR       1 /* Error */

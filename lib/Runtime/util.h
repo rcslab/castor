@@ -38,6 +38,7 @@ RRLog_LEnter(uint32_t threadId, uint64_t objId)
     RRLogEntry *e = RRLog_Alloc(rrlog, threadId);
     e->event = RREVENT_LOCKED_EVENT;
     e->objectId = objId;
+    e->value[4] = __builtin_readcyclecounter();
     Mutex_Lock(GETLOCK(objId));
     RRLog_Append(rrlog, e);
 }
