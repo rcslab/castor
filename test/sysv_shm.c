@@ -19,7 +19,7 @@ int main(int argc, const char *argv[])
     key_t shmkey;
     void *region = NULL;
 
-    shmkey = ftok("sysv.c", 0);
+    shmkey = ftok("sysv_shm.c", 0);
     if (shmkey == -1) {
 	perror("ftok");
 	assert(false);
