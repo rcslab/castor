@@ -224,6 +224,9 @@ __rr___semctl(int semid, int semnum, int cmd, union semun *arg)
 	    result = __sys___semctl(semid, semnum, cmd, arg);
 	    e->event = RREVENT_SEMCTL;
 	    e->objectId = (uint64_t)semid;
+	    if (cmd == GETPID) {
+		e->value[0] = (uint64_t)result;
+	    }
 	    RRLog_Append(rrlog, e);
 	    Mutex_Unlock(&rrlog->sysvlck);
 	    break;
@@ -231,7 +234,11 @@ __rr___semctl(int semid, int semnum, int cmd, union semun *arg)
 	    Mutex_Lock(&rrlog->sysvlck);
 	    e = RRPlay_Dequeue(rrlog, threadId);
 	    int rSemid = sysv_lookup(semid);
-	    result = __sys___semctl(rSemid, semnum, cmd, arg);
+	    if (cmd == GETPID) {
+		result = (int) e->value[0];
+	    } else {
+		result = __sys___semctl(rSemid, semnum, cmd, arg);
+	    }
 	    AssertEvent(e, RREVENT_SEMCTL);
 	    RRPlay_Free(rrlog, e);
 	    Mutex_Unlock(&rrlog->sysvlck);
