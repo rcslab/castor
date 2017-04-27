@@ -33,6 +33,7 @@ scons sysroot       Build sysroot
 scons llvm          Build llvm
 scons install       Install castor
 scons testbench     Run tests
+scons perfbench     Run performance tests
 scons compiledb     Compile Database
 scons check         Clang tidy checker
 scons tags          Ctags\n""")
