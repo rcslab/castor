@@ -12,7 +12,7 @@ def generate(env, **kwargs):
                 for x in j:
                     fn = x["file"]
                     print env.subst(env['CLANGCHECK_COMSTR'], source = fn)
-                    result = os.system(env["CLANGTIDY"]+" "+fn)
+                    result = os.system(env["CLANGTIDY"]+" -header-filter=.\* "+fn)
             except IOError as e:
                 return
 
