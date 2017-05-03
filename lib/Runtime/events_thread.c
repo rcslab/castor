@@ -48,6 +48,7 @@ extern int _pthread_mutex_trylock(pthread_mutex_t *mutex);
 extern int __pthread_mutex_lock(pthread_mutex_t *mutex);
 extern int _pthread_mutex_unlock(pthread_mutex_t *mutex);
 extern int _pthread_mutex_destroy(pthread_mutex_t *mutex);
+extern int _pthread_once(pthread_once_t *once_control, void (*init_routine)(void));
 
 extern void LogDone();
 
@@ -303,6 +304,45 @@ pthread_mutex_unlock(pthread_mutex_t *mtx)
 	 *     break;
 	 * }
 	 */
+    }
+
+    return result;
+}
+
+int
+pthread_once(pthread_once_t *once_control, void (*init_routine)(void))
+{
+    int result = 0;
+    RRLogEntry *e;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL: {
+	    result = _pthread_once(once_control, init_routine);
+	    break;
+	}
+	case RRMODE_RECORD: {
+	    RRLog_LEnter(threadId, (uint64_t)once_control);
+
+	    result = _pthread_once(once_control, init_routine);
+
+	    e = RRLog_LAlloc(threadId);
+	    e->event = RREVENT_THREAD_ONCE;
+	    e->objectId = (uint64_t)once_control;
+	    e->value[0] = (uint64_t)result;
+	    RRLog_LAppend(e);
+	    break;
+	}
+	case RRMODE_REPLAY: {
+	    RRPlay_LEnter(threadId, (uint64_t)once_control);
+
+	    result = _pthread_once(once_control, init_routine);
+
+	    e = RRPlay_LDequeue(threadId);
+	    AssertEvent(e, RREVENT_THREAD_ONCE);
+	    // ASSERT result = e->value[0];
+	    RRPlay_LFree(e);
+	    break;
+	}
     }
 
     return result;

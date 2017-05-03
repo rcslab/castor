@@ -153,11 +153,9 @@ void
 processStats(RRLogEntry *entry)
 {
     int i;
-    const char *evtStr;
 
     for (i = 0; rreventTable[i].str != 0; i++) {
 	if (rreventTable[i].evtid == entry->event) {
-	    evtStr = rreventTable[i].str;
 	    rreventTable[i].count++;
 	    break;
 	}
@@ -198,13 +196,15 @@ int main(int argc, const char *argv[])
 	fprintf(stderr, "Usage: %s TOOL [LOGFILE]\n", argv[0]);
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Tools:\n");
-	fprintf(stderr, "    rank    Lock ranking\n");
+	//fprintf(stderr, "    rank    Lock ranking\n");
 	fprintf(stderr, "    wait    Wait times for locks\n");
 	fprintf(stderr, "    stats   Event statistics\n");
 	return 1;
     }
 
     if (strcmp(argv[1], "rank") == 0) {
+	fprintf(stderr, "Unsupported!\n");
+	return 1;
     } else if (strcmp(argv[1], "wait") == 0) {
 	init = &initWait;
 	process = &processWait;
@@ -224,7 +224,7 @@ int main(int argc, const char *argv[])
 	return 1;
     }
 
-    initStats();
+    init();
 
     while (1) {
 	int result = read(logfd, (void *)&entry, sizeof(entry));
