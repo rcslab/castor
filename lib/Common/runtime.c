@@ -396,7 +396,7 @@ DumpLogDebug()
 
     entry = RRGlobalQueue_Dequeue(&rrgq, &len);
     LOG("Head: %08ld Tail: %08ld", rrgq.head, rrgq.tail);
-    for (uint64_t i = 0; i < len; i++) {
+    for (uint64_t i = 0; i < len && i < 128; i++) {
 	dumpEntryDebug(&entry[i]);
     }
 }

@@ -1,0 +1,13 @@
+if [ "$1" == "-h" ]
+	then
+	echo "Shows which syscalls implemented by Castor don't have tests yet."
+	exit 1
+fi
+
+./supported | while read line
+do
+	if ! grep -q $line ../../test/*.c
+		then
+    	echo $line
+	fi
+done

@@ -12,7 +12,7 @@
 
 #include <castor/rr_debug.h>
 
-#define TESTFILE "/mmap_shared_sharedregion"
+char TESTFILE[64];
 #define TESTSIZE (1024*1024)
 
 int main(int argc, const char *argv[])
@@ -22,6 +22,8 @@ int main(int argc, const char *argv[])
     void *buf;
     atomic_int *i;
     pid_t p;
+
+    snprintf(TESTFILE, sizeof(TESTFILE), "/mmap_shared_sharedregion.%d.%d", getuid(), getpid());
 
     printf("forking\n");
 

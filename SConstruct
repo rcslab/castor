@@ -15,10 +15,13 @@ opts.AddVariables(
     ("NUMCPUS", "Number of CPUs to use for build (0 means auto)", "0"),
     ("CLANGTIDY", "Clang Tidy", "clang-tidy39"),
     ("CTAGS", "Ctags", "exctags"),
+    EnumVariable("CLANGSAN", "Clang/LLVM Sanitizer", "", ["", "address", "thread", "leak"]),
     ("CASTORPASS", "Castor LLVM IR Pass", "lib/Pass/libCastorPass.so"),
     EnumVariable("VERBOSE", "Show full build information", "0", ["0", "1"]),
     EnumVariable("RR", "R/R Type", "ctr", ["ctr", "tsc", "tsx"]),
-    EnumVariable("CFG", "R/R Log Config", "ft", ["ft", "dbg", "snap"])
+    EnumVariable("CFG", "R/R Log Config", "ft", ["ft", "dbg", "snap"]),
+    PathVariable("PREFIX", "Installation target directory", "/usr/local", PathVariable.PathAccept),
+    PathVariable("DESTDIR", "Root directory", "", PathVariable.PathAccept)
 )
 
 env = Environment(options = opts,
@@ -28,7 +31,9 @@ Help("""TARGETS:
 scons               Build castor
 scons sysroot       Build sysroot
 scons llvm          Build llvm
+scons install       Install castor
 scons testbench     Run tests
+scons perfbench     Run performance tests
 scons compiledb     Compile Database
 scons check         Clang tidy checker
 scons tags          Ctags\n""")
@@ -63,6 +68,10 @@ env.Append(CXXFLAGS = ["-std=c++11"])
 env.Append(CFLAGS = ["-std=c11"])
 env.Append(CPPFLAGS = ["-Wall", "-Wsign-compare", "-Wsign-conversion",
                        "-Wcast-align", "-Werror", "-g", "-O2"])
+
+if (env["CLANGSAN"] != ""):
+    env.Append(CPPFLAGS = ["-fsanitize=" + env["CLANGSAN"]])
+    env.Append(LINKFLAGS = ["-fsanitize=" + env["CLANGSAN"]])
 
 if (env["BUILDTYPE"] == "DEBUG"):
     env.Append(CPPFLAGS = ["-DCASTOR_DEBUG"])
@@ -132,4 +141,17 @@ if ("check" in BUILD_TARGETS):
 if ("tags" in BUILD_TARGETS):
     env.Command("tags", ["lib", "include", "tools"],
                               '$CTAGS -R -f $TARGET $SOURCES')
+
+# Install
+env.Install('$DESTDIR$PREFIX/bin','build/tools/record/record')
+env.Install('$DESTDIR$PREFIX/bin','build/tools/replay/replay')
+env.Install('$DESTDIR$PREFIX/bin','build/tools/rrlog/rrlog')
+env.Install('$DESTDIR$PREFIX/bin','build/tools/rrtool/rrtool')
+env.Install('$DESTDIR$PREFIX/lib','build/lib/Runtime/libCastorRuntime.o')
+env.Install('$DESTDIR$PREFIX/lib','build/lib/Common/libCastorCommon.a')
+env.Install('$DESTDIR$PREFIX/lib','build/lib/Pass/libCastorPass.so')
+env.Install('$DESTDIR$PREFIX/include','include/castor')
+env.Install('$DESTDIR$PREFIX/include/castor','include/' + env['RR'] + '/castor/rrlog.h')
+env.Install('$DESTDIR$PREFIX/include/castor','include/' + env['RR'] + '/castor/rrplay.h')
+env.Alias('install','$DESTDIR$PREFIX')
 
