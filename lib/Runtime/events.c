@@ -479,10 +479,10 @@ __rr_fcntl(int fd, int cmd, ...)
 {
     int result;
     va_list ap;
-    int arg;
+    int64_t arg;
 
     va_start(ap, cmd);
-    arg = va_arg(ap, int);
+    arg = va_arg(ap, int64_t);
     va_end(ap);
 
     switch (rrMode) {
