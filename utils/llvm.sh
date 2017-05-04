@@ -1,6 +1,6 @@
 #!/bin/csh -e
 
-set LLVMVER="3.9.0"
+set LLVMVER="3.9.1"
 set LLVM_SRC=llvm-$LLVMVER.src
 set CFE_SRC=cfe-$LLVMVER.src
 
