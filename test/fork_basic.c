@@ -19,14 +19,15 @@ int main(int argc, const char *argv[])
 
     if (pid == 0) {
 	printf("Child %d!\n", getpid());
+    printf("Parent of child %d!\n", getppid());
     } else {
 	int status;
 	pid_t cpid;
 
 	printf("Parent %d!\n", getpid());
+    printf("Parent of parent %d!\n", getppid());
 	cpid = wait(&status);
 	assert(cpid == pid);
 	printf("Child Wait: %d Status: %d\n", cpid, status);
     }
 }
-
