@@ -39,16 +39,22 @@
 extern pid_t __sys_getpid();
 extern pid_t __sys_getppid();
 
-extern int
-_pthread_create(pthread_t * thread, const pthread_attr_t * attr,
+extern int _pthread_create(pthread_t * thread, const pthread_attr_t * attr,
 	       void *(*start_routine) (void *), void *arg);
-extern int
-_pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr);
+
+extern int _pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr);
 extern int _pthread_mutex_trylock(pthread_mutex_t *mutex);
 extern int __pthread_mutex_lock(pthread_mutex_t *mutex);
 extern int _pthread_mutex_unlock(pthread_mutex_t *mutex);
 extern int _pthread_mutex_destroy(pthread_mutex_t *mutex);
 extern int _pthread_once(pthread_once_t *once_control, void (*init_routine)(void));
+
+extern int _pthread_cond_init(pthread_cond_t *cond, const pthread_condattr_t *attr);
+extern int _pthread_cond_destroy(pthread_cond_t *cond);
+extern int _pthread_cond_broadcast(pthread_cond_t *cond);
+extern int _pthread_cond_signal(pthread_cond_t *cond);
+extern int _pthread_cond_wait(pthread_cond_t *, pthread_mutex_t *mutex);
+
 
 extern void LogDone();
 
@@ -116,6 +122,160 @@ pthread_create(pthread_t * thread, const pthread_attr_t * attr,
 
     return result;
 }
+
+
+int
+pthread_cond_init(pthread_cond_t *cond, const pthread_condattr_t *attr)
+{
+    RRLogEntry *e;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    break;
+	case RRMODE_RECORD:
+	    e = RRLog_Alloc(rrlog, threadId);
+	    e->event = RREVENT_COND_INIT;
+	    e->objectId = (uint64_t)cond;
+	    RRLog_Append(rrlog, e);
+	    break;
+	case RRMODE_REPLAY:
+	    e = RRPlay_Dequeue(rrlog, threadId);
+	    AssertEvent(e, RREVENT_COND_INIT);
+	    RRPlay_Free(rrlog, e);
+	    break;
+    }
+    return _pthread_cond_init(cond, attr);
+}
+
+int
+pthread_cond_destroy(pthread_cond_t *cond)
+{
+    RRLogEntry *e;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    break;
+	case RRMODE_RECORD:
+	    e = RRLog_Alloc(rrlog, threadId);
+	    e->event = RREVENT_COND_DESTROY;
+	    e->objectId = (uint64_t)cond;
+	    RRLog_Append(rrlog, e);
+	    break;
+	case RRMODE_REPLAY:
+	    e = RRPlay_Dequeue(rrlog, threadId);
+	    AssertEvent(e, RREVENT_COND_DESTROY);
+	    RRPlay_Free(rrlog, e);
+	    break;
+    }
+    return _pthread_cond_destroy(cond);
+}
+
+
+int
+pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
+{
+    int result = 0;
+    RRLogEntry *e;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL: {
+	    result = _pthread_cond_wait(cond, mutex);
+	    break;
+	}
+	case RRMODE_RECORD: {
+	    e = RRLog_Alloc(rrlog, threadId);
+	    e->event = RREVENT_COND_WAIT;
+	    e->objectId = (uint64_t)cond;
+	    RRLog_Append(rrlog, e);
+	    result = _pthread_cond_wait(cond, mutex);
+	    e = RRLog_Alloc(rrlog, threadId);
+	    e->event = RREVENT_COND_WAIT;
+	    e->objectId = (uint64_t)cond;
+	    e->value[0] = (uint64_t)result;
+	    RRLog_Append(rrlog, e);
+	    break;
+	}
+	case RRMODE_REPLAY: {
+	    e = RRPlay_Dequeue(rrlog, threadId);
+	    AssertEvent(e, RREVENT_COND_WAIT);
+	    _pthread_mutex_unlock(mutex);
+	    RRPlay_Free(rrlog, e);
+	    e = RRPlay_Dequeue(rrlog, threadId);
+	    result = (int)e->value[0];
+	    AssertEvent(e, RREVENT_COND_WAIT);
+	    __pthread_mutex_lock(mutex);
+	    RRPlay_Free(rrlog, e);
+	    break;
+	}
+    }
+
+    return result;
+}
+
+int
+pthread_cond_signal(pthread_cond_t *cond)
+{
+    int result = 0;
+    RRLogEntry *e;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL: {
+	    result = _pthread_cond_signal(cond);
+	    break;
+	}
+	case RRMODE_RECORD: {
+	    result = _pthread_cond_signal(cond);
+	    e = RRLog_Alloc(rrlog, threadId);
+	    e->event = RREVENT_COND_SIGNAL;
+	    e->objectId = (uint64_t)cond;
+	    e->value[0] = (uint64_t)result;
+	    RRLog_Append(rrlog, e);
+	    break;
+	}
+	case RRMODE_REPLAY: {
+	    e = RRPlay_Dequeue(rrlog, threadId);
+	    AssertEvent(e, RREVENT_COND_SIGNAL);
+	    result = (int)e->value[0];
+	    RRPlay_Free(rrlog, e);
+	    break;
+	}
+    }
+
+    return result;
+}
+
+int
+pthread_cond_broadcast(pthread_cond_t *cond)
+{
+    int result = 0;
+    RRLogEntry *e;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL: {
+	    result = _pthread_cond_broadcast(cond);
+	    break;
+	}
+	case RRMODE_RECORD: {
+	    result = _pthread_cond_broadcast(cond);
+	    e = RRLog_Alloc(rrlog, threadId);
+	    e->event = RREVENT_COND_BROADCAST;
+	    e->objectId = (uint64_t)cond;
+	    e->value[0] = (uint64_t)result;
+	    RRLog_Append(rrlog, e);
+	    break;
+	}
+	case RRMODE_REPLAY: {
+	    e = RRPlay_Dequeue(rrlog, threadId);
+	    AssertEvent(e, RREVENT_COND_BROADCAST);
+	    result = (int)e->value[0];
+	    RRPlay_Free(rrlog, e);
+	    break;
+	}
+    }
+
+    return result;
+}
+
 
 int
 pthread_mutex_init(pthread_mutex_t *mtx, const pthread_mutexattr_t *attr)
@@ -460,7 +620,7 @@ __rr_getpid()
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
-	AssertEvent(e, RREVENT_GETPID);	
+	AssertEvent(e, RREVENT_GETPID);
 	pid = (pid_t)e->value[0];
 	RRPlay_Free(rrlog, e);
     }
@@ -486,7 +646,7 @@ __rr_getppid()
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
-	AssertEvent(e, RREVENT_GETPPID);	
+	AssertEvent(e, RREVENT_GETPPID);
 	pid = (pid_t)e->value[0];
 	RRPlay_Free(rrlog, e);
     }
@@ -495,7 +655,7 @@ __rr_getppid()
 }
 
 /*
- * Will remove this function and replace is it with wait4/6 through the 
+ * Will remove this function and replace is it with wait4/6 through the
  * interposing table once pidmap is checked in.
  */
 pid_t
@@ -524,7 +684,7 @@ __rr_wait(int *status)
 	// XXX: Use waitpid to wait for the correct child
 	__sys_wait4(WAIT_ANY, NULL, 0, NULL);
 	e = RRPlay_Dequeue(rrlog, threadId);
-	AssertEvent(e, RREVENT_WAIT);	
+	AssertEvent(e, RREVENT_WAIT);
 	pid = (int)e->value[0];
 	if (pid == -1) {
 	    errno = (int)e->value[1];
