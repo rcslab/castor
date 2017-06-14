@@ -91,7 +91,8 @@ sysv_lookup(int key)
 	}
     }
 
-    assert(false);
+    DLOG("sysv_lookup(%d) was unable to find key.", key);
+    errno = ENOENT;
     return -1;
 }
 
