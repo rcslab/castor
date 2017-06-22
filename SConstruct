@@ -132,6 +132,7 @@ SConscript("#build/perf/SConstruct")
 
 AlwaysBuild(Alias('sysroot', "", "utils/sysroot.sh"))
 AlwaysBuild(Alias('llvm', "", "utils/llvm.sh"))
+AlwaysBuild(Alias('rebuild-llvm', "", "cd llvm/build && cmake --build ."))
 
 compileDb = env.Alias("compiledb", env.CompilationDatabase('compile_commands.json'))
 if ("check" in BUILD_TARGETS):

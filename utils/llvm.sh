@@ -25,9 +25,18 @@ mv $LLVM_SRC $BASE/llvm
 mv $CFE_SRC $BASE/llvm/tools/clang
 
 cd $BASE/llvm
-mkdir build
+if (! -e build ) then
+  mkdir build
+endif
+
+if (! -e $BASE/../compiler-rt ) then
+  echo "Unable to find compiler-rt repository, not building custom runtime!!!"
+else
+  ln -s $BASE/../compiler-rt $BASE/llvm/projects/compiler-rt
+endif
+
 cd build
-cmake ../
+cmake -G Ninja -DLLVM_TARGETS_TO_BUILD=X86 ../
 cmake --build .
 
 echo "LLVM Build Complete"
