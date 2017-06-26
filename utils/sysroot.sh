@@ -14,7 +14,7 @@ if ( ! -d $BASE/sysroot-src ) then
     cp -r /usr/src $BASE/sysroot-src
 
     cd $BASE/sysroot-src/lib
-    patch -p1 < $BASE/tools/patches/libthr.diff
+    patch -p1 < $BASE/utils/patches/libthr.diff
 endif
 
 cd $BASE/sysroot-src
