@@ -7,7 +7,7 @@ Requirements:
 
 1. Install necessary dependencies
 
-# pkg install git python scons llvm39 ninja
+# pkg install git python scons llvm39 ninja cmake
 
 NOTE: If clang39 --version does not match 3.9.1 on your system then you need to 
 update util/llvm.sh to match your version before proceeding.
