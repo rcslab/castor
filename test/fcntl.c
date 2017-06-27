@@ -38,7 +38,7 @@ int main(int argc, const char *argv[])
     printf("FD_CLOEXEC = %d\n", result);
 
 
-    fd2 = fcntl(fd, F_DUPFD);
+    fd2 = fcntl(fd, F_DUPFD, fd);
     if (fd2 == -1) {
         close(fd);
         close(fd2);
@@ -49,7 +49,7 @@ int main(int argc, const char *argv[])
     result = close(fd2);
     assert(result == 0);
 
-    fd2 = fcntl(fd, F_DUPFD_CLOEXEC);
+    fd2 = fcntl(fd, F_DUPFD_CLOEXEC, fd);
     if (fd2 == -1) {
         close(fd);
         close(fd2);
