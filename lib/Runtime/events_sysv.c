@@ -86,13 +86,13 @@ sysv_lookup(int key)
     sysv_alloc();
 
     for (int i = 0; i < SYSV_MAX_ENTRIES; i++) {
-	if (atomic_load(&sysvdesc->entries[i].key) == key) {
+      if (atomic_load(&sysvdesc->entries[i].key) == key) {
 	    return atomic_load(&sysvdesc->entries[i].val);
 	}
     }
 
     DLOG("sysv_lookup(%d) was unable to find key.", key);
-    errno = ENOENT;
+    errno = EINVAL;
     return -1;
 }
 

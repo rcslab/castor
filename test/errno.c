@@ -58,7 +58,7 @@ int main()
     result = select(-1, 0, 0, 0, 0);                assert((result == -1) && (errno == EINVAL));
     result = sendmsg(BAD_FD, NULL, 0);              assert((result == -1) && (errno == EFAULT));
     result = sendto(BAD_FD, 0, 0, 0, 0, 0);         assert((result == -1) && (errno == EBADF));
-    result = semctl(-1, 0, GETPID, 0);              assert((result == -1) && (errno == EINVAL));
+    result = semctl(-1, 0, GETPID);                 assert((result == -1) && (errno == EINVAL));
     result = semget(-1, 0, 0);                      assert((result == -1) && (errno == ENOENT));
     result = semop(-1, NULL, 0);                    assert((result == -1) && (errno == EINVAL));
     result = setegid(BAD_ID);                       assert((result == -1) && (errno == EPERM));
