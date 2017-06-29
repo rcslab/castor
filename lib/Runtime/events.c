@@ -292,6 +292,26 @@ __rr_close(int fd)
     return result;
 }
 
+int
+__rr_shutdown(int s, int how)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+            return syscall(SYS_shutdown, s, how);
+	case RRMODE_RECORD:
+            result = syscall(SYS_shutdown, s, how);
+	    RRRecordOI(RREVENT_SHUTDOWN, s, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_SHUTDOWN, &result);
+	    break;
+    }
+
+    return result;
+}
+
 ssize_t
 __rr_read(int fd, void *buf, size_t nbytes)
 {
@@ -317,6 +337,38 @@ __rr_read(int fd, void *buf, size_t nbytes)
 
     return result;
 }
+
+ssize_t
+__rr_readv(int fd, const struct iovec *iov, int iovcnt)
+{
+    ssize_t result;
+    switch (rrMode) {
+        case RRMODE_NORMAL:
+            return syscall(SYS_readv, fd, iov, iovcnt);
+        case RRMODE_RECORD:
+            result = syscall(SYS_readv, fd, iov, iovcnt);
+            RRRecordOS(RREVENT_READV, fd, result);
+            if (result != -1) {
+              logData((uint8_t*)iov, (size_t) iovcnt * sizeof(struct iovec)); 
+                for (int i = 0; i < iovcnt; i++) {
+                    logData((uint8_t*)iov[i].iov_base, iov[i].iov_len);
+	        }
+	    }
+            break;
+        case RRMODE_REPLAY:
+            RRReplayOS(RREVENT_READV, fd, &result);
+            if (result != -1) {
+              logData((uint8_t*)iov, (size_t) iovcnt * sizeof(struct iovec)); 
+                for (int i = 0; i < iovcnt; i++) {
+                    logData((uint8_t*)iov[i].iov_base, iov[i].iov_len);
+	        }
+            }
+            break;
+    }
+
+    return result;
+}
+
 
 int
 __rr_getcwd(char * buf, size_t size)
@@ -383,6 +435,54 @@ __rr_write(int fd, const void *buf, size_t nbytes)
 	result = (ssize_t)e->value[0];
 	if (result != -1) {
 	    AssertOutput(e, e->value[1], (uint8_t *)buf, nbytes);
+	} else {
+	    errno = (int)e->value[2];
+	}
+	RRPlay_Free(rrlog, e);
+    }
+
+    return result;
+}
+
+ssize_t
+__rr_writev(int fd, const struct iovec *iov, int iovcnt)
+{
+    ssize_t result;
+    RRLogEntry *e;
+
+    if (rrMode == RRMODE_NORMAL) {
+	return syscall(SYS_writev, fd, iov, iovcnt);
+    }
+
+    if (rrMode == RRMODE_RECORD) {
+	result = syscall(SYS_writev, fd, iov, iovcnt);
+
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_WRITEV;
+	e->objectId = (uint64_t)fd;
+	e->value[0] = (uint64_t)result;
+	if (result != -1) {
+          e->value[1] = hashData((uint8_t *)iov, (size_t) iovcnt * sizeof(struct iovec));
+	} else {
+	    e->value[2] = (uint64_t)errno;
+	}
+	RRLog_Append(rrlog, e);
+    } else {
+	/*
+	 * We should only write the same number of bytes as we did during 
+	 * recording.  The output divergence test is more conservative than it 
+	 * needs to be.  We can assert only on bytes actually written out.
+	 */
+	if (fd == STDOUT_FILENO || fd == STDERR_FILENO) {
+	    // Print console output
+	    syscall(SYS_writev, fd, iov, iovcnt);
+	}
+
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_WRITEV);
+	result = (ssize_t)e->value[0];
+	if (result != -1) {
+          AssertOutput(e, e->value[1], (uint8_t *)iov, (size_t) iovcnt * sizeof(struct iovec));
 	} else {
 	    errno = (int)e->value[2];
 	}
@@ -1604,4 +1704,6 @@ BIND_REF(dup2);
 BIND_REF(dup);
 BIND_REF(pipe);
 BIND_REF(pwrite);
-
+BIND_REF(readv);
+BIND_REF(writev);
+BIND_REF(shutdown);

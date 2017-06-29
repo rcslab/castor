@@ -70,8 +70,11 @@ server(void *arg)
     assert(port == 7777);
     printf("getsockname() %s:%hu\n", ip, port);
 
+    char buf[3];
+    assert(read(fd, buf, 3) == 3);
+    printf("TEST: %s", buf);
+    assert(shutdown(fd, SHUT_RD) == 0);
     close(fd);
-
     return NULL;
 }
 
@@ -102,7 +105,8 @@ client(void *arg)
 	perror("connect");
     }
     assert(status >= 0);
-
+    assert(write(fd, "A\n",3) == 3);
+    assert(shutdown(fd, SHUT_WR) == 0);
     close(fd);
 
     return NULL;
