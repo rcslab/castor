@@ -299,14 +299,14 @@ __rr_shutdown(int s, int how)
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-            return syscall(SYS_shutdown, s, how);
+        return syscall(SYS_shutdown, s, how);
 	case RRMODE_RECORD:
-            result = syscall(SYS_shutdown, s, how);
+        result = syscall(SYS_shutdown, s, how);
 	    RRRecordOI(RREVENT_SHUTDOWN, s, result);
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_SHUTDOWN, &result);
-	    break;
+        RRReplayI(RREVENT_SHUTDOWN, &result);
+        break;
     }
 
     return result;
@@ -482,7 +482,7 @@ __rr_writev(int fd, const struct iovec *iov, int iovcnt)
 	AssertEvent(e, RREVENT_WRITEV);
 	result = (ssize_t)e->value[0];
 	if (result != -1) {
-          AssertOutput(e, e->value[1], (uint8_t *)iov, (size_t) iovcnt * sizeof(struct iovec));
+      AssertOutput(e, e->value[1], (uint8_t *)iov, (size_t) iovcnt * sizeof(struct iovec));
 	} else {
 	    errno = (int)e->value[2];
 	}
@@ -1522,11 +1522,12 @@ ssize_t
 __rr_recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *
 	restrict from, socklen_t * restrict fromlen)
 {
+    
     ssize_t result;
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-	    return syscall(SYS_recvfrom, s, buf, len, flags, from, fromlen);
+        return syscall(SYS_recvfrom, s, buf, len, flags, from, fromlen);
 	case RRMODE_RECORD:
 	    result = syscall(SYS_recvfrom, s, buf, len, flags, from, fromlen);
 	    RRRecordOS(RREVENT_RECVFROM, s, result);
@@ -1646,6 +1647,17 @@ Events_Init()
     __libc_interposing[INTERPOS_openat] = (interpos_func_t)&__rr_openat;
     __libc_interposing[INTERPOS_close] = (interpos_func_t)&__rr_close;
     __libc_interposing[INTERPOS_fcntl] = (interpos_func_t)&__rr_fcntl;
+    __libc_interposing[INTERPOS_recvfrom] = (interpos_func_t)&__rr_recvfrom;
+	__libc_interposing[INTERPOS_accept] = (interpos_func_t)&__rr_accept;
+	__libc_interposing[INTERPOS_connect] = (interpos_func_t)&__rr_connect;
+	__libc_interposing[INTERPOS_fcntl] = (interpos_func_t)&__rr_fcntl;
+	__libc_interposing[INTERPOS_poll] = (interpos_func_t)&__rr_poll;
+	__libc_interposing[INTERPOS_readv] = (interpos_func_t)&__rr_readv;
+	__libc_interposing[INTERPOS_recvmsg] = (interpos_func_t)&__rr_recvmsg;
+	__libc_interposing[INTERPOS_select] = (interpos_func_t)&__rr_select;
+	__libc_interposing[INTERPOS_sendmsg] = (interpos_func_t)&__rr_sendmsg;
+	__libc_interposing[INTERPOS_sendto] = (interpos_func_t)&__rr_sendto;
+	__libc_interposing[INTERPOS_writev] = (interpos_func_t)&__rr_writev;
 }
 
 __strong_reference(__rr_read, _read);

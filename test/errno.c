@@ -39,10 +39,8 @@ int main()
     result = fsync(BAD_FD);                         assert((result == -1) && (errno == EBADF));
     result = ftruncate(BAD_FD, 0);                  assert((result == -1) && (errno == EBADF));
     result = getpeername(BAD_FD, NULL, NULL);       assert((result == -1) && (errno == EFAULT));
-    result = getpeername(BAD_FD, NULL, NULL);       assert((result == -1) && (errno == EFAULT));
     result = getrlimit(0, NULL);                    assert((result == -1) && (errno == EFAULT));
     result = getrusage(0, NULL);                    assert((result == -1) && (errno == EFAULT));
-    result = getsockname(BAD_FD, NULL, NULL);       assert((result == -1) && (errno == EFAULT));
     result = getsockname(BAD_FD, NULL, NULL);       assert((result == -1) && (errno == EFAULT));
     result = getsockopt(BAD_FD, 0, 0, NULL, NULL);  assert((result == -1) && (errno == EBADF));
     result = link(BAD_PATH, BAD_PATH);              assert((result == -1) && (errno == ENOENT));
