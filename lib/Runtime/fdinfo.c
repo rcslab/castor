@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <sys/syscall.h>
 
 #include <castor/debug.h>
 
@@ -78,7 +79,7 @@ FDInfo_FTruncate(int fd, off_t length)
 
     switch (FDInfo_GetType(fd)) {
 	case FDTYPE_SHM:
-	    status = __sys_ftruncate(FDInfo_GetFD(fd), length);
+	    status = syscall(SYS_ftruncate, FDInfo_GetFD(fd), length);
 	    ASSERT_IMPLEMENTED(status != -1);
 	    break;
 	default:

@@ -56,7 +56,6 @@
 #include "util.h"
 
 extern void *__sys_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
-extern interpos_func_t __libc_interposing[] __hidden;
 extern int __sys_pipe(int fildes[2]);
 extern int __sys_dup2(int oldd, int newd);
 extern int __sys_close(int fd);
@@ -1639,25 +1638,31 @@ __rr_dup(int oldd)
     return result;
 }
 
+void Add_Interposer(int slotNum, interpos_func_t newHandler)
+{
+    interpos_func_t * slotP = __libc_interposing_slot(slotNum);
+    *slotP = (int (*)(void)) newHandler;
+}
+
 void
 Events_Init()
 {
-    __libc_interposing[INTERPOS_read] = (interpos_func_t)&__rr_read;
-    __libc_interposing[INTERPOS_write] = (interpos_func_t)&__rr_write;
-    __libc_interposing[INTERPOS_openat] = (interpos_func_t)&__rr_openat;
-    __libc_interposing[INTERPOS_close] = (interpos_func_t)&__rr_close;
-    __libc_interposing[INTERPOS_fcntl] = (interpos_func_t)&__rr_fcntl;
-    __libc_interposing[INTERPOS_recvfrom] = (interpos_func_t)&__rr_recvfrom;
-	__libc_interposing[INTERPOS_accept] = (interpos_func_t)&__rr_accept;
-	__libc_interposing[INTERPOS_connect] = (interpos_func_t)&__rr_connect;
-	__libc_interposing[INTERPOS_fcntl] = (interpos_func_t)&__rr_fcntl;
-	__libc_interposing[INTERPOS_poll] = (interpos_func_t)&__rr_poll;
-	__libc_interposing[INTERPOS_readv] = (interpos_func_t)&__rr_readv;
-	__libc_interposing[INTERPOS_recvmsg] = (interpos_func_t)&__rr_recvmsg;
-	__libc_interposing[INTERPOS_select] = (interpos_func_t)&__rr_select;
-	__libc_interposing[INTERPOS_sendmsg] = (interpos_func_t)&__rr_sendmsg;
-	__libc_interposing[INTERPOS_sendto] = (interpos_func_t)&__rr_sendto;
-	__libc_interposing[INTERPOS_writev] = (interpos_func_t)&__rr_writev;
+    Add_Interposer(INTERPOS_read, (interpos_func_t)&__rr_read);
+    Add_Interposer(INTERPOS_write, (interpos_func_t)&__rr_write);
+    Add_Interposer(INTERPOS_openat, (interpos_func_t)&__rr_openat);
+    Add_Interposer(INTERPOS_close, (interpos_func_t)&__rr_close);
+    Add_Interposer(INTERPOS_fcntl, (interpos_func_t)&__rr_fcntl);
+    Add_Interposer(INTERPOS_recvfrom,  (interpos_func_t)&__rr_recvfrom);
+    Add_Interposer(INTERPOS_accept,  (interpos_func_t)&__rr_accept);
+    Add_Interposer(INTERPOS_connect,  (interpos_func_t)&__rr_connect);
+    Add_Interposer(INTERPOS_fcntl,  (interpos_func_t)&__rr_fcntl);
+    Add_Interposer(INTERPOS_poll,  (interpos_func_t)&__rr_poll);
+    Add_Interposer(INTERPOS_readv,  (interpos_func_t)&__rr_readv);
+    Add_Interposer(INTERPOS_recvmsg,  (interpos_func_t)&__rr_recvmsg);
+    Add_Interposer(INTERPOS_select,  (interpos_func_t)&__rr_select);
+    Add_Interposer(INTERPOS_sendmsg,  (interpos_func_t)&__rr_sendmsg);
+    Add_Interposer(INTERPOS_sendto,  (interpos_func_t)&__rr_sendto);
+    Add_Interposer(INTERPOS_writev,  (interpos_func_t)&__rr_writev);
 }
 
 __strong_reference(__rr_read, _read);

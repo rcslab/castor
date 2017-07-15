@@ -510,7 +510,10 @@ pthread_once(pthread_once_t *once_control, void (*init_routine)(void))
 pid_t
 __libc_fork(void)
 {
-	return (((pid_t (*)(void))__libc_interposing[INTERPOS_fork])());
+
+    interpos_func_t * forkP = __libc_interposing_slot(INTERPOS_fork);
+    return (pid_t) (*forkP)();
+
 }
 
 pid_t
@@ -697,9 +700,9 @@ __rr_wait(int *status)
     return pid;
 }
 
-__strong_reference(__rr_exit, _exit);
 __strong_reference(_pthread_mutex_lock, pthread_mutex_lock);
 
+BIND_REF(exit);
 BIND_REF(getpid);
 BIND_REF(getppid);
 BIND_REF(wait);

@@ -34,8 +34,6 @@
 #include "fdinfo.h"
 #include "util.h"
 
-extern void *__sys_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
-
 void *
 __rr_mmap_log(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 {
@@ -43,7 +41,7 @@ __rr_mmap_log(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
     RRLogEntry *e;
 
     if (rrMode == RRMODE_RECORD) {
-	result = __sys_mmap(addr, len, prot, flags, fd, offset);
+	result = (void *)__syscall(SYS_mmap, addr, len, prot, flags, fd, offset);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_MMAPFD;
 	e->value[0] = (uint64_t)result;
@@ -69,8 +67,11 @@ __rr_mmap_log(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 
 	if (result != MAP_FAILED) {
 	    void *origAddr = result;
-	    result = __sys_mmap(origAddr, len, prot | PROT_WRITE, flags | MAP_ANON, -1, 0);
-	    ASSERT_IMPLEMENTED(result != MAP_FAILED);
+	    result = (void *) __syscall(SYS_mmap, origAddr, len, prot | 
+		    PROT_WRITE, flags | MAP_ANON, -1, 0);
+	    if (result == MAP_FAILED) {
+		PERROR(strerror(errno));
+	    }
 	    if (origAddr != result) {
 		WARNING("mmap replay didn't use the same address (%p -> %p)", origAddr, result);
 	    }
@@ -92,7 +93,7 @@ __rr_mmap_shared(void *addr, size_t len, int prot, int flags, int fd, off_t offs
     RRLogEntry *e;
 
     if (rrMode == RRMODE_RECORD) {
-	result = __sys_mmap(addr, len, prot, flags, fd, offset);
+	result = (void *)__syscall(SYS_mmap, addr, len, prot, flags, fd, offset);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_MMAPFD;
 	e->value[0] = (uint64_t)result;
@@ -122,7 +123,7 @@ __rr_mmap_shared(void *addr, size_t len, int prot, int flags, int fd, off_t offs
 
 	if (result != MAP_FAILED) {
 	    void *origAddr = result;
-	    result = __sys_mmap(origAddr, len, prot, flags, realFd, offset);
+	    result = (void *)__syscall(SYS_mmap, origAddr, len, prot, flags, realFd, offset);
 	    ASSERT_IMPLEMENTED(result != MAP_FAILED);
 	    if (origAddr != result) {
 		WARNING("mmap replay didn't use the same address (%p -> %p)", origAddr, result);
@@ -137,7 +138,7 @@ void *
 __rr_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 {
     if (rrMode == RRMODE_NORMAL) {
-	return __sys_mmap(addr, len, prot, flags, fd, offset);
+	return (void *)__syscall(SYS_mmap,addr, len, prot, flags, fd, offset);
     }
 
     /*
@@ -145,7 +146,7 @@ __rr_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
      * modification.
      */
     if (fd == -1) {
-	return __sys_mmap(addr, len, prot, flags, fd, offset);
+	return (void *)__syscall(SYS_mmap,addr, len, prot, flags, fd, offset);
     }
 
     if (flags & MAP_PRIVATE) {

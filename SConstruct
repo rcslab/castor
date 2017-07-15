@@ -26,7 +26,7 @@ opts.AddVariables(
 
 env = Environment(options = opts,
                   tools = ['default', 'compilation_db', 'objectlib',
-                           'clangtidy'])
+                           'clangtidy', 'copytree'])
 Help("""TARGETS:
 scons               Build castor
 scons sysroot       Build sysroot

@@ -30,6 +30,7 @@
 #include "util.h"
 
 extern void Events_Init();
+extern void Time_Init();
 
 static uint64_t logOffset;
 RRLog *rrlog;
@@ -268,6 +269,8 @@ __attribute__((constructor)) void
 log_init()
 {
     int status;
+
+    Time_Init();
 
     char *shmpath = getenv("CASTOR_SHMPATH");
     if (shmpath == NULL) {

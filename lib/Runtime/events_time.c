@@ -15,6 +15,7 @@
 #include <sys/time.h>
 #include <errno.h>
 #include <pthread.h>
+#include <dlfcn.h>
 
 #include <sys/cdefs.h>
 #include <sys/syscall.h>
@@ -30,8 +31,22 @@
 
 #include "util.h"
 
-extern int __vdso_clock_gettime(clockid_t clock_id, struct timespec *tp);
-extern int __vdso_gettimeofday(struct timeval *tv, struct timezone *tz);
+static int (*original_gettimeofday)(struct timeval *tp, struct timezone *tzp) = NULL;
+static int (*original_clock_gettime)(clockid_t clock_id, const struct timespec *tp) = NULL;
+
+void Time_Init()
+{
+    original_gettimeofday =
+	(int (*)(struct timeval *, struct timezone *)) dlfunc(RTLD_NEXT, "gettimeofday");
+    if (original_gettimeofday == NULL) {
+	PERROR(strerror(errno));
+    }
+    original_clock_gettime =
+    (int (*)(clockid_t clock_id, const struct timespec *tp)) dlfunc(RTLD_NEXT, "clock_gettime");
+    if (original_clock_gettime == NULL) {
+	PERROR(strerror(errno));
+    }
+}
 
 int
 __rr_gettimeofday(struct timeval *tp, struct timezone *tzp)
@@ -40,11 +55,11 @@ __rr_gettimeofday(struct timeval *tp, struct timezone *tzp)
     RRLogEntry *e;
 
     if (rrMode == RRMODE_NORMAL) {
-	return __vdso_gettimeofday(tp, tzp);
+	return original_gettimeofday(tp, tzp);
     }
 
     if (rrMode == RRMODE_RECORD) {
-	result =  __vdso_gettimeofday(tp, tzp);
+	result =  original_gettimeofday(tp, tzp);
 
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETTIMEOFDAY;
@@ -92,11 +107,11 @@ __rr_clock_gettime(clockid_t clock_id, struct timespec *tp)
     RRLogEntry *e;
 
     if (rrMode == RRMODE_NORMAL) {
-	return __vdso_clock_gettime(clock_id, tp);
+	return original_clock_gettime(clock_id, tp);
     }
 
     if (rrMode == RRMODE_RECORD) {
-	result = __vdso_clock_gettime(clock_id, tp);
+	result = original_clock_gettime(clock_id, tp);
 
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETTIME;

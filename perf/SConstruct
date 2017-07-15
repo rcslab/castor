@@ -15,12 +15,11 @@ for f in Glob('#perf/*.c'):
     else:
         perfs.append(fn)
 
-perfbench_deps = [ "#build/lib/Runtime/libCastorRuntime.o",
-                   Glob("#perf/*.c") ]
+perfbench_deps = [ "CastorRuntime", "CastorPass", Glob("#perf/*.c") ]
 
 rrperf_env.Append(CPPFLAGS = ["--sysroot=$SYSROOT",
                               "-Xclang", "-load", "-Xclang", "$CASTORPASS"])
-rrperf_env.Append(LINKFLAGS = ["-static", "--sysroot=$SYSROOT"])
+rrperf_env.Append(LINKFLAGS = ["--sysroot=$SYSROOT"])
 rrperf_env.Append(LIBS = ["thr", "c"])
 perf_env.Append(LIBS = ["thr", "c"])
 
@@ -29,8 +28,8 @@ for t in perfs:
     perfbench_deps.append(t)
 
 for t in rrperfs:
-    rrperf_env.Depends(t+".o", "CastorPass")
-    t = rrperf_env.Program(t, [ "../lib/Runtime/libCastorRuntime.o", t+".c"])
+    rrperf_env.Depends(t+".o", ["CastorRuntime", "CastorPass"])
+    t = rrperf_env.Program([t+".c"])
     perfbench_deps.append(t)
 
 AlwaysBuild(Alias('perfbench', perfbench_deps, "perf/perfbench.py"))
