@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include <unistd.h>
 #include <errno.h>
@@ -82,6 +83,13 @@ main(int argc, char *argv[])
     if (pinned) {
 	PinAgent();
     }
+
+	if (access(*argv, X_OK)){
+		perror("access()");
+		fprintf(stderr,"Can't record %s, file doesn't exist or is not accessible.\n", *argv);
+		exit(1);
+    }
+
     if (ft) {
 	fprintf(stderr, "ft not supported");
 	abort();
