@@ -15,7 +15,8 @@ testbench_deps = [ "CastorRuntime",
 
 test_env.Append(CPPFLAGS = ["--sysroot=$SYSROOT",
                             "-Xclang", "-load", "-Xclang", "$CASTORPASS"])
-test_env.Append(LINKFLAGS = ["--sysroot=$SYSROOT"])
+test_env.Append(LINKFLAGS = ["--sysroot=$SYSROOT",
+                             "-Wl,-rpath=${SYSROOT}usr/lib"])
 test_env.Append(LIBS = ["thr", "c"])
 
 for t in tests:
