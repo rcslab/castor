@@ -477,7 +477,6 @@ pthread_once(pthread_once_t *once_control, void (*init_routine)(void))
 	case RRMODE_RECORD: {
 	    RRLog_LEnter(threadId, (uint64_t)once_control);
 	    result = _pthread_once(once_control, init_routine);
-	    
 	    e = RRLog_LAlloc(threadId);
 	    e->event = RREVENT_THREAD_ONCE;
 	    e->objectId = (uint64_t)once_control;
