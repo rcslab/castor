@@ -71,6 +71,10 @@ Debug_Log(int level, const char *fmt, ...)
     char buf[MAX_LOG];
     size_t off;
 
+    // HACK FOR VALGRIND
+    for (int i = 0; i < MAX_LOG; i++)
+	buf[i] = 0;
+
 #if !defined(CASTOR_DEBUG)
     if (level > LEVEL_MSG)
         return;

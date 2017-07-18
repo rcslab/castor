@@ -14,7 +14,6 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <errno.h>
-#include <pthread.h>
 #include <dlfcn.h>
 
 #include <sys/cdefs.h>

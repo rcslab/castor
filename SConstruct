@@ -106,6 +106,7 @@ Export('env')
 
 VariantDir("build/lib", "lib")
 SConscript("#build/lib/Runtime/SConstruct")
+SConscript("#build/lib/ThreadRuntime/SConstruct")
 SConscript("#build/lib/Checkpointing/SConstruct")
 SConscript("#build/lib/Common/SConstruct")
 

@@ -14,7 +14,6 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <pthread.h>
 
 #include <sys/cdefs.h>
 #include <sys/syscall.h>
@@ -46,7 +45,6 @@
 
 #include "util.h"
 
-//XXX: convert
 int
 __rr_getdirentries(int fd, char *buf, int nbytes, long *basep)
 {
@@ -89,7 +87,6 @@ __rr_getdirentries(int fd, char *buf, int nbytes, long *basep)
     return result;
 }
 
-//XXX: convert
 int __rr_sysctl(const int *name, u_int namelen, void *oldp,
 	     size_t *oldlenp, const void *newp, size_t newlen)
 {
@@ -157,7 +154,6 @@ __rr_kqueue()
     return result;
 }
 
-//XXX: convert
 int
 __rr_kevent(int kq, const struct kevent *changelist, int nchanges,
 	struct kevent *eventlist, int nevents,

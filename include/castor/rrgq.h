@@ -27,13 +27,15 @@ RRGlobalQueue_Init(RRGlobalQueue *rrgq)
     rrgq->tail = 0;
 }
 
+extern unsigned int __sleep(unsigned int seconds);
+
 static inline void
 RRGlobalQueue_Append(RRGlobalQueue *rrgq, RRLogEntry *rrentry)
 {
     volatile RRLogEntry *e = &rrgq->entries[rrgq->head % RRGQ_MAX_ENTRIES];
 
     while ((rrgq->head - rrgq->tail) >= (RRGQ_MAX_ENTRIES - 1)) {
-	pthread_yield();
+	__sleep(0);
 	//__asm__ volatile("pause\n");
     }
 

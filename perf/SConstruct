@@ -15,7 +15,10 @@ for f in Glob('#perf/*.c'):
     else:
         perfs.append(fn)
 
-perfbench_deps = [ "CastorRuntime", "CastorPass", Glob("#perf/*.c") ]
+perfbench_deps = [ "CastorRuntime",
+                   "CastorThreadRuntime",
+                   "CastorPass",
+                   Glob("#perf/*.c") ]
 
 rrperf_env.Append(CPPFLAGS = ["--sysroot=$SYSROOT",
                               "-Xclang", "-load", "-Xclang", "$CASTORPASS"])
@@ -28,7 +31,8 @@ for t in perfs:
     perfbench_deps.append(t)
 
 for t in rrperfs:
-    rrperf_env.Depends(t+".o", ["CastorRuntime", "CastorPass"])
+    rrperf_env.Depends(t+".o",
+                       ["CastorRuntime", "CastorThreadRuntime", "CastorPass"])
     t = rrperf_env.Program([t+".c"])
     perfbench_deps.append(t)
 

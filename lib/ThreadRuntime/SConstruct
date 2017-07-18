@@ -1,0 +1,17 @@
+
+Import('env')
+
+src = [
+    "events_thread.c",
+]
+
+# Made global to make compilation_db work
+env["CPPPATH"].append("#sysroot-src/lib/libc/include")
+
+env.ObjectLibrary("libCastorThreadRuntime.o", src)
+env.StaticLibrary("libCastorThreadRuntime.a", "libCastorThreadRuntime.o")
+
+rt = env.CopyFile("$SYSROOT/usr/lib/libCastorThreadRuntime.a",
+                  "#build/lib/ThreadRuntime/libCastorThreadRuntime.a")
+env.Alias("CastorThreadRuntime", rt)
+

@@ -22,8 +22,10 @@ make -j $NCPU xdev XDEV=amd64 XDEV_ARCH=amd64 MAKEOBJDIRPREFIX=$BASE/sysroot-obj
 cd ..
 
 #include Castor runtime at loadtime
-cd $BASE/sysroot-src
+cd $BASE/sysroot
 sed -i .backup 's;(;( /usr/lib/libCastorRuntime.a;' usr/amd64-freebsd/usr/lib/libc.so
+rm usr/amd64-freebsd/usr/lib/libthr.so
+echo "GROUP ( /usr/lib/libCastorThreadRuntime.a /lib/libthr.so.3)" >> usr/amd64-freebsd/usr/lib/libthr.so
 
 echo "SYSROOT Build Complete"
 

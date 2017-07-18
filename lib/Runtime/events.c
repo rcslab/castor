@@ -14,7 +14,6 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <pthread.h>
 
 #include <sys/cdefs.h>
 #include <sys/syscall.h>
@@ -60,9 +59,6 @@ extern int __sys_pipe(int fildes[2]);
 extern int __sys_dup2(int oldd, int newd);
 extern int __sys_close(int fd);
 
-extern void LogDone();
-
-//XXX:convert
 int
 __rr_poll(struct pollfd fds[], nfds_t nfds, int timeout)
 {
@@ -104,7 +100,6 @@ __rr_poll(struct pollfd fds[], nfds_t nfds, int timeout)
     return result;
 }
 
-//XXX: convert
 int
 __rr_getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen)
 {

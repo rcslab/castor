@@ -14,7 +14,6 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <pthread.h>
 
 #include <sys/cdefs.h>
 #include <sys/syscall.h>
