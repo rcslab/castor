@@ -1,0 +1,19 @@
+--BUGS
+    -flaky tests (pthread_cond_broadcast, udp)
+
+--UNIT TESTS TO ADD
+
+--SYSTEM CALLS TO ADD
+pipe2
+faccessat
+sendfile
+
+--CLEANUP
+
+-ensure that Castor symbols are either static or prefixed with __rr_ to prevent
+ namespace pollution.
+
+--Other
+
+
+
