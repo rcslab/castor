@@ -2,6 +2,7 @@
 
 import sys
 import os
+import signal
 import time
 import subprocess
 
@@ -128,6 +129,7 @@ else:
 write("%-32s   %-9s   %-10s %-10s %-10s\n" %
         ("Test", "Status", "Normal", "Record", "Replay"))
 write("------------------------------------------------------------------------------\n")
+os.setpgid(0, 0)
 for t in tests:
     CleanTest(t)
     #BuildTest(t)
@@ -135,6 +137,9 @@ for t in tests:
 
 if len(failed) != 0:
     print str(len(failed)) + " tests failed"
+    print "Killing any left over processes."
+    signal.signal(signal.SIGTERM, signal.SIG_IGN)
+    os.killpg(0, signal.SIGTERM)
     print "Cleaning any left over System V shared memory segments."
     t = subprocess.Popen(["ipcrm", "-W"],
                          stdout=subprocess.PIPE,
