@@ -2,6 +2,37 @@
 import json
 import os
 import multiprocessing
+import sys
+import subprocess
+import StringIO
+
+log = open("build.log", "w")
+
+def myspawn(sh, escape, cmd, args, env):
+    fullCmd = [sh, '-c', ' '.join(args)]
+
+    p = subprocess.Popen(fullCmd, env=env,
+                         stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
+    (stdout, stderr) = p.communicate()
+
+    out = ""
+    if p.returncode == 0:
+        out += ' '.join(args)
+        out += "\n"
+        out += stdout + stderr
+        sys.stdout.write(stdout + stderr)
+        log.write(out)
+    else:
+        out += "----- Build Error -----\n"
+        out += "Command: " + ' '.join(args) + '\n'
+        out += "\nMessages:\n"
+        out += stdout + stderr
+        out += "-----------------------\n"
+        sys.stdout.write(out)
+        log.write(out)
+
+    return p.returncode
 
 opts = Variables('Local.sc')
 opts.AddVariables(
@@ -43,6 +74,7 @@ Help(opts.GenerateHelpText(env))
 env["CC"] = os.getenv("CC") or env["CC"]
 env["CXX"] = os.getenv("CXX") or env["CXX"]
 env["ENV"].update(x for x in os.environ.items() if x[0].startswith("CCC_"))
+env['SPAWN'] = myspawn
 
 if env["VERBOSE"] == "0":
     env["CCCOMSTR"] = "Compiling $SOURCE"
@@ -68,6 +100,9 @@ env.Append(CXXFLAGS = ["-std=c++11"])
 env.Append(CFLAGS = ["-std=c11"])
 env.Append(CPPFLAGS = ["-Wall", "-Wsign-compare", "-Wsign-conversion",
                        "-Wcast-align", "-Werror", "-g", "-O2"])
+
+# Force color output to play well with spawn overload
+env.Append(CPPFLAGS = ["-fcolor-diagnostics"])
 
 if (env["CLANGSAN"] != ""):
     env.Append(CPPFLAGS = ["-fsanitize=" + env["CLANGSAN"]])
