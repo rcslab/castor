@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <signal.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -120,8 +121,9 @@ main(int argc, char *argv[])
 
 	wait(&status);
 	if (WIFSIGNALED(status)) {
-	    WARNING("Child exited unexpectedly: %08x", WTERMSIG(status));
-	    DumpLogDebug();
+	    int signum = WTERMSIG(status);
+	    WARNING("Child exited unexpectedly, recieved: SIG%s - %s",
+		    sys_signame[signum], strsignal(signum));
 	    exit(1);
 	}
 

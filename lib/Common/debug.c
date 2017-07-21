@@ -112,7 +112,6 @@ void Debug_Sighandler(int signum)
 
 int Debug_Init(const char *logPath) {
     signal(SIGSEGV, Debug_Sighandler);
-
     return 0;
 }
 
