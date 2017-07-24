@@ -7,6 +7,8 @@
 pipe2
 faccessat
 sendfile
+fcntl F_SETLK/F_SETLKW/F_GETLK
+flock
 
 --CLEANUP
 
