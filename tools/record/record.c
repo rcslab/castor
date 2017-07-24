@@ -85,12 +85,6 @@ main(int argc, char *argv[])
 	PinAgent();
     }
 
-	if (access(*argv, X_OK)){
-		perror("access()");
-		fprintf(stderr,"Can't record %s, file doesn't exist or is not accessible.\n", *argv);
-		exit(1);
-    }
-
     if (ft) {
 	fprintf(stderr, "ft not supported");
 	abort();
