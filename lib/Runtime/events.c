@@ -1650,7 +1650,6 @@ Events_Init()
     Add_Interposer(INTERPOS_recvfrom,  (interpos_func_t)&__rr_recvfrom);
     Add_Interposer(INTERPOS_accept,  (interpos_func_t)&__rr_accept);
     Add_Interposer(INTERPOS_connect,  (interpos_func_t)&__rr_connect);
-    Add_Interposer(INTERPOS_fcntl,  (interpos_func_t)&__rr_fcntl);
     Add_Interposer(INTERPOS_poll,  (interpos_func_t)&__rr_poll);
     Add_Interposer(INTERPOS_readv,  (interpos_func_t)&__rr_readv);
     Add_Interposer(INTERPOS_recvmsg,  (interpos_func_t)&__rr_recvmsg);
