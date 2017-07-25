@@ -7,10 +7,21 @@
 pipe2
 faccessat
 sendfile
-fcntl F_SETLK/F_SETLKW/F_GETLK
-flock
 
 --CLEANUP
+
+--FIX
+
+-fdInfo not threadsafe.
+
+-currently we don't correctly implement file locking to do this we need to
+    -track the inode associated with an fd with fstat on open
+    -inherit this through dup/dup2/fcntl in fdinfo.
+    -track which inodes are locked through an efficient hash table in
+     the shared memory segment.
+    -correctly log the order of lock events on inodes through fcntl/flock
+    using this.
+
 
 -ensure that Castor symbols are either static or prefixed with __rr_ to prevent
  namespace pollution.
