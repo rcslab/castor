@@ -70,7 +70,7 @@ thrwrapper(void *arg)
 }
 
 /*
- * pthread_create can cause log entries to be out of order because of thread 
+ * XXX: pthread_create can cause log entries to be out of order because of thread 
  * creation.  We should add the go code that prevents log entries in the middle 
  * of the current log entry.
  */

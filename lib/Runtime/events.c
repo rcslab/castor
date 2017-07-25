@@ -583,7 +583,7 @@ __rr_fcntl(int fd, int cmd, ...)
 	case RRMODE_NORMAL:
 	    return syscall(SYS_fcntl, fd, cmd, arg);
 	case RRMODE_RECORD:
-	// TODO: big switch statement to take care of separate flags first
+	// XXX: a big switch statement should take care of separate flags first
 	// categorize flags into normal case or other cases
 	// then have the record/replay switch inside
 	    ASSERT_IMPLEMENTED((cmd == F_GETFL)  || (cmd == F_SETFL) ||
