@@ -585,14 +585,15 @@ __rr_fcntl(int fd, int cmd, ...)
 	case RRMODE_RECORD:
 	// XXX: a big switch statement should take care of separate flags first
 	// categorize flags into normal case or other cases
-	// then have the record/replay switch inside
+	// then have the record/replay switch inside.
 	    ASSERT_IMPLEMENTED((cmd == F_GETFL)  || (cmd == F_SETFL) ||
 			               (cmd == F_GETFD)  || (cmd == F_SETFD) ||
 			               (cmd == F_DUPFD)  || (cmd == F_DUPFD_CLOEXEC) ||
 			               (cmd == F_DUP2FD) || (cmd == F_DUP2FD_CLOEXEC) ||
 			               (cmd == F_GETOWN) || (cmd == F_SETOWN) ||
-			               (cmd == F_RDAHEAD)|| (cmd == F_READAHEAD)
-			       		  );
+			               (cmd == F_RDAHEAD)|| (cmd == F_READAHEAD) ||
+	    //XXX: neither of these are correctly implemented yet, but probably won't break often.
+			               (cmd == F_GETLK)  || (cmd == F_SETLK));
 	    result = syscall(SYS_fcntl, fd, cmd, arg);
 	    RRRecordOI(RREVENT_FCNTL, fd, result);
 	    break;
