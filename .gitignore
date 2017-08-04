@@ -29,3 +29,4 @@ lib/Pass/Makefile
 lib/Pass/cmake_install.cmake
 lib/Pass/libCastorPass.so
 apps
+Local.sc

@@ -37,10 +37,10 @@ def myspawn(sh, escape, cmd, args, env):
 opts = Variables('Local.sc')
 opts.AddVariables(
     EnumVariable("BUILDTYPE", "Build Type", "DEBUG", ["DEBUG", "RELEASE"]),
-    ("CC", "C Compiler", "cc"),
-    ("CXX", "C++ Compiler", "c++"),
+    ("CC", "C Compiler", "clang39"),
+    ("CXX", "C++ Compiler", "clang++39"),
     ("AS", "Assembler", "as"),
-    ("LINK", "Linker", "cc"),
+    ("LINK", "Linker", "clang39"),
     ("AR", "Archiver", "ar"),
     ("RANLIB", "Archiver Indexer", "ranlib"),
     ("NUMCPUS", "Number of CPUs to use for build (0 means auto)", "0"),
@@ -51,6 +51,7 @@ opts.AddVariables(
     EnumVariable("VERBOSE", "Show full build information", "0", ["0", "1"]),
     EnumVariable("RR", "R/R Type", "ctr", ["ctr", "tsc", "tsx"]),
     EnumVariable("CFG", "R/R Log Config", "ft", ["ft", "dbg", "snap"]),
+    EnumVariable("BUILDTYPE", "Type of Build", "DEBUG", ["DEBUG","RELEASE"]),
     PathVariable("PREFIX", "Installation target directory", "/usr/local", PathVariable.PathAccept),
     PathVariable("DESTDIR", "Root directory", "", PathVariable.PathAccept)
 )
