@@ -58,3 +58,32 @@ ln -s $PWD/build/tools/rrlog/rrlog ~/bin/rrlog
 
 ```
 
+## Build Tips
+To see the different build options:
+
+```
+scons -h
+```
+
+To clean up:
+
+```
+scons -c
+````
+
+To create a file to set your own local build defaults.
+
+```
+echo > Local.sc
+```
+
+To create a release build, set the following lines in Local.sc
+
+```
+BUILDTYPE="RELEASE"
+RR="tsx"
+```
+
+
+
+
