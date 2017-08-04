@@ -1,4 +1,7 @@
-# Castor: a low overhead record/replay system for applications
+# Castor: a low overhead application record/replay system.
+
+Note: Castor is currently under development and these instructions are targeted at 
+developers.
 
 ##Requirements
 
@@ -6,6 +9,8 @@ Castor is only supported on FreeBSD 11+ at this time, and has only been tested
 with clang 3.9.1. 
 
 ##Building Castor
+
+Following these steps will allow you to build Castor and run the test suite.
 
 ### 1. Install the packages needed to build Castor
 
@@ -17,38 +22,25 @@ Note: If ```clang39 --version``` does not match 3.9.1 on your system and you sti
 you need to update util/llvm.sh to match your version before proceeding.
 
 
-
-### 2. Configure the build system
-
-Initialize Local.sc with sane defaults:
-
-Recommended settings for Local.sc:
+### 2. Create a sysroot with our patches by running
 
 ```
-	CC="clang39"
-	CXX="clang++39"
-	LINK="clang39"
-	CLANGTIDY="clang-tidy39"
-	PREFIX="/home/<USERNAME>/castor"
+scons sysroot
 ```
 
-### 3. Create a sysroot with our patches by running
-
-    scons sysroot
-
-### 4. Build the compiler
+### 3. Build the compiler
 
 ```
 scons llvm
 ```
 
-### 5. Build the system and associated tests
+### 4. Build the system and associated tests
 
 ```
 scons
 ```
 
-### 6. Run the testsuite
+### 5. Run the testsuite
 
 ```
 scons testbench
@@ -60,8 +52,29 @@ will free up sys V shared memory, and kill any lingering test processes.
 
 ## Installing Castor
 
+You will want to have easy access to the most common Castor commands: *record*,
+*replay*, and *rrlog*, which live under the build directory. I suggest putting 
+symlinks to these somewhere in your path.
 
-Install into a path
+```
+mkdir ~/bin
+ln -s $PWD/build/tools/record/record ~/bin/record
+ln -s $PWD/build/tools/replay/replay ~/bin/replay
+ln -s $PWD/build/tools/rrlog/rrlog ~/bin/rrlog
 
-    # scons install
+```
+
+## Using Castor
+
+XXX: add examples from apps directory here.
+XXX: add explanation of how to build with ASAN.
+
+
+
+
+
+
+
+
+
 
