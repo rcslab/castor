@@ -66,8 +66,6 @@ ln -s $PWD/build/tools/rrlog/rrlog ~/bin/rrlog
 
 ## Using Castor
 
-XXX: add examples from apps directory here.
-XXX: add explanation of how to build with ASAN.
 
 
 
