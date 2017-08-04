@@ -1,8 +1,5 @@
 # Castor: a low overhead application record/replay system.
 
-Note: Castor is currently under development and these instructions are targeted at 
-developers.
-
 ##Requirements
 
 Castor is only supported on FreeBSD 11+ at this time, and has only been tested 
@@ -63,16 +60,4 @@ ln -s $PWD/build/tools/replay/replay ~/bin/replay
 ln -s $PWD/build/tools/rrlog/rrlog ~/bin/rrlog
 
 ```
-
-## Using Castor
-
-
-
-
-
-
-
-
-
-
 
