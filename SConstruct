@@ -62,7 +62,8 @@ env = Environment(options = opts,
 Help("""TARGETS:
 scons               Build castor
 scons sysroot       Build sysroot
-scons llvm          Build llvm
+scons llvm          Grab llvm tar balls, unpack them, build, the whole nine yards.
+scons rebuild-llvm  Incremental rebuild of LLVM, handy if your hacking on the llvm runtime.
 scons install       Install castor
 scons testbench     Run tests
 scons perfbench     Run performance tests
