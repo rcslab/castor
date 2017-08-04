@@ -69,16 +69,12 @@ To clean up:
 
 To create a file to set your own local build defaults.
 
-```
-echo > Local.sc
-```
+    echo > Local.sc
 
 To create a release build, set the following lines in Local.sc
 
-```
-BUILDTYPE="RELEASE"
-RR="tsx"
-```
+    BUILDTYPE="RELEASE"
+    RR="tsx"
 
 
 
