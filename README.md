@@ -49,12 +49,9 @@ will free up sys V shared memory, and kill any lingering test processes.
 
 ## Installing Castor
 
-You will want to have easy access to the most common Castor commands: *record*,
-*replay*, and *rrlog*, which live under the build directory. I suggest putting 
-symlinks to these somewhere in your path.
+Put symlinks to the common Castor commands somewhwere in your path, for example.
 
 ```
-mkdir ~/bin
 ln -s $PWD/build/tools/record/record ~/bin/record
 ln -s $PWD/build/tools/replay/replay ~/bin/replay
 ln -s $PWD/build/tools/rrlog/rrlog ~/bin/rrlog
