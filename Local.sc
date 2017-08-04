@@ -1,0 +1,5 @@
+RR="ctr"
+BUILDTYPE="DEBUG"
+CC="clang39"
+CXX="clang++39"
+LINK="clang39"

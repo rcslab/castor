@@ -8,7 +8,6 @@ compile_commands.json
 rr.shm
 build
 build.log
-Local.sc
 .sconsign.dblite
 sysroot
 sysroot-src
