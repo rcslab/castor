@@ -12,7 +12,7 @@ Following these steps will allow you to build Castor and run the test suite.
 ### 1. Install the packages needed to build Castor
 
 ```
-pkg install git python scons llvm39 ninja cmake
+pkg install git python scons llvm39 ninja cmake bash
 ```
 
 Note: If ```clang39 --version``` does not match 3.9.1 on your system and you still wish to proceed, then
