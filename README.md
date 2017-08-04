@@ -61,15 +61,11 @@ ln -s $PWD/build/tools/rrlog/rrlog ~/bin/rrlog
 ## Build Tips
 To see the different build options:
 
-```
-scons -h
-```
+    scons -h
 
 To clean up:
 
-```
-scons -c
-````
+    scons -c
 
 To create a file to set your own local build defaults.
 
