@@ -54,6 +54,7 @@ sendfile
 
 --BUGS
     -flaky unit tests (pthread_cond_broadcast, udp)
+    - udp consistently failing on my machine (Edward)
     - -lthr works sometime and -lpthread does not, e.g. simple-udp test.
     - output from record when exec fails on program start is pretty gross
       for non-Castor developer humans.
