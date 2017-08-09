@@ -1,5 +1,28 @@
---BUGS
-    -flaky tests (pthread_cond_broadcast, udp)
+Stable Release
+
+Integration tests
+    -write individuals tests
+    -improve test framework with timeouts, error handling, etc. similar to unit and per.
+    -put bugs into bug tracker
+    -finish read me to include integration tests
+
+Unit tests
+    -put bugs into bug tracker
+
+System call survey
+    -improve scripts/put in coding covention/etc. to make it easy to see what
+     has/has not been implemented.
+
+    -implement remaining system calls which are applicable to normal apps.
+
+Usability survey
+
+    -note any rough edges in common tools and add to bug tracker
+
+Documentation
+    -man pages for record.1, replay.1, rrlog.1
+    -add simple example app and add to README
+
 
 --UNIT TESTS TO ADD
 
@@ -28,5 +51,9 @@ sendfile
 
 --Other
 
+
+--BUGS
+    -flaky tests (pthread_cond_broadcast, udp)
+    - -lthr works sometime and -lpthread does not, e.g. simple-udp test.
 
 
