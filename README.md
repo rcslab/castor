@@ -58,6 +58,45 @@ ln -s $PWD/build/tools/rrlog/rrlog ~/bin/rrlog
 
 ```
 
+## Integration Tests
+
+There are a set of test applications in the apps repository, check this out
+into the castor root directory and follow the instructions in the README.
+
+## Using Castor
+
+To record, we use
+    record command
+
+To replay
+    replay command
+
+both take a -o flag, e.g. 
+
+    record -o awesome-log-file.rr ./ls
+
+to specify the name of the log file, if none is given, the logfile is assumed to have the
+name default.rr.
+
+
+
+
+
+## Debugging Tips
+
+The most common form of bug we encounter with Castor is a divergence, which
+occurs when execution differs between record and replay, usually become some
+source of non-determinism has not been correctly logged, often due to
+incorrectly logging a system call. The easiest way to spot such problems is to
+pull up from truss on record and replay side by side using a tool like vimdiff.
+
+
+To examine the contents of the log file for debugging Castor we can use, the rrlog
+command e.g.
+
+    rrlog default.rr
+
+
 ## Build Tips
 To see the different build options:
 
