@@ -65,11 +65,17 @@ into the castor root directory and follow the instructions in the README.
 
 ## Using Castor
 
-To record, we use
+To record:
+
+```
     record command
+```
 
 To replay
+
+```
     replay command
+```
 
 both take a -o flag, e.g. 
 
@@ -78,9 +84,11 @@ both take a -o flag, e.g.
 to specify the name of the log file, if none is given, the logfile is assumed to have the
 name default.rr.
 
+To work properly, the application must have been built using our version of
+clang, and linked with with the appropriate version of libc, libthread, etc.
 
-
-
+To see working examples of how to build an app with our current setup, check out
+the examples in the apps directory.
 
 ## Debugging Tips
 
