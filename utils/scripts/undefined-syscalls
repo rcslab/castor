@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/bin/sh
 if [ -z $1 ]
   then
   echo "Shows undefined symbols that are syscalls."

@@ -36,22 +36,21 @@ def myspawn(sh, escape, cmd, args, env):
 
 opts = Variables('Local.sc')
 opts.AddVariables(
-    EnumVariable("BUILDTYPE", "Build Type", "DEBUG", ["DEBUG", "RELEASE"]),
-    ("CC", "C Compiler", "clang39"),
-    ("CXX", "C++ Compiler", "clang++39"),
+    ("CC", "C Compiler", "llvm/build/bin/clang"),
+    ("CXX", "C++ Compiler", "llvm/build/bin/clang++"),
     ("AS", "Assembler", "as"),
-    ("LINK", "Linker", "clang39"),
+    ("LINK", "Linker", "llvm/build/bin/clang"),
     ("AR", "Archiver", "ar"),
     ("RANLIB", "Archiver Indexer", "ranlib"),
     ("NUMCPUS", "Number of CPUs to use for build (0 means auto)", "0"),
-    ("CLANGTIDY", "Clang Tidy", "clang-tidy39"),
+    ("CLANGTIDY", "Clang Tidy", "clang-tidy40"),
     ("CTAGS", "Ctags", "exctags"),
     EnumVariable("CLANGSAN", "Clang/LLVM Sanitizer", "", ["", "address", "thread", "leak"]),
     ("CASTORPASS", "Castor LLVM IR Pass", "lib/Pass/libCastorPass.so"),
     EnumVariable("VERBOSE", "Show full build information", "0", ["0", "1"]),
+    EnumVariable("BUILDTYPE", "Build Type", "DEBUG", ["DEBUG", "RELEASE"]),
     EnumVariable("RR", "R/R Type", "ctr", ["ctr", "tsc", "tsx"]),
     EnumVariable("CFG", "R/R Log Config", "ft", ["ft", "dbg", "snap"]),
-    EnumVariable("BUILDTYPE", "Type of Build", "DEBUG", ["DEBUG","RELEASE"]),
     PathVariable("PREFIX", "Installation target directory", "/usr/local", PathVariable.PathAccept),
     PathVariable("DESTDIR", "Root directory", "", PathVariable.PathAccept)
 )

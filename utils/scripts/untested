@@ -1,3 +1,5 @@
+#!/bin/sh
+
 if [ "$1" == "-h" ]
 	then
 	echo "Shows which syscalls implemented by Castor don't have tests yet."
