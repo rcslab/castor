@@ -54,12 +54,11 @@ look at which pthread stuff hasn't been implemented.
 -ensure that Castor symbols are either static or prefixed with __rr_ to prevent
  namespace pollution.
 
--gethostbyname calls _pthread_once directly
-    
---Other
+--Completeness
 
 
 --BUGS
+    -gethostbyname calls _pthread_once directly
     -flaky unit tests (network-basic, thread-once, thread-cond-broadcast)
     - -lthr works sometime and -lpthread does not, e.g. simple-udp test.
     - output from record when exec fails on program start is pretty gross
