@@ -1,7 +1,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include </usr/include/semaphore.h>
+#include <semaphore.h>
 
 // for sleep
 #include <unistd.h>
@@ -87,7 +87,7 @@ void *Consumer(void *arg)
 int main()
 {
     pthread_t idP, idC;
-    int index;
+    int64_t index;
 
     sem_init(&shared.full, 0, 0);
     sem_init(&shared.empty, 0, BUFF_SIZE);
@@ -102,8 +102,6 @@ int main()
     {
         pthread_create(&idC, NULL, Consumer, (void*)index);
     }
-
-
 
     pthread_exit(NULL);
 }
