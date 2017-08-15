@@ -56,12 +56,17 @@ look at which pthread stuff hasn't been implemented.
 
 --Completeness
 
-
 --BUGS
     -gethostbyname calls _pthread_once directly
     -flaky unit tests (network-basic, thread-once, thread-cond-broadcast)
     - -lthr works sometime and -lpthread does not, e.g. simple-udp test.
     - output from record when exec fails on program start is pretty gross
       for non-Castor developer humans.
+    -events_posix semaphor stuff not implemented, needed by Python.
+    -can't build shared libraries using current approach
+    /usr/home/talg/repo/rdbg/sysroot/usr/amd64-freebsd/usr/lib/libCastorRuntime.a(libCastorRuntime.o):
+    relocation R_X86_64_32 against `a local symbol' can not be used when making a shared object; recompile with -fPIC
+    /usr/home/talg/repo/rdbg/sysroot/usr/amd64-freebsd/usr/lib/libCastorRuntime.a: could not read symbols: Bad value 
+    clang-3.9: error: linker command failed with exit code 1 (use -v to see invocation)
 
 
