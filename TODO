@@ -26,10 +26,15 @@ Documentation
 
 --UNIT TESTS TO ADD
 
+  -more complicated pthread tests
+    -corner cases for pthread cond variables.
+
 --SYSTEM CALLS TO ADD
 pipe2
 faccessat
 sendfile
+look at which pthread stuff hasn't been implemented.
+
 
 --CLEANUP
 
