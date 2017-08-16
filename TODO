@@ -63,10 +63,12 @@ look at which pthread stuff hasn't been implemented.
     - output from record when exec fails on program start is pretty gross
       for non-Castor developer humans.
     -events_posix semaphor stuff not implemented, needed by Python.
-    -can't build shared libraries using current approach
-    /usr/home/talg/repo/rdbg/sysroot/usr/amd64-freebsd/usr/lib/libCastorRuntime.a(libCastorRuntime.o):
-    relocation R_X86_64_32 against `a local symbol' can not be used when making a shared object; recompile with -fPIC
-    /usr/home/talg/repo/rdbg/sysroot/usr/amd64-freebsd/usr/lib/libCastorRuntime.a: could not read symbols: Bad value 
-    clang-3.9: error: linker command failed with exit code 1 (use -v to see invocation)
 
+    -Python bugs
+	-"import time" causes core dump.
+	-record ./python, replay ./python causes crash.
+	0000cad5859d012f 48465 PANIC: function __rr_mmap_log, file build/lib/Runtime/events_mem.c, line 72
+	0000cad5859d4530 48465 Invalid argument: Invalid argument
+	0000cad5859d5a1e 48465 WARNING: Unable to print backtrace while in Record/Replay mode
+	0000cad5907bd451 48464 WARNING: Child exited unexpectedly, recieved: SIGABRT - Abort trap
 
