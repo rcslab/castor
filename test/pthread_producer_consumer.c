@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <pthread.h>
 
-#define MAX 10000			/* Numbers to produce */
+#define MAX 100			/* Numbers to produce */
 pthread_mutex_t the_mutex;
 pthread_cond_t condc, condp;
 int buffer = 0;
