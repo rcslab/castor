@@ -5,6 +5,10 @@ Import('env')
 
 test_env = env.Clone()
 
+test_env["CC"] = test_env["TESTCC"]
+test_env["CXX"] = test_env["TESTCXX"]
+test_env["LINK"] = test_env["TESTLINK"]
+
 tests = [ ]
 for f in Glob('#test/*.c'):
     tests.append(os.path.basename(f.rstr()[0:-2]))

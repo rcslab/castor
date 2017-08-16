@@ -36,12 +36,15 @@ def myspawn(sh, escape, cmd, args, env):
 
 opts = Variables('Local.sc')
 opts.AddVariables(
-    ("CC", "C Compiler", "llvm/build/bin/clang"),
-    ("CXX", "C++ Compiler", "llvm/build/bin/clang++"),
+    ("CC", "C Compiler", "cc"),
+    ("CXX", "C++ Compiler", "c++"),
     ("AS", "Assembler", "as"),
-    ("LINK", "Linker", "llvm/build/bin/clang"),
+    ("LINK", "Linker", "cc"),
     ("AR", "Archiver", "ar"),
     ("RANLIB", "Archiver Indexer", "ranlib"),
+    ("TESTCC", "C Compiler", "llvm/build/bin/clang"),
+    ("TESTCXX", "C++ Compiler", "llvm/build/bin/clang++"),
+    ("TESTLINK", "Linker", "llvm/build/bin/clang"),
     ("NUMCPUS", "Number of CPUs to use for build (0 means auto)", "0"),
     ("CLANGTIDY", "Clang Tidy", "clang-tidy40"),
     ("CTAGS", "Ctags", "exctags"),
@@ -100,7 +103,7 @@ env.SetOption('num_jobs', GetNumCPUs(env))
 env.Append(CXXFLAGS = ["-std=c++11"])
 env.Append(CFLAGS = ["-std=c11"])
 env.Append(CPPFLAGS = ["-Wall", "-Wsign-compare", "-Wsign-conversion",
-                       "-Wcast-align", "-Werror", "-g", "-O2"])
+                       "-Wcast-align", "-Werror", "-g", "-O2", "-fPIC"])
 
 # Force color output to play well with spawn overload
 env.Append(CPPFLAGS = ["-fcolor-diagnostics"])

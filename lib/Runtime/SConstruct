@@ -18,16 +18,13 @@ src = [
     "events_llvm.c",
     "rr_assert.c",
     "rr_fdprintf.c",
-    # Backtrace Support
-    "/usr/lib/libexecinfo.a",
-    "/usr/lib/libelf.a"
 ]
 
 # Made global to make compilation_db work
 env["CPPPATH"].append("#sysroot-src/lib/libc/include")
 
-env.ObjectLibrary("libCastorRuntime.o", src)
-env.StaticLibrary("libCastorRuntime.a", "libCastorRuntime.o")
+#env.ObjectLibrary("libCastorRuntime.o", src)
+env.StaticLibrary("libCastorRuntime.a", src)
 
 rt = env.CopyFile("$SYSROOT/usr/lib/libCastorRuntime.a", "#build/lib/Runtime/libCastorRuntime.a")
 env.Alias("CastorRuntime", rt)

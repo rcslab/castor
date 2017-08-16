@@ -28,39 +28,39 @@
 void
 Debug_LogBacktrace()
 {
-    const size_t MAX_FRAMES = 128;
-    void *array[MAX_FRAMES];
+    /*const size_t MAX_FRAMES = 128;
+    void *array[MAX_FRAMES];*/
 
     if (rrMode != RRMODE_NORMAL) {
 	WARNING("Unable to print backtrace while in Record/Replay mode");
 	return;
     }
 
-    size_t num = backtrace(array, MAX_FRAMES);
+    /*size_t num = backtrace(array, MAX_FRAMES);
     char **names = backtrace_symbols(array, num);
     for (size_t i = 0; i < num; i++) {
         LOG("%s", names[i]);
     }
-    free(names);
+    free(names);*/
 }
 
 void
 Debug_PrintBacktrace()
 {
-    const size_t MAX_FRAMES = 128;
-    void *array[MAX_FRAMES];
+    /*const size_t MAX_FRAMES = 128;
+    void *array[MAX_FRAMES];*/
 
     if (rrMode != RRMODE_NORMAL) {
 	WARNING("Unable to print backtrace while in Record/Replay mode");
 	return;
     }
 
-    size_t num = backtrace(array, MAX_FRAMES);
+    /*size_t num = backtrace(array, MAX_FRAMES);
     char **names = backtrace_symbols(array, num);
     for (size_t i = 0; i < num; i++) {
         rr_fdprintf(STDERR_FILENO, "%s\n", names[i]);
     }
-    free(names);
+    free(names);*/
 }
 
 
@@ -144,12 +144,12 @@ void Debug_LogHex(char *buf, size_t len)
 
 void Debug_Sighandler(int signum)
 {
-    const size_t MAX_FRAMES = 128;
-    void *array[MAX_FRAMES];
+    /*const size_t MAX_FRAMES = 128;
+    void *array[MAX_FRAMES];*/
 
     Debug_Log(LEVEL_SYS, "Signal Caught: %d\n", signum);
 
-    size_t num = backtrace(array, MAX_FRAMES);
+    /*size_t num = backtrace(array, MAX_FRAMES);
     char **names = backtrace_symbols(array, num);
     Debug_Log(LEVEL_SYS, "Backtrace:\n");
     for (size_t i = 0; i < num; i++) {
@@ -158,7 +158,7 @@ void Debug_Sighandler(int signum)
 	else
 	    Debug_Log(LEVEL_SYS, "[%zu] [0x%p]\n", i, array[i]);
     }
-    free(names);
+    free(names);*/
 
     abort();
 }
