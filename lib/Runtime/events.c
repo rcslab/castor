@@ -973,6 +973,27 @@ __rr_eaccess(const char *path, int mode)
 }
 
 int
+__rr_faccessat(int fd, const char *path, int mode, int flag)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_faccessat, fd, path, mode, flag);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_faccessat, fd, path, mode, flag);
+	    RRRecordOI(RREVENT_FACCESSAT, fd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_FACCESSAT, &result);
+	    break;
+    }
+
+    return result;
+}
+
+
+int
 __rr_truncate(const char *path, off_t length)
 {
     int result;
@@ -982,6 +1003,10 @@ __rr_truncate(const char *path, off_t length)
 	    return syscall(SYS_truncate, path, length);
 	case RRMODE_RECORD:
 	    result = syscall(SYS_truncate, path, length);
+
+
+
+
 	    RRRecordI(RREVENT_TRUNCATE, result);
 	    break;
 	case RRMODE_REPLAY:
@@ -1694,6 +1719,7 @@ BIND_REF(recvfrom);
 BIND_REF(mkdir);
 BIND_REF(access);
 BIND_REF(eaccess);
+BIND_REF(faccessat);
 BIND_REF(chmod);
 BIND_REF(fchdir);
 BIND_REF(chdir);
