@@ -31,7 +31,6 @@ Documentation
 
 --SYSTEM CALLS TO ADD
 pipe2
-faccessat
 sendfile
 look at which pthread stuff hasn't been implemented.
 
