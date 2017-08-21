@@ -56,8 +56,9 @@ look at which pthread stuff hasn't been implemented.
 --Completeness
 
 --BUGS
-    -gethostbyname calls _pthread_once directly
-    -flaky unit tests (network-basic, thread-once, thread-cond-broadcast)
+    - exit is not flushing IO buffers 
+    - gethostbyname calls _pthread_once directly
+    - flaky unit tests (network-basic, thread-once, thread-cond-broadcast)
     - -lthr works sometime and -lpthread does not, e.g. simple-udp test.
     - output from record when exec fails on program start is pretty gross
       for non-Castor developer humans.
