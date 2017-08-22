@@ -70,7 +70,12 @@ Spawn(bool pinned, int maxcpus, char *const argv[])
     }
 
     execvp(*argv, argv);
-    PERROR("execv");
+
+    // PERROR("execv");
+	char pstr[64];
+	strerror_r(errno, &pstr[0], sizeof(pstr));
+	Debug_Log(LEVEL_SYS, "execvp: %s\n", pstr);
+	abort();
 
     return -1;
 }
