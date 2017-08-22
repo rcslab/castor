@@ -55,7 +55,8 @@ look at which pthread stuff hasn't been implemented.
 --Completeness
 
 --BUGS
-    - exit is not flushing IO buffers 
+    - exit() doesnt flush io buffers (breaks file redirection and some builds)
+    - strerror_r (used in PERROR debug macro) calls stat internally
     - gethostbyname calls _pthread_once directly
     - flaky unit tests (network-basic, thread-once, thread-cond-broadcast)
     - -lthr works sometime and -lpthread does not, e.g. simple-udp test.
