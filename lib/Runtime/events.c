@@ -55,9 +55,9 @@
 #include "util.h"
 
 extern void *__sys_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
-extern int __sys_pipe(int fildes[2]);
 extern int __sys_dup2(int oldd, int newd);
 extern int __sys_close(int fd);
+extern int __sys_pipe(int fildes[2]);
 
 int
 __rr_poll(struct pollfd fds[], nfds_t nfds, int timeout)
@@ -151,20 +151,34 @@ __rr_getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen)
     return result;
 }
 
-int
-__rr_pipe(int fildes[2])
+#define SYS_pipe SYS_freebsd10_pipe
+
+int call_pipe(int callnum, int fildes[2], int flags)
+{
+    int result;
+
+    if (callnum == SYS_pipe) {
+	result = __sys_pipe(fildes);
+    } else {
+	result = syscall(SYS_pipe2, fildes, flags);
+    }
+    return result;
+}
+
+int pipe_handler(int callnum, int fildes[2], int flags)
 {
     int result;
     RRLogEntry *e;
+    uint32_t event_type = (callnum == SYS_pipe) ? RREVENT_PIPE : RREVENT_PIPE2;
 
     if (rrMode == RRMODE_NORMAL) {
-	return __sys_pipe(fildes);
+	return call_pipe(callnum, fildes, flags);
     }
 
     if (rrMode == RRMODE_RECORD) {
-	result = __sys_pipe(fildes);
+	result = call_pipe(callnum, fildes, flags);
 	e = RRLog_Alloc(rrlog, threadId);
-	e->event = RREVENT_PIPE;
+	e->event = event_type;
 	e->value[0] = (uint64_t)result;
 
 	if (result == -1) {
@@ -177,7 +191,7 @@ __rr_pipe(int fildes[2])
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
-	AssertEvent(e, RREVENT_PIPE);
+	AssertEvent(e, event_type);
 	result = (int)e->value[0];
 
 	if (result == -1) {
@@ -186,7 +200,7 @@ __rr_pipe(int fildes[2])
 	    int status;
 	    int n_fildes[2];
 
-	    status = __sys_pipe(n_fildes);
+	    status = call_pipe(callnum, n_fildes, flags);
 	    ASSERT(status != -1);
 
 	    fildes[0] = (int)e->value[2];
@@ -207,6 +221,18 @@ __rr_pipe(int fildes[2])
 	RRPlay_Free(rrlog, e);
     }
     return result;
+}
+
+int
+__rr_pipe(int fildes[2])
+{
+    return pipe_handler(SYS_pipe, fildes, 0);
+}
+
+int
+__rr_pipe2(int fildes[2], int flags)
+{
+    return pipe_handler(SYS_pipe2, fildes, flags);
 }
 
 int
@@ -973,6 +999,27 @@ __rr_eaccess(const char *path, int mode)
 }
 
 int
+__rr_faccessat(int fd, const char *path, int mode, int flag)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_faccessat, fd, path, mode, flag);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_faccessat, fd, path, mode, flag);
+	    RRRecordOI(RREVENT_FACCESSAT, fd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_FACCESSAT, &result);
+	    break;
+    }
+
+    return result;
+}
+
+
+int
 __rr_truncate(const char *path, off_t length)
 {
     int result;
@@ -982,6 +1029,10 @@ __rr_truncate(const char *path, off_t length)
 	    return syscall(SYS_truncate, path, length);
 	case RRMODE_RECORD:
 	    result = syscall(SYS_truncate, path, length);
+
+
+
+
 	    RRRecordI(RREVENT_TRUNCATE, result);
 	    break;
 	case RRMODE_REPLAY:
@@ -1694,6 +1745,7 @@ BIND_REF(recvfrom);
 BIND_REF(mkdir);
 BIND_REF(access);
 BIND_REF(eaccess);
+BIND_REF(faccessat);
 BIND_REF(chmod);
 BIND_REF(fchdir);
 BIND_REF(chdir);
@@ -1715,6 +1767,7 @@ BIND_REF(getsockopt);
 BIND_REF(dup2);
 BIND_REF(dup);
 BIND_REF(pipe);
+BIND_REF(pipe2);
 BIND_REF(pwrite);
 BIND_REF(readv);
 BIND_REF(writev);
