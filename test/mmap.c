@@ -1,4 +1,3 @@
-
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -8,8 +7,6 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
-
-#include <castor/rr_debug.h>
 
 int main(int argc, const char *argv[])
 {

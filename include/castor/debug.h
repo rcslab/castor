@@ -64,7 +64,7 @@ int Debug_Init(const char *logPath);
 	Debug_LogBacktrace(); \
 	abort(); \
     } while (0)
-
+        
 #define PANIC() \
     do { \
 	Debug_Log(LEVEL_SYS, "PANIC: " \
