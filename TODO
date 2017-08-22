@@ -62,6 +62,8 @@ look at which pthread stuff hasn't been implemented.
     - output from record when exec fails on program start is pretty gross
       for non-Castor developer humans.
     -events_posix semaphor stuff not implemented, needed by Python.
+    -valgrind is hanging on replay, would be good to have this working so we can
+     catch bugs in Castor with it.
 
     -Python bugs
 	-"import time" causes core dump.
