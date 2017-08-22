@@ -1,0 +1,2 @@
+#!/bin/sh
+cat /usr/include/sys/syscall.h | cut -f2 | sed 's/SYS_//' | tail +9 | grep -v '^$' | grep -v MAXSYSCALL
