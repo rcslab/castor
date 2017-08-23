@@ -30,7 +30,6 @@ Documentation
     -corner cases for pthread cond variables.
 
 --SYSTEM CALLS TO ADD
-sendfile
 look at which pthread stuff hasn't been implemented.
 
 --CLEANUP
@@ -54,7 +53,6 @@ look at which pthread stuff hasn't been implemented.
 	- Python: "import time" causes core dump, possibly related to semaphore stuff
     - semaphore_producer_consumer test has an event divergence, possibly related to exit bug
     - -lthr works sometime and -lpthread does not, e.g. simple-udp test.
-    -valgrind is hanging on replay, would be good to have this working so we can
-     catch bugs in Castor with it.
-
+    - valgrind is hanging on replay, would be good to have this working so we can
+      catch bugs in Castor with it.
 

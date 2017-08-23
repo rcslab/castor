@@ -42,6 +42,9 @@
 #include <sys/param.h>
 #include <sys/mount.h>
 
+// sendfile
+#include <sys/uio.h>
+
 #include <libc_private.h>
 
 #include <castor/debug.h>
@@ -1498,6 +1501,26 @@ __rr_sendmsg(int s, const struct msghdr *msg, int flags)
     return result;
 }
 
+int
+__rr_sendfile(int fd, int s, off_t offset, size_t nbytes, struct sf_hdtr *hdtr, off_t *sbytes, int flags)
+{
+    int result;
+    
+    switch (rrMode) {
+        case RRMODE_NORMAL:
+            return syscall(SYS_sendfile, fd, s, offset, nbytes, hdtr, sbytes, flags);
+        case RRMODE_RECORD:
+            result = syscall(SYS_sendfile, fd, s, offset, nbytes, hdtr, sbytes, flags);
+            RRRecordOI(RREVENT_SENDFILE, s, result);
+            break;
+        case RRMODE_REPLAY:
+            RRReplayOI(RREVENT_SENDFILE, s, &result);
+            break;
+    }
+    
+    return result;
+}
+
 void log_msg(struct msghdr *msg)
 {
     logData((uint8_t*)msg, sizeof(*msg));
@@ -1739,6 +1762,7 @@ BIND_REF(getpeername);
 BIND_REF(getsockname);
 BIND_REF(sendto);
 BIND_REF(sendmsg);
+BIND_REF(sendfile);
 BIND_REF(select);
 BIND_REF(recvmsg);
 BIND_REF(recvfrom);
