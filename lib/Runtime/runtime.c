@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -94,4 +95,9 @@ log_init()
     }
 
     Events_Init();
+
+    if (getenv("CASTOR_STOPCHILD")) {
+        unsetenv("CASTOR_STOPCHILD");
+        raise(SIGSTOP);
+    }
 }

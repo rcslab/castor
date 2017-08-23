@@ -27,6 +27,7 @@ usage()
     printf("  -o [log]      Log file\n");
     printf("  -p            Pin threads\n");
     printf("  -s            Sandbox\n");
+    printf("  -t            Stops child process on creation for attaching a debugger in replay mode\n");
     printf("  -h            Help\n");
 }
 
@@ -42,9 +43,10 @@ main(int argc, char *argv[])
     bool pinned = false;
     bool sandboxed = false;
     bool interactive = false;
+    bool stopchild = false;
     const char *logfile = "default.rr";
 
-    while ((ch = getopt(argc, argv, "r:e:c:iho:ps")) != -1) {
+    while ((ch = getopt(argc, argv, "r:e:c:iho:pst")) != -1) {
 	switch (ch) {
 	    case 'r': {
 		regionSz = strtoul(optarg, NULL, 10) * 1024*1024;
@@ -78,6 +80,10 @@ main(int argc, char *argv[])
 		sandboxed = true;
 		break;
 	    }
+        case 't': {
+        stopchild = true;
+        break;
+        }
 	    default: {
 		usage();
 		exit(1);
@@ -107,6 +113,8 @@ main(int argc, char *argv[])
     if (sandboxed) {
 	setenv("CASTOR_SANDBOX", "1", 1);
     }
+    if (stopchild) setenv("CASTOR_STOPCHILD", "1", 1);
+    
     int pid = Spawn(pinned, maxcpus, argv);
     if (pid < 0) {
 	exit(1);
@@ -118,7 +126,7 @@ main(int argc, char *argv[])
 	CLI_Start();
     } else {
 	ReplayLog();
-
+    
 	wait(&status);
 	if (WIFSIGNALED(status)) {
 	    int signum = WTERMSIG(status);
