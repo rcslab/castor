@@ -1,0 +1,2 @@
+#!/bin/sh
+(./supported ; ./libcsyscalls) | sort | uniq -u

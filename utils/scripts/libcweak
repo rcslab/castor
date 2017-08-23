@@ -1,0 +1,2 @@
+#!/bin/sh
+nm -D /lib/libc.so.7 | grep W | cut -f3 -d' ' | sort | uniq

@@ -1,2 +1,2 @@
 #!/bin/sh
-(grep '__strong' ../../lib/Runtime/events* | cut -d',' -f2 | cut -d')' -f1 | sed 's/^[ _]*//'; grep INTERPOS_ ../../lib/Runtime/events* | cut -d'[' -f2 | cut -d']' -f1 | sed 's/INTERPOS_//'; grep 'BIND_REF' ../../lib/Runtime/events* | cut -d'(' -f2 | cut -d')' -f1) | sort | uniq
+(grep '__strong' ../../lib/Runtime/events* | cut -d',' -f2 | cut -d')' -f1 | sed 's/^[ _]*//'; grep Add_Interposer ../../lib/Runtime/events* | cut -d' ' -f5 | sed 's/Add_Interposer(INTERPOS_//' | sed s/,// | tail -n +2 ; grep 'BIND_REF' ../../lib/Runtime/events* | cut -d'(' -f2 | cut -d')' -f1) | sort | uniq
