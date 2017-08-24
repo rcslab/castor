@@ -55,14 +55,13 @@ XXX: chflagsat -- elide
 XXX: chown  -- elide
 XXX: chroot -- elide on replay
 clock_getcpuclockid2
-clock_getres
-clock_nanosleep
-clock_settime
+XXX: clock_getres -- elide
+XXX: clock_settime -- elide
 XXX: closefrom -- need to explicitly specify what invariant we are maintaing for descriptor space -- potentially elide on replay
 
 
 XXX: need to discuss unix domain socket support for IPC.
-XXX: connectat -- need to explicitly specify our model for IPC using unix domain sockets, seems
+connectat -- need to explicitly specify our model for IPC using unix domain sockets, seems
 	     like we should allow this to work on replay for socket pairs.
 
 bindat
@@ -133,7 +132,7 @@ XXX: jail_remove
 XXX: jail_set
 kenv
 
-XXX: all of this should probably be unsupported.
+XXX: these should probably just be unsupported, or something else?
 kldfind
 kldfirstmod
 kldload
@@ -142,6 +141,13 @@ kldstat
 kldsym
 kldunload
 kldunloadf
+modfind
+modfnext
+modnext
+modstat
+
+ptrace
+
 kmq_notify
 kmq_open
 kmq_setattr
@@ -165,6 +171,13 @@ ktimer_gettime
 ktimer_settime
 ktrace
 
+ntp_adjtime
+ntp_gettime
+numa_getaffinity
+numa_setaffinity
+
+
+
 XXX: lchflags -- elide
 XXX: lchmod -- elide
 XXX: lchown -- elide
@@ -174,21 +187,14 @@ lio_listio
 lpathconf
 lutimes
 mac_syscall
-madvise
-mincore
-minherit
-mkdirat
+XXX: mkdirat -- elide
 XXX: mkfifo -- elide
 XXX: mkfifoat -- elide
 XXX: mknod -- elide
 XXX: mknodat -- elide
 XXX: mlock -- propose passthrough
 XXX: mlockall -- propose passthrough
-modfind
-modfnext
-modnext
-modstat
-XXX: mount -- elide
+XX: mount -- elide
 XXX: mprotect -- propose passthrough
 
 
@@ -200,10 +206,6 @@ nlm_syscall
 nlstat
 nmount
 nstat
-ntp_adjtime
-ntp_gettime
-numa_getaffinity
-numa_setaffinity
 pathconf
 pdfork
 pdgetpid
@@ -217,7 +219,6 @@ XXX: preadv -- elide
 procctl
 profil
 XXX: pselect -- elide similar to select
-ptrace
 XXX: pwritev -- elide 
 quotactl
 rctl_add_rule
@@ -226,7 +227,7 @@ rctl_get_racct
 rctl_get_rules
 rctl_remove_rule
 readlinkat
-reboot
+XXX: reboot -- elide
 XXX: renameat -- elide
 revoke
 rfork
