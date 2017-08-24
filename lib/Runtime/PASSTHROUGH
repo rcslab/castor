@@ -1,0 +1,10 @@
+execve
+clock_nanosleep
+nanosleep
+setsid
+getsid
+msync
+munlock
+munlockall
+munmap
+wait
