@@ -26,6 +26,7 @@ usage()
     printf("  -c [cores]    Maximum number of application cores\n");
     printf("  -o [log]      Log file\n");
     printf("  -p            Pin threads\n");
+    printf("  -t            Stops child process on creation for attaching a debugger in record mode\n");
     printf("  -h            Help\n");
 }
 
@@ -39,9 +40,10 @@ main(int argc, char *argv[])
     int maxcpus = 64;
     bool ft = false;
     bool pinned = false;
+    bool stopchild = false;
     const char *logfile = "default.rr";
 
-    while ((ch = getopt(argc, argv, "r:e:c:ho:p")) != -1) {
+    while ((ch = getopt(argc, argv, "r:e:c:ho:pt")) != -1) {
 	switch (ch) {
 	    case 'r': {
 		regionSz = strtoul(optarg, NULL, 10) * 1024*1024;
@@ -67,6 +69,10 @@ main(int argc, char *argv[])
 		pinned = true;
 		break;
 	    }
+        case 't' : {
+        stopchild = true;
+        break;
+        }
 	    default: {
 		usage();
 		exit(1);
@@ -94,13 +100,15 @@ main(int argc, char *argv[])
 
     setenv("CASTOR_MODE", "RECORD", 1);
     setenv("CASTOR_SHMPATH", logfile, 1);
+    if (stopchild) setenv("CASTOR_STOPCHILD", "1", 1);
+    
     int pid = Spawn(pinned, maxcpus, argv);
     if (pid < 0) {
 	exit(1);
     }
 
     setproctitle("Castor pid=%d log=%s", pid, logfile);
-
+    
     RecordLog();
 
     while (1) {
