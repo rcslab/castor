@@ -38,7 +38,7 @@ aio_return
 aio_suspend
 aio_waitcomplete
 aio_write
-
+lio_listio
 
 XXX: audit -- elide
 XXX: auditctl -- elide
@@ -97,20 +97,17 @@ XXX: fchown -- elide
 XXX: fchownat -- elide
 XXX: fdatasync -- elide on replay
 XXX: fexecve -- support using fdinfo table.
-ffclock_getcounter
-ffclock_getestimate
-ffclock_setestimate
-fhopen
-fhstat
-fhstatfs
-fpathconf
-futimens
-futimes
-futimesat
+XXX: fhopen -- elide
+XXX: fhstat -- elide
+XXX: fhstatfs -- elide
+XXX: fpathconf -- elide
+XXX: futimens -- elide
+XXX: futimes -- elide
+XXX: futimesat -- elide
+
 getaudit
 getaudit_addr
 getauid
-getcontext
 XXX: getdents -- record/elide
 XXX: getdtablesize -- elide
 getfh
@@ -147,6 +144,7 @@ modnext
 modstat
 
 ptrace
+utrace
 
 kmq_notify
 kmq_open
@@ -176,6 +174,11 @@ ntp_gettime
 numa_getaffinity
 numa_setaffinity
 
+ffclock_getcounter
+ffclock_getestimate
+ffclock_setestimate
+
+
 
 
 XXX: lchflags -- elide
@@ -183,7 +186,6 @@ XXX: lchmod -- elide
 XXX: lchown -- elide
 lgetfh
 XXX: linkat -- elide
-lio_listio
 lpathconf
 lutimes
 mac_syscall
@@ -276,7 +278,6 @@ msgsys
 setaudit
 setaudit_addr
 setauid
-setcontext
 setfib
 setitimer
 setlogin
@@ -303,13 +304,16 @@ sigwait
 sigwaitinfo
 
 
-swapcontext
-swapoff
-swapon
+
+XXX: swapoff -- elide
+XXX: swapon -- elide
 XXX: symlinkat -- elide
 sync
 sysarch
 sysctl
+
+XXX: need to discuss how these relate to our stuff.
+
 thr_create
 thr_exit
 thr_kill
@@ -319,15 +323,15 @@ thr_self
 thr_set_name
 thr_suspend
 thr_wake
-undelete
+
+XXX: undelete -- elide
+
 XXX: unlinkat -- elide
-unmount
-utimensat
-
+XXX: unmount -- elide
+XXX: utimensat -- elide
 XXX: utimes -- elide
+XXX: uuidgen -- elide
 
-utrace
-uuidgen
 vadvise
 vfork
 

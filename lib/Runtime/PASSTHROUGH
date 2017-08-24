@@ -11,3 +11,5 @@ wait
 madvise
 mincore
 minherit
+swapcontext
+getcontext
