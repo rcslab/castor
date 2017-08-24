@@ -1,2 +1,2 @@
 #!/bin/sh
-(./libcweak ; ./syscalls) | sort | uniq -d
+(./libc ; ./syscalls) | sort | uniq -d
