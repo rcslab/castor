@@ -156,19 +156,18 @@ __rr_getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen)
 
 #define SYS_pipe SYS_freebsd10_pipe
 
-int call_pipe(int callnum, int fildes[2], int flags)
+static inline int
+call_pipe(int callnum, int fildes[2], int flags)
 {
-    int result;
-
     if (callnum == SYS_pipe) {
-	result = __sys_pipe(fildes);
+	return __sys_pipe(fildes);
     } else {
-	result = syscall(SYS_pipe2, fildes, flags);
+	return syscall(SYS_pipe2, fildes, flags);
     }
-    return result;
 }
 
-int pipe_handler(int callnum, int fildes[2], int flags)
+static inline int
+pipe_handler(int callnum, int fildes[2], int flags)
 {
     int result;
     RRLogEntry *e;
@@ -743,17 +742,31 @@ __rr_connect(int s, const struct sockaddr *name, socklen_t namelen)
     return result;
 }
 
-int
-__rr_accept(int s, struct sockaddr *addr, socklen_t *addrlen)
+static inline int
+call_accept(int callnum, int s, struct sockaddr * restrict addr,
+          socklen_t * restrict addrlen, int flags)
+{
+    if (callnum == SYS_accept) {
+	return syscall(SYS_accept, s, addr, addrlen);
+    } else {
+	return syscall(SYS_accept4, s, addr, addrlen, flags);
+    }
+}
+
+
+static inline int
+accept_handler(int callnum, int s, struct sockaddr * restrict addr,
+          socklen_t * restrict addrlen, int flags)
 {
     int result;
+    uint32_t event_type = (callnum == SYS_accept) ? RREVENT_ACCEPT : RREVENT_ACCEPT4;
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-	    return syscall(SYS_accept, s, addr, addrlen);
+	    return call_accept(callnum, s, addr, addrlen, flags);
 	case RRMODE_RECORD:
-	    result = syscall(SYS_accept, s, addr, addrlen);
-	    RRRecordOI(RREVENT_ACCEPT, s, result);
+	    result = call_accept(callnum, s, addr, addrlen, flags);
+	    RRRecordOI(event_type, s, result);
 	    if (result != -1) {
 		//XXX: slow, store in value[] directly
 		logData((uint8_t*)addrlen, sizeof(*addrlen));
@@ -761,7 +774,7 @@ __rr_accept(int s, struct sockaddr *addr, socklen_t *addrlen)
 	    }
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_ACCEPT, &result);
+	    RRReplayI(event_type, &result);
 	    if (result != -1) {
 		//XXX: slow, store in value[] directly
 		logData((uint8_t*)addrlen, sizeof(*addrlen));
@@ -771,6 +784,19 @@ __rr_accept(int s, struct sockaddr *addr, socklen_t *addrlen)
     }
 
     return result;
+}
+
+int
+__rr_accept(int s, struct sockaddr *addr, socklen_t *addrlen)
+{
+    return accept_handler(SYS_accept, s, addr, addrlen, 0);
+}
+
+int
+__rr_accept4(int s, struct sockaddr *addr, socklen_t *addrlen, int flags)
+{
+
+    return accept_handler(SYS_accept4, s, addr, addrlen, flags);
 }
 
 int
@@ -1213,6 +1239,31 @@ __rr_umask(mode_t numask)
     }
 
     return (mode_t)result;
+}
+
+int __rr_getdents(int fd, char *buf, int nbytes)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_getdents, fd, buf, nbytes);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_getdents, fd, buf, nbytes);
+	    RRRecordOI(RREVENT_GETDENTS, fd, result);
+	    if (result > 0) {
+		logData((uint8_t*)buf, (size_t)result);
+	    }
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_GETDENTS, &result);
+	    if (result > 0) {
+		logData((uint8_t*)buf, (size_t)result);
+	    }
+	    break;
+    }
+
+    return result;
 }
 
 int
@@ -1760,6 +1811,7 @@ BIND_REF(setrlimit);
 BIND_REF(getrusage);
 BIND_REF(getpeername);
 BIND_REF(getsockname);
+BIND_REF(getdents);
 BIND_REF(sendto);
 BIND_REF(sendmsg);
 BIND_REF(sendfile);
@@ -1786,6 +1838,7 @@ BIND_REF(bind);
 BIND_REF(listen);
 BIND_REF(connect);
 BIND_REF(accept);
+BIND_REF(accept4);
 BIND_REF(poll);
 BIND_REF(getsockopt);
 BIND_REF(dup2);

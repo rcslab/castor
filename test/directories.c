@@ -9,7 +9,7 @@
 
 #define BUFF_MAX 1024
 
-void dump_entries(int * buf, int size)
+void dump_entries(char * buf, int size)
 {
     union {
 	struct dirent * dent;
@@ -18,22 +18,30 @@ void dump_entries(int * buf, int size)
     int i;
 
     for (i = 0; i < size; i += dp.dent->d_reclen) {
-	dp.cp = (char *)buf + i;
+	dp.cp = buf + i;
 	printf("fileno: %d, name: %s\n", dp.dent->d_fileno, dp.dent->d_name);
     }
 }
 
 void list_cwd()
 {
-    int buf[BUFF_MAX]; // we use int's so things are aligned, *sigh*
+    char buf[BUFF_MAX]; // we use int's so things are aligned, *sigh*
     long basep;
     int fd;
     int result;
 
     fd = open(".", O_RDONLY);
-    result = getdirentries(fd, (char *)buf, BUFF_MAX, &basep);
+    result = getdirentries(fd, buf, BUFF_MAX, &basep);
     assert(result > 0);
     dump_entries(buf, result);
+    close(fd);
+
+    fd = open(".", O_RDONLY);
+    result = getdents(fd, buf, sizeof(buf));
+    assert(result > 0);
+    dump_entries(buf, result);
+    close(fd);
+
 }
 
 #define DIR_A "./test_A"

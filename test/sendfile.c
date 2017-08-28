@@ -37,7 +37,7 @@ int accept_sock(int sock)
     }
     socklen_t len = sizeof(name);
     int newsock;
-    newsock = accept(sock, (struct sockaddr *)&name, &len);
+    newsock = accept4(sock, (struct sockaddr *)&name, &len, SOCK_NONBLOCK);
     if (newsock == -1) {
         perror("accept");
         exit(1);

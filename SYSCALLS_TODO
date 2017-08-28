@@ -5,7 +5,6 @@ Overall:
 
 
 A:XXX: abort2 -- propose that we log abort just like exit before we call it.
-A:XXX: accept4 -- do the same thing as accept
 
 
 
@@ -79,7 +78,6 @@ XXX: futimens -- elide
 XXX: futimes -- elide
 XXX: futimesat -- elide
 
-XXX: getdents -- record/elide
 XXX: getdtablesize -- elide
 
 XXX: getpgid -- elide
