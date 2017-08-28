@@ -1,34 +1,17 @@
-__acl_aclcheck_fd
-__acl_aclcheck_file
-__acl_aclcheck_link
-__acl_delete_fd
-__acl_delete_file
-__acl_delete_link
-__acl_get_fd
-__acl_get_file
-__acl_get_link
-__acl_set_fd
-__acl_set_file
-__acl_set_link
-__cap_rights_get
-__mac_execve
-__mac_get_fd
-__mac_get_file
-__mac_get_link
-__mac_get_pid
-__mac_get_proc
-__mac_set_fd
-__mac_set_file
-__mac_set_link
-__mac_set_proc
-__setugid
-__syscall
-XXX: abort2 -- propose that we log abort just like exit before we call it.
-XXX: accept4 -- do the same thing as accept
-XXX: acct -- elide
-XXX: adjtime -- elide
+Overall:
+*ignore anything that requires root privilege for now.
 
-XXX: need to discuss this, seems like its related to signal handling support.
+
+
+
+A:XXX: abort2 -- propose that we log abort just like exit before we call it.
+A:XXX: accept4 -- do the same thing as accept
+
+
+
+A:XXX: need to discuss this, seems like its related to signal handling support.
+XXX: support with kqueue and polling.
+
 aio_cancel
 aio_error
 aio_fsync
@@ -40,42 +23,33 @@ aio_waitcomplete
 aio_write
 lio_listio
 
-XXX: audit -- elide
-XXX: auditctl -- elide
-XXX: auditon -- elide
 
-cap_fcntls_get
-cap_fcntls_limit
-cap_getmode
-cap_ioctls_get
-cap_ioctls_limit
+A:XXX: chflags -- elide
+A:XXX: chflagsat -- elide
+A:XXX: chown  -- elide
+A:XXX: chroot -- elide on replay
 
-XXX: chflags -- elide
-XXX: chflagsat -- elide
-XXX: chown  -- elide
-XXX: chroot -- elide on replay
-clock_getcpuclockid2
-XXX: clock_getres -- elide
-XXX: clock_settime -- elide
-XXX: closefrom -- need to explicitly specify what invariant we are maintaing for descriptor space -- potentially elide on replay
-
-
-XXX: need to discuss unix domain socket support for IPC.
+A:XXX: need to discuss unix domain socket support for IPC.
 connectat -- need to explicitly specify our model for IPC using unix domain sockets, seems
 	     like we should allow this to work on replay for socket pairs.
 
 bindat
 socketpair
 
+A:XXX: clock_getres -- elide
+A:XXX: clock_settime -- elide
 
-XXX: -- propose passthrough for these.
+A:XXX: closefrom -- need to explicitly specify what invariant we are maintaing
+for descriptor space -- potentially elide on replay
+
+A: XXX: -- elide to support different numbers of cores on replay
 cpuset
 cpuset_getaffinity
 cpuset_getid
 cpuset_setaffinity
 cpuset_setid
 
-XXX: -- propose eliding for these
+A: XXX: -- eliding for these
 extattr_delete_fd
 extattr_delete_file
 extattr_delete_link
@@ -105,21 +79,81 @@ XXX: futimens -- elide
 XXX: futimes -- elide
 XXX: futimesat -- elide
 
+XXX: getdents -- record/elide
+XXX: getdtablesize -- elide
+
+XXX: getpgid -- elide
+XXX: getpgrp -- elide
+
+XXX: getresgid -- elide
+XXX: getresuid -- elide
+
+XXX: lchflags -- elide
+XXX: lchmod -- elide
+XXX: lchown -- elide
+lgetfh
+XXX: linkat -- elide
+lpathconf
+lutimes
+
+XXX: mkdirat -- elide
+XXX: mkfifo -- elide
+XXX: mkfifoat -- elide
+
+XXX: readlinkat -- elide
+
+XXX: unlinkat -- elide
+
+XXX: posix_fadvise
+XXX: posix_fallocate
+XXX: posix_openpt
+XXX: ppoll -- elide similar to select
+XXX: pread -- elide
+XXX: preadv -- elide
+
+
+XXX: uuidgen -- elide
+
+XXX: this is currently fucked as we elide getpid, we should be keeping around
+a mapping of record pid -> replay pid mappings so these calls work correctly.
+
+getpid
+kill
+wait4
+wait6
+
+XXX: utimensat -- elide
+XXX: utimes -- elide
+
+XXX: symlinkat -- elide
+
+
+Lower priority:
+
+XXX: acct -- elide
+XXX: adjtime -- elide
+
+XXX: audit -- elide
+XXX: auditctl -- elide
+XXX: auditon -- elide
+
+cap_fcntls_get
+cap_fcntls_limit
+cap_getmode
+cap_ioctls_get
+cap_ioctls_limit
+
+clock_getcpuclockid2
+
 getaudit
 getaudit_addr
 getauid
-XXX: getdents -- record/elide
-XXX: getdtablesize -- elide
 getfh
 getfsstat
 getitimer
 getlogin
 getloginclass
-XXX: getpgid -- elide
-XXX: getpgrp -- elide
 getpriority
-XXX: getresgid -- elide
-XXX: getresuid -- elide
 gssd_syscall
 issetugid
 XXX: jail         --- propose passthrough, should review this
@@ -145,7 +179,12 @@ modstat
 
 ptrace
 utrace
+ktrace
 
+
+
+
+XXX: Ali is going to look into these calls.
 kmq_notify
 kmq_open
 kmq_setattr
@@ -167,7 +206,6 @@ ktimer_delete
 ktimer_getoverrun
 ktimer_gettime
 ktimer_settime
-ktrace
 
 ntp_adjtime
 ntp_gettime
@@ -180,24 +218,8 @@ ffclock_setestimate
 
 
 
-
-XXX: lchflags -- elide
-XXX: lchmod -- elide
-XXX: lchown -- elide
-lgetfh
-XXX: linkat -- elide
-lpathconf
-lutimes
-mac_syscall
-XXX: mkdirat -- elide
-XXX: mkfifo -- elide
-XXX: mkfifoat -- elide
 XXX: mknod -- elide
 XXX: mknodat -- elide
-XXX: mlock -- propose passthrough
-XXX: mlockall -- propose passthrough
-XX: mount -- elide
-XXX: mprotect -- propose passthrough
 
 
 netbsd_lchown
@@ -212,12 +234,6 @@ pathconf
 pdfork
 pdgetpid
 pdkill
-posix_fadvise
-posix_fallocate
-posix_openpt
-XXX: ppoll -- elide similar to select
-XXX: pread -- elide
-XXX: preadv -- elide
 procctl
 profil
 XXX: pselect -- elide similar to select
@@ -228,14 +244,12 @@ rctl_get_limits
 rctl_get_racct
 rctl_get_rules
 rctl_remove_rule
-readlinkat
 XXX: reboot -- elide
 XXX: renameat -- elide
 revoke
 rfork
 rtprio
 rtprio_thread
-sbrk
 sched_get_priority_max
 sched_get_priority_min
 sched_getparam
@@ -303,42 +317,41 @@ sigtimedwait
 sigwait
 sigwaitinfo
 
-
-
 XXX: swapoff -- elide
 XXX: swapon -- elide
-XXX: symlinkat -- elide
 sync
 sysarch
-sysctl
-
-XXX: need to discuss how these relate to our stuff.
-
-thr_create
-thr_exit
-thr_kill
-thr_kill2
-thr_new
-thr_self
-thr_set_name
-thr_suspend
-thr_wake
 
 XXX: undelete -- elide
-
-XXX: unlinkat -- elide
+XXX: mount -- elide
 XXX: unmount -- elide
-XXX: utimensat -- elide
-XXX: utimes -- elide
-XXX: uuidgen -- elide
-
 vadvise
 vfork
 
-XXX: this is currently fucked as we elide getpid, we should be keeping around
-a mapping of record pid -> replay pid mappings so these calls work correctly.
+__acl_aclcheck_fd
+__acl_aclcheck_file
+__acl_aclcheck_link
+__acl_delete_fd
+__acl_delete_file
+__acl_delete_link
+__acl_get_fd
+__acl_get_file
+__acl_get_link
+__acl_set_fd
+__acl_set_file
+__acl_set_link
+__cap_rights_get
+__mac_execve
+__mac_get_fd
+__mac_get_file
+__mac_get_link
+__mac_get_pid
+__mac_get_proc
+__mac_set_fd
+__mac_set_file
+__mac_set_link
+__mac_set_proc
+__setugid
+__syscall
 
-getpid
-kill
-wait4
-wait6
+

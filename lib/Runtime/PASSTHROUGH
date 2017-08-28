@@ -1,4 +1,3 @@
-execve
 clock_nanosleep
 nanosleep
 setsid
@@ -13,3 +12,16 @@ mincore
 minherit
 swapcontext
 getcontext
+mlock
+mlockall
+mprotect
+sbrk
+thr_create
+thr_exit
+thr_kill
+thr_kill2
+thr_new
+thr_self
+thr_set_name
+thr_suspend
+thr_wake
