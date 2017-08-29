@@ -90,7 +90,6 @@ XXX: lchflags -- elide
 XXX: lchmod -- elide
 XXX: lchown -- elide
 lgetfh
-XXX: linkat -- elide
 lpathconf
 lutimes
 

@@ -867,6 +867,46 @@ __rr_link(const char *name1, const char *name2)
     return result;
 }
 
+int
+__rr_link(const char *name1, const char *name2)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_link, name1, name2);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_link, name1, name2);
+	    RRRecordI(RREVENT_LINK, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_LINK, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
+__rr_linkat(int fd, const char *name1, const char *name2, int flag)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_linkat, fd, name1, name2, flag);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_linkat, fd, name1, name2, flag);
+	    RRRecordOI(RREVENT_LINKAT, fd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_LINKAT, &result);
+	    break;
+    }
+
+    return result;
+}
+
 ssize_t
 pread(int fd, void *buf, size_t nbytes, off_t offset)
 {
@@ -1876,6 +1916,7 @@ BIND_REF(fchdir);
 BIND_REF(chdir);
 BIND_REF(rmdir);
 BIND_REF(link);
+BIND_REF(linkat);
 BIND_REF(symlink);
 BIND_REF(unlink);
 BIND_REF(unlinkat);
