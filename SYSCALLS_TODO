@@ -98,8 +98,6 @@ XXX: mkdirat -- elide
 XXX: mkfifo -- elide
 XXX: mkfifoat -- elide
 
-XXX: unlinkat -- elide
-
 XXX: posix_fadvise
 XXX: posix_fallocate
 XXX: posix_openpt

@@ -935,6 +935,27 @@ __rr_unlink(const char *path)
 }
 
 int
+__rr_unlinkat(int fd, const char *path)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_unlinkat, fd, path);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_unlinkat, fd, path);
+	    RRRecordOI(RREVENT_UNLINKAT, fd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_UNLINKAT, &result);
+	    break;
+    }
+
+    return result;
+}
+
+
+int
 __rr_rename(const char *name1, const char *name2)
 {
     int result;
@@ -1857,6 +1878,7 @@ BIND_REF(rmdir);
 BIND_REF(link);
 BIND_REF(symlink);
 BIND_REF(unlink);
+BIND_REF(unlinkat);
 BIND_REF(rename);
 BIND_REF(open);
 BIND_REF(ioctl);
