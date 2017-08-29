@@ -69,8 +69,14 @@ XXX: fchown -- elide
 XXX: fchownat -- elide
 XXX: lchown -- elide
 
-XXX: fdatasync -- elide on replay
+
+XXX: Need to do something in recording agent to support this?
+	execve
 XXX: fexecve -- support using fdinfo table.
+
+XXX: fdatasync -- elide on replay
+
+
 XXX: fhopen -- elide
 XXX: fhstat -- elide
 XXX: fhstatfs -- elide
