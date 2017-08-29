@@ -908,7 +908,7 @@ __rr_linkat(int fd, const char *name1, const char *name2, int flag)
 }
 
 ssize_t
-pread(int fd, void *buf, size_t nbytes, off_t offset)
+__rr_pread(int fd, void *buf, size_t nbytes, off_t offset)
 {
     ssize_t result;
 
@@ -1937,6 +1937,7 @@ BIND_REF(dup);
 BIND_REF(pipe);
 BIND_REF(pipe2);
 BIND_REF(pwrite);
+BIND_REF(pread);
 BIND_REF(readv);
 BIND_REF(writev);
 BIND_REF(shutdown);

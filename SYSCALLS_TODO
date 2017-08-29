@@ -101,7 +101,6 @@ XXX: posix_fadvise
 XXX: posix_fallocate
 XXX: posix_openpt
 XXX: ppoll -- elide similar to select
-XXX: pread -- elide
 XXX: preadv -- elide
 
 
