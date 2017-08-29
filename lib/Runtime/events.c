@@ -660,6 +660,33 @@ __rr_readlink(const char *restrict path, char *restrict buf, size_t bufsize)
     return result;
 }
 
+ssize_t
+__rr_readlinkat(int fd, const char *restrict path, char *restrict buf, size_t bufsize)
+
+{
+    ssize_t result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_readlinkat, fd, path, buf, bufsize);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_readlinkat, fd, path, buf, bufsize);
+	    RRRecordOS(RREVENT_READLINKAT, fd, result);
+	    if (result != -1) {
+		logData((uint8_t*)buf, bufsize);
+	    }
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOS(RREVENT_READLINKAT, 0, &result);
+	    if (result != -1) {
+		logData((uint8_t*)buf, bufsize);
+	    }
+	    break;
+    }
+
+    return result;
+}
+
 
 
 int
@@ -1799,6 +1826,7 @@ BIND_REF(statfs);
 BIND_REF(fstatfs);
 BIND_REF(fstatat);
 BIND_REF(readlink);
+BIND_REF(readlinkat);
 BIND_REF(truncate);
 BIND_REF(ftruncate);
 BIND_REF(flock);

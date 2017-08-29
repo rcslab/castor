@@ -23,8 +23,6 @@ aio_write
 lio_listio
 
 
-A:XXX: chflags -- elide
-A:XXX: chflagsat -- elide
 A:XXX: chown  -- elide
 A:XXX: chroot -- elide on replay
 
@@ -63,6 +61,8 @@ extattr_set_file
 extattr_set_link
 extattrctl
 
+A:XXX: chflags -- elide
+A:XXX: chflagsat -- elide
 XXX: fchflags -- elide
 XXX: fchmod -- elide
 XXX: fchmodat --elide
@@ -97,8 +97,6 @@ lutimes
 XXX: mkdirat -- elide
 XXX: mkfifo -- elide
 XXX: mkfifoat -- elide
-
-XXX: readlinkat -- elide
 
 XXX: unlinkat -- elide
 
