@@ -23,7 +23,6 @@ aio_write
 lio_listio
 
 
-A:XXX: chown  -- elide
 A:XXX: chroot -- elide on replay
 
 A:XXX: need to discuss unix domain socket support for IPC.
@@ -64,10 +63,12 @@ extattrctl
 A:XXX: chflags -- elide
 A:XXX: chflagsat -- elide
 XXX: fchflags -- elide
-XXX: fchmod -- elide
-XXX: fchmodat --elide
+
+A:XXX: chown  -- elide
 XXX: fchown -- elide
 XXX: fchownat -- elide
+XXX: lchown -- elide
+
 XXX: fdatasync -- elide on replay
 XXX: fexecve -- support using fdinfo table.
 XXX: fhopen -- elide
@@ -87,8 +88,6 @@ XXX: getresgid -- elide
 XXX: getresuid -- elide
 
 XXX: lchflags -- elide
-XXX: lchmod -- elide
-XXX: lchown -- elide
 lgetfh
 lpathconf
 lutimes

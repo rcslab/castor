@@ -868,36 +868,16 @@ __rr_link(const char *name1, const char *name2)
 }
 
 int
-__rr_link(const char *name1, const char *name2)
+__rr_linkat(int fd1, const char *name1, int fd2, const char *name2, int flag)
 {
     int result;
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-	    return syscall(SYS_link, name1, name2);
+	    return syscall(SYS_linkat, fd1, name1, fd2, name2, flag);
 	case RRMODE_RECORD:
-	    result = syscall(SYS_link, name1, name2);
-	    RRRecordI(RREVENT_LINK, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_LINK, &result);
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_linkat(int fd, const char *name1, const char *name2, int flag)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_linkat, fd, name1, name2, flag);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_linkat, fd, name1, name2, flag);
-	    RRRecordOI(RREVENT_LINKAT, fd, result);
+	    result = syscall(SYS_linkat, fd1, name1, fd2, name2, flag);
+	    RRRecordI(RREVENT_LINKAT, result);
 	    break;
 	case RRMODE_REPLAY:
 	    RRReplayI(RREVENT_LINKAT, &result);
@@ -975,15 +955,15 @@ __rr_unlink(const char *path)
 }
 
 int
-__rr_unlinkat(int fd, const char *path)
+__rr_unlinkat(int fd, const char *path, int flag)
 {
     int result;
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-	    return syscall(SYS_unlinkat, fd, path);
+	    return syscall(SYS_unlinkat, fd, path, flag);
 	case RRMODE_RECORD:
-	    result = syscall(SYS_unlinkat, fd, path);
+	    result = syscall(SYS_unlinkat, fd, path, flag);
 	    RRRecordOI(RREVENT_UNLINKAT, fd, result);
 	    break;
 	case RRMODE_REPLAY:
@@ -1069,6 +1049,67 @@ __rr_chmod(const char *path, mode_t mode)
 	    break;
 	case RRMODE_REPLAY:
 	    RRReplayI(RREVENT_CHMOD, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
+__rr_lchmod(const char *path, mode_t mode)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_lchmod, path, mode);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_lchmod, path, mode);
+	    RRRecordI(RREVENT_LCHMOD, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_LCHMOD, &result);
+	    break;
+    }
+
+    return result;
+}
+
+
+int
+__rr_fchmod(int fd, mode_t mode)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_fchmod, fd, mode);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_fchmod, fd, mode);
+	    RRRecordOI(RREVENT_FCHMOD, fd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_FCHMOD, &result);
+	    break;
+    }
+
+    return result;
+}
+
+int
+__rr_fchmodat(int fd, const char *path, mode_t mode, int flag)
+{
+    int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_fchmodat, fd, path, mode, flag);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_fchmodat, fd, path, mode, flag);
+	    RRRecordOI(RREVENT_FCHMODAT, fd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_FCHMODAT, &result);
 	    break;
     }
 
@@ -1912,6 +1953,9 @@ BIND_REF(access);
 BIND_REF(eaccess);
 BIND_REF(faccessat);
 BIND_REF(chmod);
+BIND_REF(lchmod);
+BIND_REF(fchmod);
+BIND_REF(fchmodat);
 BIND_REF(fchdir);
 BIND_REF(chdir);
 BIND_REF(rmdir);
