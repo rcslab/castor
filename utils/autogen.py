@@ -50,7 +50,7 @@ def parse_proto(line):
     call_str =  "syscall(%s)" % ", ".join(call_args)
     print "\t    return %s;"  % call_str
     print "\tcase RRMODE_RECORD:"
-    print "\t    result = %s" % call_str
+    print "\t    result = %s;" % call_str
     rrevent = "RREVENT_%s" % name.upper()
     if leading_object:
         print "\t    %s(%s, %s, result);" % (record_method, rrevent, argnames[0])
