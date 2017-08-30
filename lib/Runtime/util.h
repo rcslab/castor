@@ -204,4 +204,20 @@ RRReplayOS(uint32_t eventNum, int od, int64_t * result)
     RRPlay_Free(rrlog, e);
 }
 
+static inline void
+RRReplayS(uint32_t eventNum, int64_t * result)
+{
+    RRLogEntry *e;
+
+    e = RRPlay_Dequeue(rrlog, threadId);
+    AssertEvent(e, eventNum);
+    if (result != NULL) {
+	*result = (int64_t)e->value[0];
+	if (*result == -1) {
+	    errno = (int64_t)e->value[1];
+	}
+    }
+    RRPlay_Free(rrlog, e);
+}
+
 #endif /* __UTIL_H__ */
