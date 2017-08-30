@@ -644,13 +644,13 @@ __rr_readlink(const char *restrict path, char *restrict buf, size_t bufsize)
 	    return syscall(SYS_readlink, path, buf, bufsize);
 	case RRMODE_RECORD:
 	    result = syscall(SYS_readlink, path, buf, bufsize);
-	    RRRecordOS(RREVENT_READLINK, 0, result);
+	    RRRecordS(RREVENT_READLINK, result);
 	    if (result != -1) {
 		logData((uint8_t*)buf, bufsize);
 	    }
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayOS(RREVENT_READLINK, 0, &result);
+	    RRReplayS(RREVENT_READLINK, &result);
 	    if (result != -1) {
 		logData((uint8_t*)buf, bufsize);
 	    }
@@ -677,7 +677,7 @@ __rr_readlinkat(int fd, const char *restrict path, char *restrict buf, size_t bu
 	    }
 	    break;
 	case RRMODE_REPLAY:
-	    RRReplayOS(RREVENT_READLINKAT, 0, &result);
+	    RRReplayOS(RREVENT_READLINKAT, fd, &result);
 	    if (result != -1) {
 		logData((uint8_t*)buf, bufsize);
 	    }
