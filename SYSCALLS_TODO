@@ -23,9 +23,6 @@ aio_write
 lio_listio
 
 
-A:XXX: chflags -- elide
-A:XXX: chflagsat -- elide
-A:XXX: chown  -- elide
 A:XXX: chroot -- elide on replay
 
 A:XXX: need to discuss unix domain socket support for IPC.
@@ -63,13 +60,23 @@ extattr_set_file
 extattr_set_link
 extattrctl
 
+A:XXX: chflags -- elide
+A:XXX: chflagsat -- elide
 XXX: fchflags -- elide
-XXX: fchmod -- elide
-XXX: fchmodat --elide
+
+A:XXX: chown  -- elide
 XXX: fchown -- elide
 XXX: fchownat -- elide
-XXX: fdatasync -- elide on replay
+XXX: lchown -- elide
+
+
+XXX: Need to do something in recording agent to support this?
+	execve
 XXX: fexecve -- support using fdinfo table.
+
+XXX: fdatasync -- elide on replay
+
+
 XXX: fhopen -- elide
 XXX: fhstat -- elide
 XXX: fhstatfs -- elide
@@ -87,10 +94,7 @@ XXX: getresgid -- elide
 XXX: getresuid -- elide
 
 XXX: lchflags -- elide
-XXX: lchmod -- elide
-XXX: lchown -- elide
 lgetfh
-XXX: linkat -- elide
 lpathconf
 lutimes
 
@@ -98,15 +102,10 @@ XXX: mkdirat -- elide
 XXX: mkfifo -- elide
 XXX: mkfifoat -- elide
 
-XXX: readlinkat -- elide
-
-XXX: unlinkat -- elide
-
 XXX: posix_fadvise
 XXX: posix_fallocate
 XXX: posix_openpt
 XXX: ppoll -- elide similar to select
-XXX: pread -- elide
 XXX: preadv -- elide
 
 
