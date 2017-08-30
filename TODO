@@ -56,3 +56,7 @@ look at which pthread stuff hasn't been implemented.
     - valgrind is hanging on replay, would be good to have this working so we can
       catch bugs in Castor with it.
 
+--Other Improvements
+    -move to auto generating trivial handlers with simple IDL
+    -look into using libc test suite to test castor
+
