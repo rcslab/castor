@@ -11,14 +11,14 @@ def parse_proto(line):
     print "name:" + name
     suffix = line[half:]
     print "suffix:" + suffix
-    suffix = suffix.strip('()')
-    args = suffix.split(',')
+    argstring = suffix.strip('()')
+    print argstring
+    args = argstring.split(',')
     print "args: ", args
     argnames = map(lambda x: x.split()[-1].strip('*'), args)
     print "arg names:", argnames
     argtypes = map(lambda x: x.split()[:-1], args)
     print "arg types:", argtypes
-    #should add support for other record/replay methods based on return type
     if result_type == 'int':
         result_type_string = 'I'
     elif result_type == 'ssize_t':
@@ -35,13 +35,12 @@ def parse_proto(line):
         record_object_string = ""
         leading_object = False
 
-
     record_method = "RRRecord%s%s" % (record_object_string, result_type_string)
     replay_method = "RRReplay%s%s" % (record_object_string, result_type_string)
 
     print "\n\n"
     print "%s" % result_type
-    print "__rr_%s(%s)" % (name, suffix)
+    print "__rr_%s(%s)" % (name, argstring)
     print "{"
     print "\t%s result;\n" % result_type
     print "    switch (rrMode) {"
