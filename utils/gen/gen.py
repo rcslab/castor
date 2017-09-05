@@ -43,7 +43,7 @@ def parse_dataspec(proto_spec, line):
     result_str, arg_str = parts
 
     result_str = result_str.strip()
-    valid_results = ['result>0', 'result==0']
+    valid_results = ['result>0', 'result==0', 'result!=-1']
     if not (result_str in valid_results):
         die("\'%s\' not in %s" % (result_str, str(valid_results)))
     else:
@@ -58,7 +58,10 @@ def parse_dataspec(proto_spec, line):
         a_name, a_type = arg_spec.split(':')
         a_name = a_name.strip()
         a_type = a_type.strip()
-        #XXX: check arg name against proto spec
+        valid_names = proto_spec['arg_names']
+        if not (a_name in valid_names):
+            die("invalid argument name \'" + a_name + "\' not in " + str(valid_names))
+
         valid_types = ['sizeof']
         if not (a_type in valid_types):
             die("invalid argument type \'" + a_type + "\' not in " + str(valid_types))
@@ -102,6 +105,16 @@ def parse_proto(line):
     proto_spec['arg_types'] = argtypes
     return proto_spec
 
+def gen_log_data(data_spec):
+    #XXX: should remove redundancy with spec parser
+    result_cmp_str = {'result==0': 'result == 0', 'result>0': 'result > 0', 'result!=-1': 'result != -1'}[data_spec['result_cmp']]
+    c_output("    if (%s) {" % result_cmp_str)
+    #XXX: add support for using other arguments for data size
+    for name in data_spec['log_args'].keys():
+        c_output("\t\tlogData((uint8_t *)%s, sizeof(*%s));" % (name, name))
+    c_output("    }")
+
+
 #XXX: fix formatting
 def gen_handler(proto_spec, data_spec):
     result_type = proto_spec['result_type']
@@ -134,14 +147,9 @@ def gen_handler(proto_spec, data_spec):
     else:
         c_output("\t    %s(%s, result);" % (record_method, rr_event))
 
-    #XXX this is redudant between record/replay path.
     if data_spec != None:
-        result_cmp_str = {'result==0': 'result == 0', 'result>0': 'result > 0'}[data_spec['result_cmp']]
-        c_output("    if (%s) {" % result_cmp_str)
-        #XXX: add support for using other arguments for data size
-        for name in data_spec['log_args'].keys():
-            c_output("\t\tlogData((uint8_t *)%s, sizeof(*%s));" % (name, name))
-        c_output("    }")
+        gen_log_data(data_spec)
+
     c_output("\t    break;")
 
     c_output("\tcase RRMODE_REPLAY:")
@@ -149,13 +157,10 @@ def gen_handler(proto_spec, data_spec):
         c_output("\t    %s(%s, %s, &result);" % (replay_method, rr_event, arg_names[0]))
     else:
         c_output("\t    %s(%s, &result);" % (replay_method, rr_event))
+
     if data_spec != None:
-        result_cmp_str = {'result==0': 'result == 0', 'result>0': 'result > 0'}[data_spec['result_cmp']]
-        c_output("    if (%s) {" % result_cmp_str)
-        #XXX: add support for using other arguments for data size
-        for name in data_spec['log_args'].keys():
-            c_output("\t\tlogData((uint8_t *)%s, sizeof(*%s));" % (name, name))
-        c_output("    }")
+        gen_log_data(data_spec)
+
     c_output("\t    break;")
     c_output("    }")
     c_output("    return result;")
