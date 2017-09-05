@@ -30,7 +30,9 @@ Documentation
     -corner cases for pthread cond variables.
 
 --SYSTEM CALLS TO ADD
-look at which pthread stuff hasn't been implemented.
+-stuff in SYSCALLS_TODO
+
+-look at which pthread stuff hasn't been implemented and support it.
 
 --CLEANUP
 
