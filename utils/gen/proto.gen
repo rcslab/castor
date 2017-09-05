@@ -15,4 +15,4 @@ int lchmod(const char *path, mode_t mode);
 int fchmodat(int fd, const char *path, mode_t mode, int flag);
 int fstatat(int fd, const char *path, struct stat *buf, int flag); $ { result==0 | buf:sizeof}
 int accept(int s, struct sockaddr * restrict addr, socklen_t * restrict addrlen); $ {result>0 | addr:sizeof, addrlen:sizeof}
-
+int getcwd(char *buf, size_t size); $ { result==0 | buf:arg(size)}

@@ -8,6 +8,7 @@
 #XXX -- document
 
 import sys
+import re
 
 line_number = 0
 
@@ -62,10 +63,18 @@ def parse_dataspec(proto_spec, line):
         if not (a_name in valid_names):
             die("invalid argument name \'" + a_name + "\' not in " + str(valid_names))
 
-        valid_types = ['sizeof']
-        if not (a_type in valid_types):
-            die("invalid argument type \'" + a_type + "\' not in " + str(valid_types))
-        log_args[a_name] = a_type
+        m = re.match('arg\(([a-zA-Z_0-9]+)\)',a_type)
+        if m:
+            if not (m.groups()[0] in proto_spec['arg_names']):
+                die("invalid parameter to arg() \'" + m.groups()[0] + "\' parameter must be" +
+                        " in formal arguments of " + proto_spec['name'])
+            log_args[a_name] = m.groups()[0]
+        elif a_type == 'sizeof':
+            log_args[a_name] = 'sizeof(*%s)' % a_name
+
+        else:
+            die("invalid argument type \'" + a_type + "\'  must be either sizeof or arg(...)")
+
     data_spec['log_args'] = log_args
     return data_spec
 
@@ -110,8 +119,8 @@ def gen_log_data(data_spec):
     result_cmp_str = {'result==0': 'result == 0', 'result>0': 'result > 0', 'result!=-1': 'result != -1'}[data_spec['result_cmp']]
     c_output("    if (%s) {" % result_cmp_str)
     #XXX: add support for using other arguments for data size
-    for name in data_spec['log_args'].keys():
-        c_output("\t\tlogData((uint8_t *)%s, sizeof(*%s));" % (name, name))
+    for name, size in data_spec['log_args'].iteritems():
+        c_output("\t\tlogData((uint8_t *)%s, %s);" % (name, size))
     c_output("    }")
 
 
