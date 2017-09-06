@@ -35,6 +35,7 @@ Documentation
 -look at which pthread stuff hasn't been implemented and support it.
 
 --CLEANUP
+    -indentation/spacing is inconsistent.
 
 --FIX
     -fdInfo not threadsafe.
