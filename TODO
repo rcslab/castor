@@ -58,8 +58,15 @@ Documentation
     - -lthr works sometime and -lpthread does not, e.g. simple-udp test.
     - valgrind is hanging on replay, would be good to have this working so we can
       catch bugs in Castor with it.
+    -sysV shm resource leaks are super annoying, how can we make this more usable so
+    users don't have to constantly be cleaning up leaked resources.
 
 --Other Improvements
     -move to auto generating trivial handlers with simple IDL
     -look into using libc test suite to test castor
+
+--USABILITY
+    -truss support
+    -document how to use a debugger with Castor
+    -document rr_assert/rr_printf
 
