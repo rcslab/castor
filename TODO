@@ -1,38 +1,23 @@
-Stable Release
+--Usability
+    Usability survey -note any rough edges in common tools.
+    --USABILITY
+    -truss support
+    -document how to use a debugger with Castor
+    -document rr_assert/rr_printf
 
-Integration tests
-    -write individuals tests
-    -improve test framework with timeouts, error handling, etc. similar to unit and per.
-    -put bugs into bug tracker
-    -finish read me to include integration tests
+    Documentation
+	-finish man pages for record.1, replay.1, rrlog.1
+	-add instructions on how to build new apps to README.md
 
-Unit tests
-    -put bugs into bug tracker
-
-System call survey
-    -improve scripts/put in coding covention/etc. to make it easy to see what
-     has/has not been implemented.
-
-    -implement remaining system calls which are applicable to normal apps.
-
-Usability survey
-
-    -note any rough edges in common tools and add to bug tracker
-
-Documentation
-    -man pages for record.1, replay.1, rrlog.1
-    -add simple example app and add to README
-
-
---UNIT TESTS TO ADD
-
+--Testing
+  -look into using libc test suite to test castor
+  -unit tests:
   -more complicated pthread tests
-    -corner cases for pthread cond variables.
+  -corner cases for pthread cond variables.
 
---SYSTEM CALLS TO ADD
--stuff in SYSCALLS_TODO
-
--look at which pthread stuff hasn't been implemented and support it.
+--Completeness
+    -stuff in SYSCALLS_TODO, and PTHREAD_TODO
+    -migrate over to using code generation stuff for all eligible calls.
 
 --CLEANUP
     -indentation/spacing is inconsistent.
@@ -48,6 +33,10 @@ Documentation
             using this.
     -ensure that Castor symbols are either static or prefixed with __rr_ to prevent namespace pollution.
 
+--Other features:
+    -Add magic number to log files to improve error reporting for record/replay.
+    -Add version number to log files so we can ensure consistency between tools/runtimes on record/replay
+
 --BUGS
     - exit() doesnt flush io buffers (breaks file redirection and some builds)
     - strerror_r (used in PERROR debug macro) calls stat internally
@@ -60,13 +49,3 @@ Documentation
       catch bugs in Castor with it.
     -sysV shm resource leaks are super annoying, how can we make this more usable so
     users don't have to constantly be cleaning up leaked resources.
-
---Other Improvements
-    -move to auto generating trivial handlers with simple IDL
-    -look into using libc test suite to test castor
-
---USABILITY
-    -truss support
-    -document how to use a debugger with Castor
-    -document rr_assert/rr_printf
-
