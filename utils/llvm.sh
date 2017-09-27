@@ -29,11 +29,11 @@ if (! -e build ) then
   mkdir build
 endif
 
-if (! -e $BASE/../compiler-rt ) then
-  echo "Unable to find compiler-rt repository, not building custom runtime!!!"
-else
-  ln -s $BASE/../compiler-rt $BASE/llvm/projects/compiler-rt
-endif
+#if (! -e $BASE/../compiler-rt ) then
+#  echo "Unable to find compiler-rt repository, not building custom runtime!!!"
+#else
+#  ln -s $BASE/../compiler-rt $BASE/llvm/projects/compiler-rt
+#endif
 
 cd build
 cmake -G Ninja -DLLVM_TARGETS_TO_BUILD=X86 ../
