@@ -1,7 +1,7 @@
 
 XXX:passthrough
 
-pthread_atfork            
+pthread_atfork
 pthread_attr_destroy
 pthread_attr_get_np
 pthread_attr_getaffinity_np
