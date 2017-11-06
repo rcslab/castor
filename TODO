@@ -36,8 +36,13 @@
 --Other features:
     -Add magic number to log files to improve error reporting for record/replay.
     -Add version number to log files so we can ensure consistency between tools/runtimes on record/replay
+   -Add check to ensure that binary has been compiled with Castor pass.
+
 
 --BUGS
+    - several unit tests output rediction looks
+      like its failing when run by the test harness 
+      -- pipe and udp are example.
     - exit() doesnt flush io buffers (breaks file redirection and some builds)
     - strerror_r (used in PERROR debug macro) calls stat internally
     - gethostbyname calls _pthread_once directly
