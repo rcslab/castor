@@ -36,10 +36,10 @@ def myspawn(sh, escape, cmd, args, env):
 
 opts = Variables('Local.sc')
 opts.AddVariables(
-    ("CC", "C Compiler", "cc"),
-    ("CXX", "C++ Compiler", "c++"),
+    ("CC", "C Compiler", "clang"),
+    ("CXX", "C++ Compiler", "clang++"),
     ("AS", "Assembler", "as"),
-    ("LINK", "Linker", "cc"),
+    ("LINK", "Linker", "clang++"),
     ("AR", "Archiver", "ar"),
     ("RANLIB", "Archiver Indexer", "ranlib"),
     ("TESTCC", "C Compiler", "llvm/build/bin/clang"),
@@ -106,7 +106,9 @@ env.Append(CPPFLAGS = ["-Wall", "-Wsign-compare", "-Wsign-conversion",
                        "-Wcast-align", "-Werror", "-g", "-O2", "-fPIC"])
 
 # Force color output to play well with spawn overload
-env.Append(CPPFLAGS = ["-fcolor-diagnostics"])
+# breaks vim quickfix.
+#env.Append(CPPFLAGS = ["-fcolor-diagnostics"])
+
 
 if (env["CLANGSAN"] != ""):
     env.Append(CPPFLAGS = ["-fsanitize=" + env["CLANGSAN"]])
