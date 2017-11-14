@@ -6,7 +6,7 @@ import sys
 import subprocess
 import StringIO
 
-log = open("build.log", "w")
+log = None
 
 def myspawn(sh, escape, cmd, args, env):
     fullCmd = [sh, '-c', ' '.join(args)]
@@ -36,10 +36,10 @@ def myspawn(sh, escape, cmd, args, env):
 
 opts = Variables('Local.sc')
 opts.AddVariables(
-    ("CC", "C Compiler", "clang"),
-    ("CXX", "C++ Compiler", "clang++"),
+    ("CC", "C Compiler", "cc"),
+    ("CXX", "C++ Compiler", "cc++"),
     ("AS", "Assembler", "as"),
-    ("LINK", "Linker", "clang++"),
+    ("LINK", "Linker", "cc++"),
     ("AR", "Archiver", "ar"),
     ("RANLIB", "Archiver Indexer", "ranlib"),
     ("TESTCC", "C Compiler", "llvm/build/bin/clang"),
@@ -48,6 +48,7 @@ opts.AddVariables(
     ("NUMCPUS", "Number of CPUs to use for build (0 means auto)", "0"),
     ("CLANGTIDY", "Clang Tidy", "clang-tidy40"),
     ("CTAGS", "Ctags", "exctags"),
+    ("LOGFILE", "Output build log to a file", ""),
     EnumVariable("CLANGSAN", "Clang/LLVM Sanitizer", "", ["", "address", "thread", "leak"]),
     ("CASTORPASS", "Castor LLVM IR Pass", "lib/Pass/libCastorPass.so"),
     EnumVariable("VERBOSE", "Show full build information", "0", ["0", "1"]),
@@ -78,7 +79,14 @@ Help(opts.GenerateHelpText(env))
 env["CC"] = os.getenv("CC") or env["CC"]
 env["CXX"] = os.getenv("CXX") or env["CXX"]
 env["ENV"].update(x for x in os.environ.items() if x[0].startswith("CCC_"))
-env['SPAWN'] = myspawn
+if env["LOGFILE"] != "":
+    log = open(env["LOGFILE"], "w")
+    env['SPAWN'] = myspawn
+    # Force color output to play well with spawn overload
+    env.Append(CPPFLAGS = ["-fcolor-diagnostics"])
+
+if os.isatty(1) and os.isatty(2):
+    env.Append(CPPFLAGS = ["-fcolor-diagnostics"])
 
 if env["VERBOSE"] == "0":
     env["CCCOMSTR"] = "Compiling $SOURCE"
@@ -104,11 +112,6 @@ env.Append(CXXFLAGS = ["-std=c++11"])
 env.Append(CFLAGS = ["-std=c11"])
 env.Append(CPPFLAGS = ["-Wall", "-Wsign-compare", "-Wsign-conversion",
                        "-Wcast-align", "-Werror", "-g", "-O2", "-fPIC"])
-
-# Force color output to play well with spawn overload
-# breaks vim quickfix.
-#env.Append(CPPFLAGS = ["-fcolor-diagnostics"])
-
 
 if (env["CLANGSAN"] != ""):
     env.Append(CPPFLAGS = ["-fsanitize=" + env["CLANGSAN"]])

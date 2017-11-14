@@ -13,10 +13,10 @@ endif
 
 cd $BASE/utils
 if ( ! -e $LLVM_SRC.tar.xz ) then
-    curl -O https://llvm.org/releases/$LLVMVER/$LLVM_SRC.tar.xz
+    fetch https://llvm.org/releases/$LLVMVER/$LLVM_SRC.tar.xz
 endif
 if ( ! -e $CFE_SRC.tar.xz ) then
-    curl -O https://llvm.org/releases/$LLVMVER/$CFE_SRC.tar.xz
+    fetch https://llvm.org/releases/$LLVMVER/$CFE_SRC.tar.xz
 endif
 
 tar xvf $LLVM_SRC.tar.xz
