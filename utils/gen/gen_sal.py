@@ -89,36 +89,34 @@ def gen_handler(proto_spec, data_spec):
     c_output("    return result;")
     c_output("}")
 
-
-
-
-#XXX build result type for spec
-#     result_type = result_type.strip()
-#     result_types = ['int', 'ssize_t']
-#     if not (result_type in result_types):
-#         die("unknown result type \'" + result_type + "\' not in " + str(result_types))
-#     print "name:" + name
-#     proto_spec['result_type'] = result_type
-
-#     suffix = line[half:]
-#     print "suffix:" + suffix
-#     print "arg_string:" + arg_string
-#     proto_spec['arg_string'] = arg_string
-#     print "args: ", args
-#     argnames = map(lambda x: x.split()[-1].strip('*'), args)
-#     print "arg names:", argnames
-#     proto_spec['arg_names'] = argnames
-#     argtypes = map(lambda x: x.split()[:-1], args)
-#     print "arg types:", argtypes
-#     proto_spec['arg_types'] = argtypes
-#     return proto_spec
+def generate_handler(handler_desc):
+    print "handler_desc:", handler_desc
 
 def parse_args(arg_string):
+    args_spec = []
     print "parse_args(%s)" % (arg_string)
     args = arg_string.split(',')
     print "args:", args
+    for arg in args:
+        arg_spec = {}
+        if arg == 'void':
+            break
+        arg = arg.replace('*', '* ')
+        fields = arg.split()
+        arg_spec['name'] = fields[-1]
+        print "arg_name:" + arg_spec['name']
+        del(fields[-1])
+        if fields[0].startswith("_"):
+            arg_spec['sal'] = fields[0]
+            del fields[0]
+            print "arg_sal:" + arg_spec['sal']
+        arg_spec['type'] = ' '.join(fields)
+        print "arg_type:" + arg_spec['type']
+        args_spec.append(arg_spec)
+    return args_spec
 
 def parse_proto(line):
+    handler_spec = {}
     print "parse_proto(%s)" % (line)
     pivot = line.index('(')
     prefix = line[:pivot]
@@ -128,8 +126,11 @@ def parse_proto(line):
     result_type, name = prefix.split()
     print "name:" + name
     print "result_type:" + result_type
+    handler_spec['name'] = name
+    handler_spec['result_type'] = result_type
     arg_string = suffix.strip('(); ')
-    parse_args(arg_string)
+    handler_spec['args_spec'] = parse_args(arg_string)
+    return handler_spec
 
 def parse_spec_line(line):
     print "parse_spec_line(%s):" % (line)
@@ -143,7 +144,7 @@ def parse_spec_line(line):
         pass
     else:
         proto = proto.strip('{}')
-        parse_proto(proto)
+        return parse_proto(proto)
 
 def parse_preprocessor(line):
     print "preprocessor", line
@@ -159,7 +160,7 @@ def parse_newline(line):
 
 def parse_spec():
     global line_number
-    spec_line = None
+    partial_line = None
     for line in sys.stdin:
         print line_number, line
 
@@ -174,29 +175,23 @@ def parse_spec():
             parse_spec_comment(line)
         else:
             if line[0].isdigit():
-                spec_line = line
+                partial_line = line
             elif line.endswith("\\"):
-                spec_line = spec_line + line
+                partial_line = partial_line + line
             elif line.endswith('}'):
-                spec_line = spec_line + line
+                partial_line = partial_line + line
 
             if line.endswith('}'):
-                spec_line = spec_line.replace("\\","")
+                spec_line = partial_line.replace("\\","")
+                partial_line = None
                 print "spec_line: %s" % (spec_line)
-                parse_spec_line(spec_line)
-                spec_line = None
-
-
-        #     #     # data_spec = None
-            #     # proto_spec = parse_proto(line)
-            #     # if "$" in line:
-            #     #     data_spec = parse_dataspec(proto_spec, line)
-            #     # print "proto_spec", str(proto_spec)
-            #     # print "data_spec", str(data_spec)
-            #     # gen_handler(proto_spec, data_spec)
-            # except:
-            #     print "Unknown parsing error on line %d" % line_number
-            #     raise
+                try:
+                    handler_desc = parse_spec_line(spec_line)
+                    if handler_desc:
+                        generate_handler(handler_desc)
+                except:
+                    print "Unknown parsing error on line %d" % line_number
+                    raise
 
 parse_spec()
 cout.close()
