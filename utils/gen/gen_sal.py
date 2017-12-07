@@ -27,91 +27,6 @@ def die(msg):
     print "Error on line %d:%s" % (line_number, msg)
     sys.exit(1)
 
-def parse_dataspec(proto_spec, line):
-    data_spec = {}
-    _,specstr= line.split('$')
-    print "specstr:", specstr
-    specstr = specstr.strip()
-    if (specstr[0] != '{'):
-        die("missing opening brace")
-    if (specstr[-1] != '}'):
-        die("missing closing brace")
-    specstr = specstr.strip('{}')
-    parts = specstr.split('|')
-    if (len(parts) != 2):
-        die("missing portion of data spec, should be {result_str | arg_str}")
-    result_str, arg_str = parts
-
-    result_str = result_str.strip()
-    valid_results = ['result>0', 'result==0', 'result!=-1']
-    if not (result_str in valid_results):
-        die("\'%s\' not in %s" % (result_str, str(valid_results)))
-    else:
-        data_spec['result_cmp'] = result_str
-
-    arg_str = arg_str.strip()
-    arg_ar = arg_str.split(',')
-    log_args = {}
-    for arg_spec in arg_ar:
-        if len(arg_spec.split(':')) != 2:
-            die("invalid arg spec, should be arg_name:arg_type")
-        a_name, a_type = arg_spec.split(':')
-        a_name = a_name.strip()
-        a_type = a_type.strip()
-        valid_names = proto_spec['arg_names']
-        if not (a_name in valid_names):
-            die("invalid argument name \'" + a_name + "\' not in " + str(valid_names))
-
-        m = re.match('arg\(([a-zA-Z_0-9]+)\)',a_type)
-        if m:
-            if not (m.groups()[0] in proto_spec['arg_names']):
-                die("invalid parameter to arg() \'" + m.groups()[0] + "\' parameter must be" +
-                        " in formal arguments of " + proto_spec['name'])
-            log_args[a_name] = m.groups()[0]
-        elif a_type == 'sizeof':
-            log_args[a_name] = 'sizeof(*%s)' % a_name
-
-        else:
-            die("invalid argument type \'" + a_type + "\'  must be either sizeof or arg(...)")
-
-    data_spec['log_args'] = log_args
-    return data_spec
-
-def parse_proto(line):
-    print "parse:"
-    proto_spec = {}
-    line = line[line.index('{'):] #remove prefix
-    line = line.strip('{}')       #drop enclosing braces
-    half = line.index('(')
-    prefix = line[:half]
-    print "prefix:" + prefix
-    result_type, name = prefix.split()
-    print "name:" + name
-    proto_spec['name'] = name
-
-    print "result_type:" + result_type
-#XXX build result type for spec
-#     result_type = result_type.strip()
-#     result_types = ['int', 'ssize_t']
-#     if not (result_type in result_types):
-#         die("unknown result type \'" + result_type + "\' not in " + str(result_types))
-#     print "name:" + name
-#     proto_spec['result_type'] = result_type
-
-#     suffix = line[half:]
-#     print "suffix:" + suffix
-#     arg_string = suffix.strip('()')
-#     print "arg_string:" + arg_string
-#     proto_spec['arg_string'] = arg_string
-#     args = arg_string.split(',')
-#     print "args: ", args
-#     argnames = map(lambda x: x.split()[-1].strip('*'), args)
-#     print "arg names:", argnames
-#     proto_spec['arg_names'] = argnames
-#     argtypes = map(lambda x: x.split()[:-1], args)
-#     print "arg types:", argtypes
-#     proto_spec['arg_types'] = argtypes
-#     return proto_spec
 
 def gen_log_data(data_spec):
     #XXX: should remove redundancy with spec parser
@@ -175,9 +90,60 @@ def gen_handler(proto_spec, data_spec):
     c_output("}")
 
 
-def parse_c_comment(line):
-    print "c_comment", line
-    c_output(line)
+
+
+#XXX build result type for spec
+#     result_type = result_type.strip()
+#     result_types = ['int', 'ssize_t']
+#     if not (result_type in result_types):
+#         die("unknown result type \'" + result_type + "\' not in " + str(result_types))
+#     print "name:" + name
+#     proto_spec['result_type'] = result_type
+
+#     suffix = line[half:]
+#     print "suffix:" + suffix
+#     print "arg_string:" + arg_string
+#     proto_spec['arg_string'] = arg_string
+#     print "args: ", args
+#     argnames = map(lambda x: x.split()[-1].strip('*'), args)
+#     print "arg names:", argnames
+#     proto_spec['arg_names'] = argnames
+#     argtypes = map(lambda x: x.split()[:-1], args)
+#     print "arg types:", argtypes
+#     proto_spec['arg_types'] = argtypes
+#     return proto_spec
+
+def parse_args(arg_string):
+    print "parse_args(%s)" % (arg_string)
+    args = arg_string.split(',')
+    print "args:", args
+
+def parse_proto(line):
+    print "parse_proto(%s)" % (line)
+    pivot = line.index('(')
+    prefix = line[:pivot]
+    suffix = line[pivot:]
+    print "prefix:" + prefix
+    print "suffix:%s<eol>" % (suffix)
+    result_type, name = prefix.split()
+    print "name:" + name
+    print "result_type:" + result_type
+    arg_string = suffix.strip('(); ')
+    parse_args(arg_string)
+
+def parse_spec_line(line):
+    print "parse_spec_line(%s):" % (line)
+    pivot = line.index('{')
+    prefix = line[:pivot]
+    proto = line[pivot:]
+    print "prefix:" + prefix
+    print "proto:" + proto
+    number, name, type = prefix.split()
+    if type in ['OBSOL', 'UNIMPL']:
+        pass
+    else:
+        proto = proto.strip('{}')
+        parse_proto(proto)
 
 def parse_preprocessor(line):
     print "preprocessor", line
@@ -191,45 +157,47 @@ def parse_newline(line):
     print "<newline>"
     c_output('')
 
-proto_line = None
+def parse_spec():
+    global line_number
+    spec_line = None
+    for line in sys.stdin:
+        print line_number, line
 
-for line in sys.stdin:
-    print line_number, line
+        line_number += 1
+        line = line.strip()
 
-    line_number += 1
-    line = line.strip()
+        if line == '':
+            parse_newline(line)
+        elif line.startswith("#"):
+            parse_preprocessor(line)
+        elif line.startswith(";"):
+            parse_spec_comment(line)
+        else:
+            if line[0].isdigit():
+                spec_line = line
+            elif line.endswith("\\"):
+                spec_line = spec_line + line
+            elif line.endswith('}'):
+                spec_line = spec_line + line
 
-    if line == '':
-        parse_newline(line)
-    elif line.startswith("#"):
-        parse_preprocessor(line)
-    elif line.startswith(";"):
-        parse_spec_comment(line)
-    else:
-        if line[0].isdigit():
-            proto_line = line
-        elif line.endswith("\\"):
-            proto_line = proto_line + line
-        elif line.endswith('}'):
-            proto_line = proto_line + line
-
-        if line.endswith('}'):
-            proto_line = proto_line.replace("\\","")
-            print "proto_line: %s" % (proto_line)
-            parse_proto(proto_line)
-            proto_line = None
+            if line.endswith('}'):
+                spec_line = spec_line.replace("\\","")
+                print "spec_line: %s" % (spec_line)
+                parse_spec_line(spec_line)
+                spec_line = None
 
 
-    #     #     # data_spec = None
-        #     # proto_spec = parse_proto(line)
-        #     # if "$" in line:
-        #     #     data_spec = parse_dataspec(proto_spec, line)
-        #     # print "proto_spec", str(proto_spec)
-        #     # print "data_spec", str(data_spec)
-        #     # gen_handler(proto_spec, data_spec)
-        # except:
-        #     print "Unknown parsing error on line %d" % line_number
-        #     raise
+        #     #     # data_spec = None
+            #     # proto_spec = parse_proto(line)
+            #     # if "$" in line:
+            #     #     data_spec = parse_dataspec(proto_spec, line)
+            #     # print "proto_spec", str(proto_spec)
+            #     # print "data_spec", str(data_spec)
+            #     # gen_handler(proto_spec, data_spec)
+            # except:
+            #     print "Unknown parsing error on line %d" % line_number
+            #     raise
 
+parse_spec()
 cout.close()
 hout.close()
