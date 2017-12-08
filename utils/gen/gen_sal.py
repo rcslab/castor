@@ -9,24 +9,12 @@
 import sys
 import re
 
-line_number = 0
-
 cout = open("event_gen.c", "w")
-hout = open("event_gen.h", "w")
 
 def c_output(line):
     print "cout", line
     line = line + '\n'
     cout.write(line)
-
-def h_output(line):
-    line = line + '\n'
-    hout.write(line)
-
-def die(msg):
-    print "Error on line %d:%s" % (line_number, msg)
-    sys.exit(1)
-
 
 def gen_log_data(data_spec):
     #XXX: should remove redundancy with spec parser
@@ -159,8 +147,9 @@ def parse_newline(line):
     c_output('')
 
 def parse_spec():
-    global line_number
+    line_number = 0
     partial_line = None
+    handler_description_list = []
     for line in sys.stdin:
         print line_number, line
 
@@ -188,11 +177,19 @@ def parse_spec():
                 try:
                     handler_desc = parse_spec_line(spec_line)
                     if handler_desc:
-                        generate_handler(handler_desc)
+                        handler_description_list.append(handler_desc)
                 except:
                     print "Unknown parsing error on line %d" % line_number
                     raise
+    return handler_description_list
 
-parse_spec()
-cout.close()
-hout.close()
+if __name__ == '__main__':
+    with open('autogenerate_list') as f:
+            autogenerate_list = f.read().splitlines()
+    handler_description_list = parse_spec()
+    print "desc:", handler_description_list
+    print "list:", autogenerate_list
+    for desc in handler_description_list:
+        if desc['name'] in autogenerate_list:
+            generate_handler(desc)
+    cout.close()
