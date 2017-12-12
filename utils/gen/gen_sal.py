@@ -16,41 +16,48 @@ def c_output(line):
     line = line + '\n'
     cout.write(line)
 
-def gen_log_data(data_spec):
-    #XXX: should remove redundancy with spec parser
-    result_cmp_str = {'result==0': 'result == 0', 'result>0': 'result > 0', 'result!=-1': 'result != -1'}[data_spec['result_cmp']]
-    c_output("    if (%s) {" % result_cmp_str)
-    #XXX: add support for using other arguments for data size
-    for name, size in data_spec['log_args'].iteritems():
-        c_output("\t\tlogData((uint8_t *)%s, %s);" % (name, size))
-    c_output("    }")
+def gen_log_data(spec):
+    gen_log = False
+    result_cmp_str = {'@success_zero': 'result == 0', '@success_pos': 'result > 0',
+                      '@success_nneg': 'result != -1'}[spec['success']]
+    for arg in spec['args_spec']:
+        if arg['log_spec'] != None:
+            gen_log = True
+    if gen_log:
+        c_output("\t\tif (%s) {" % result_cmp_str)
+        for arg in spec['args_spec']:
+            if arg['log_spec']:
+                c_output("\t\t\tlogData((uint8_t *)%s, %s);" %
+                            (arg['name'], arg['log_spec']['size']))
+        c_output("\t\t}")
 
-
-#XXX: fix formatting
-def gen_handler(proto_spec, data_spec):
-    result_type = proto_spec['result_type']
-    name = proto_spec['name']
-    arg_string = proto_spec['arg_string']
-    arg_names = proto_spec['arg_names']
-    arg_types = proto_spec['arg_types']
-    leading_object = True if arg_types[0][0] == 'int' else False
-    object_string = 'O' if leading_object else ''
-    result_type_string = {'int' : 'I', 'ssize_t' : 'S'}[result_type]
-    record_method = "RRRecord%s%s" % (object_string, result_type_string)
-    replay_method = "RRReplay%s%s" % (object_string, result_type_string)
-    rr_event = "RREVENT_%s" % name.upper()
+def generate_handler(spec):
+    print "handler_desc:", spec
+    name = spec['name']
+    result_type = spec['result_type']
+    arg_list = [arg['type'] + ' ' + arg['name'] for arg in spec['args_spec']]
+    arg_names = [arg['name'] for arg in spec['args_spec']]
+    arg_types =  [arg['type'] for arg in spec['args_spec']]
+    arg_string = ", ".join(arg_list)
 
     c_output("\n%s" % result_type)
     c_output("__rr_%s(%s)" % (name, arg_string))
     c_output("{")
     c_output("\t%s result;\n" % result_type)
-    c_output("    switch (rrMode) {")
 
+    c_output("    switch (rrMode) {")
     c_output("\tcase RRMODE_NORMAL:")
     call_args = ["SYS_" + name] + arg_names
     call_str =  "syscall(%s)" % ", ".join(call_args)
     c_output("\t    return %s;"  % call_str)
 
+
+    leading_object = True if arg_types[0][0] == 'int' else False
+    object_string = 'O' if leading_object else ''
+    result_type_string = {'int' : 'I', 'ssize_t' : 'S'}[result_type]
+    rr_event = "RREVENT_%s" % name.upper()
+
+    record_method = "RRRecord%s%s" % (object_string, result_type_string)
     c_output("\tcase RRMODE_RECORD:")
     c_output("\t    result = %s;" % call_str)
     if leading_object:
@@ -58,27 +65,31 @@ def gen_handler(proto_spec, data_spec):
     else:
         c_output("\t    %s(%s, result);" % (record_method, rr_event))
 
-    if data_spec != None:
-        gen_log_data(data_spec)
+    gen_log_data(spec)
 
     c_output("\t    break;")
 
+    replay_method = "RRReplay%s%s" % (object_string, result_type_string)
     c_output("\tcase RRMODE_REPLAY:")
     if leading_object:
         c_output("\t    %s(%s, %s, &result);" % (replay_method, rr_event, arg_names[0]))
     else:
         c_output("\t    %s(%s, &result);" % (replay_method, rr_event))
 
-    if data_spec != None:
-        gen_log_data(data_spec)
+    gen_log_data(spec)
 
     c_output("\t    break;")
     c_output("    }")
     c_output("    return result;")
     c_output("}")
 
-def generate_handler(handler_desc):
-    print "handler_desc:", handler_desc
+def parse_sal(sal):
+    log_spec = None
+    if sal.startswith("_Out_writes_bytes_("):
+        size = sal.split('(')[1].strip(')')
+        log_spec = { 'size': size}
+    return log_spec
+
 
 def parse_args(arg_string):
     args_spec = []
@@ -94,10 +105,14 @@ def parse_args(arg_string):
         arg_spec['name'] = fields[-1]
         print "arg_name:" + arg_spec['name']
         del(fields[-1])
+        log_spec = None
         if fields[0].startswith("_"):
-            arg_spec['sal'] = fields[0]
+            sal = fields[0]
             del fields[0]
+            arg_spec['sal'] = sal
             print "arg_sal:" + arg_spec['sal']
+            log_spec = parse_sal(sal)
+        arg_spec['log_spec'] = log_spec
         arg_spec['type'] = ' '.join(fields)
         print "arg_type:" + arg_spec['type']
         args_spec.append(arg_spec)
@@ -111,11 +126,20 @@ def parse_proto(line):
     suffix = line[pivot:]
     print "prefix:" + prefix
     print "suffix:%s<eol>" % (suffix)
-    result_type, name = prefix.split()
+    prefix_list = prefix.split()
+    success = None
+    if len(prefix_list) == 3:
+        success = prefix_list[0]
+        result_type = prefix_list[1]
+        name = prefix_list[2]
+    else:
+        result_type = prefix_list[0]
+        name = prefix_list[1]
     print "name:" + name
     print "result_type:" + result_type
     handler_spec['name'] = name
     handler_spec['result_type'] = result_type
+    handler_spec['success'] = success
     arg_string = suffix.strip('(); ')
     handler_spec['args_spec'] = parse_args(arg_string)
     return handler_spec
