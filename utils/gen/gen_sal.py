@@ -83,11 +83,16 @@ def generate_handler(spec):
     c_output("    return result;")
     c_output("}")
 
-def parse_sal(sal):
+def parse_logspec(sal, type):
+    print "parse_logspec(%s, %s)" % (sal, type)
     log_spec = None
+    sal = sal.strip()
     if sal.startswith("_Out_writes_bytes_("):
         size = sal.split('(')[1].strip(')')
         log_spec = { 'size': size}
+    elif sal == "_Out_":
+        size_type = type.split('*')[0].strip()
+        log_spec = { 'size' : "sizeof(%s)" % size_type }
     return log_spec
 
 
@@ -106,15 +111,17 @@ def parse_args(arg_string):
         print "arg_name:" + arg_spec['name']
         del(fields[-1])
         log_spec = None
+        sal = None
         if fields[0].startswith("_"):
             sal = fields[0]
             del fields[0]
             arg_spec['sal'] = sal
-            print "arg_sal:" + arg_spec['sal']
-            log_spec = parse_sal(sal)
-        arg_spec['log_spec'] = log_spec
+            print "arg_sal:", arg_spec['sal']
         arg_spec['type'] = ' '.join(fields)
         print "arg_type:" + arg_spec['type']
+        if sal != None:
+            log_spec = parse_logspec(arg_spec['sal'], arg_spec['type'])
+        arg_spec['log_spec'] = log_spec
         args_spec.append(arg_spec)
     return args_spec
 
