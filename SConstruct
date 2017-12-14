@@ -37,9 +37,9 @@ def myspawn(sh, escape, cmd, args, env):
 opts = Variables('Local.sc')
 opts.AddVariables(
     ("CC", "C Compiler", "cc"),
-    ("CXX", "C++ Compiler", "cc++"),
+    ("CXX", "C++ Compiler", "c++"),
     ("AS", "Assembler", "as"),
-    ("LINK", "Linker", "cc++"),
+    ("LINK", "Linker", "c++"),
     ("AR", "Archiver", "ar"),
     ("RANLIB", "Archiver Indexer", "ranlib"),
     ("TESTCC", "C Compiler", "llvm/build/bin/clang"),
