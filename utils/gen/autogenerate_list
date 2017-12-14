@@ -1,0 +1,9 @@
+read
+nlstat
+close
+cpuset
+cpuset_setid
+cpuset_getid
+clock_settime
+clock_getres
+clock_gettime
