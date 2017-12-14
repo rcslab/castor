@@ -2,6 +2,8 @@
 #ifndef __UTIL_H__
 #define __UTIL_H__
 
+#include <threads.h>
+
 #define LOCKTABLE_SIZE 4096
 
 extern enum RRMODE rrMode;
