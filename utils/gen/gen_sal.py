@@ -10,11 +10,17 @@ import sys
 import re
 
 cout = open("event_gen.c", "w")
+hout = open("event_gen.h", "w")
 
 def c_output(line):
     print "cout", line
     line = line + '\n'
     cout.write(line)
+
+def h_output(line):
+    print "hout", line
+    line = line + '\n'
+    hout.write(line)
 
 def gen_log_data(spec):
     gen_log = False
@@ -220,6 +226,21 @@ def generate_header():
 """
     c_output(header)
 
+def generate_header_file(generated):
+    index = 0x000A000
+    h_output("#ifndef __EVENTS_GEN_H")
+    h_output("#define __EVENTS_GEN_H\n\n")
+    h_output("#define RREVENT_TABLE\\")
+    last = generated.pop()
+    for name in generated:
+        h_output("\tRREVENT(%s,\t0x%X)\\" % (name.upper(), index))
+        index += 1
+    h_output("\tRREVENT(%s,\t0x%X)" % (last.upper(), index))
+
+    h_output("#endif")
+
+
+
 def generate_includes():
     includes = """
 #include "util.h"
@@ -245,6 +266,7 @@ if __name__ == '__main__':
             generate_handler(desc)
             generated.append(desc['name'])
     generate_bindings(generated)
+    generate_header_file(generated)
     missing = set(autogenerate_list) - set(generated)
     if len(missing) != 0:
         sys.exit("Failed to generate: %s " % str(list(missing)))
