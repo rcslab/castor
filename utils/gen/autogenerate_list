@@ -1,9 +1,5 @@
-read
-nlstat
-close
 cpuset
-cpuset_setid
+cpuset_getaffinity
 cpuset_getid
-clock_settime
-clock_getres
-clock_gettime
+cpuset_setaffinity
+cpuset_setid

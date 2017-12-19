@@ -53,8 +53,6 @@
 #include <sys/mount.h>
 #include <sys/socket.h>
 #include <sys/user.h>
-#include <compat/cheriabi/cheriabi.h>
-#include <compat/cheriabi/cheriabi_proto.h>
 
 #if !defined(PAD64_REQUIRED) && (defined(__powerpc__) || defined(__mips__))
 #define PAD64_REQUIRED
@@ -70,29 +68,29 @@
 1	AUE_EXIT	NOPROTO|NOSTUB	{ void sys_exit(int rval); } exit \
 				    sys_exit_args void
 2	AUE_FORK	NOPROTO	{ int fork(void); }
-3	AUE_READ	NOPROTO	{ ssize_t read(int fd, \
+3	AUE_READ	NOPROTO	{ @success_nneg ssize_t read(int fd, \
 				    _Out_writes_bytes_(nbyte) void *buf, \
 				    size_t nbyte); }
-4	AUE_WRITE	NOPROTO	{ ssize_t write(int fd, \
+4	AUE_WRITE	NOPROTO	{ @success_nneg ssize_t write(int fd, \
 				    _In_reads_bytes_(nbyte) const void *buf, \
 				    size_t nbyte); }
 5	AUE_OPEN_RWTC	STD|VARARG	{ int cheriabi_open( \
-				    _In_z_ const char * __capability path, \
+				    _In_z_ const char *  path, \
 				    int flags, \
 				    mode_t mode); }
-6	AUE_CLOSE	NOPROTO	{ int close(int fd); }
+6	AUE_CLOSE	NOPROTO	{ @success_zero int close(int fd); }
 7	AUE_WAIT4	NOPROTO	{ int wait4(int pid, _Out_opt_ int *status, \
 				    int options, \
 				    _Out_opt_ struct rusage *rusage); }
 8	AUE_CREAT	OBSOL	old creat
 9	AUE_LINK	STD	{ int cheriabi_link( \
-				    _In_z_ const char * __capability path, \
-				    _In_z_ const char * __capability to); }
+				    _In_z_ const char *  path, \
+				    _In_z_ const char *  to); }
 10	AUE_UNLINK	STD	{ int cheriabi_unlink( \
-				    _In_z_ const char * __capability path); }
+				    _In_z_ const char *  path); }
 11	AUE_NULL	OBSOL	execv
 12	AUE_CHDIR	STD	{ int cheriabi_chdir( \
-				    _In_z_ const char * __capability path); }
+				    _In_z_ const char *  path); }
 13	AUE_FCHDIR	NOPROTO	{ int fchdir(int fd); }
 14	AUE_MKNOD	OBSOL	fbsd11_mknod
 15	AUE_CHMOD	NOPROTO	{ int chmod(_In_z_ const char *path, \
@@ -105,10 +103,10 @@
 20	AUE_GETPID	NOPROTO	{ pid_t getpid(void); }
 ; XXX-BD: should be OBSOL, but need to fix amd
 21	AUE_MOUNT	STD	{ int cheriabi_mount( \
-				    _In_z_ const char * __capability type, \
-				    _In_z_ const char * __capability path, \
+				    _In_z_ const char *  type, \
+				    _In_z_ const char *  path, \
 				    int flags, \
-				    _In_opt_ void * __capability data); }
+				    _In_opt_ void *  data); }
 22	AUE_UMOUNT	NOPROTO	{ int unmount(_In_z_ const char *path, \
 				    int flags); }
 23	AUE_SETUID	NOPROTO	{ int setuid(uid_t uid); }
@@ -166,7 +164,7 @@
 				    _Out_writes_z_(namelen) char *namebuf, \
 				    u_int namelen); }
 50	AUE_SETLOGIN	STD	{ int cheriabi_setlogin( \
-				    _In_z_ const char * __capability namebuf); }
+				    _In_z_ const char *  namebuf); }
 51	AUE_ACCT	NOPROTO	{ int acct(_In_z_ const char *path); }
 52	AUE_SIGPENDING	OBSOL	sigpending
 53	AUE_SIGALTSTACK	STD	{ int cheriabi_sigaltstack( \
@@ -187,8 +185,8 @@
 ; _In_ for now.
 59	AUE_EXECVE	STD	{ int cheriabi_execve( \
 				    _In_z_ const char *fname, \
-				    _In_ void * __capability *argv, \
-				    _In_ void * __capability *envv); }
+				    _In_ void *  *argv, \
+				    _In_ void *  *envv); }
 60	AUE_UMASK	NOPROTO	{ mode_t umask(mode_t newmask); }
 61	AUE_CHROOT	NOPROTO	{ int chroot(_In_z_ const char *path); }
 62	AUE_FSTAT	OBSOL	fstat
@@ -328,7 +326,7 @@
 136	AUE_MKDIR	NOPROTO	{ int mkdir(_In_z_ const char *path, \
 				    mode_t mode); }
 137	AUE_RMDIR	STD	{ int cheriabi_rmdir( \
-				    _In_z_ const char * __capability path); }
+				    _In_z_ const char *  path); }
 138	AUE_UTIMES	NOPROTO	{ int utimes(_In_z_ const char *path, \
 				    _In_ const struct timeval *tptr); }
 139	AUE_NULL	OBSOL	sigreturn
@@ -343,9 +341,9 @@
 146	AUE_KILLPG	OBSOL	killpg
 147	AUE_SETSID	NOPROTO	{ int setsid(void); }
 148	AUE_QUOTACTL	STD	{ int cheriabi_quotactl( \
-				    _In_z_ const char * __capability path, \
+				    _In_z_ const char *  path, \
 				    int cmd, int uid, \
-				    _In_ void * __capability arg); }
+				    _In_ void *  arg); }
 149	AUE_O_QUOTA	OBSOL oquota
 150	AUE_GETSOCKNAME	OBSOL ogetsockname
 
@@ -360,10 +358,10 @@
 154	AUE_NULL	NOSTD	{ int cheriabi_nlm_syscall(int debug_level, \
 				    int grace_period , int addr_count, \
 				    _In_reads_(addr_count) \
-				    void * __capability *addrs); }
+				    void *  *addrs); }
 ; 155 is initialized by the NFS code, if present.
 155	AUE_NFS_SVC	NOSTD	{ int cheriabi_nfssvc(int flag, \
-				    void * __capability argp); }
+				    void *  argp); }
 156	AUE_GETDIRENTRIES OBSOL getdirentries
 157	AUE_STATFS	OBSOL	statfs
 158	AUE_FSTATFS	OBSOL	fstatfs
@@ -490,11 +488,11 @@
 				    _Pagerange_vmmap_opt_(1) void *shmaddr); }
 231	AUE_SHMGET	NOSTD|NOPROTO	{ int shmget(key_t key, int size, \
 				    int shmflg); }
-232	AUE_NULL	NOPROTO	{ int clock_gettime(clockid_t clock_id, \
+232	AUE_NULL	NOPROTO	{ @success_zero int clock_gettime(clockid_t clock_id, \
 				    _Out_ struct timespec *tp); }
-233	AUE_CLOCK_SETTIME	NOPROTO	{ int clock_settime(clockid_t clock_id, \
+233	AUE_CLOCK_SETTIME	NOPROTO	{ @success_zero int clock_settime(clockid_t clock_id, \
 				    _In_ const struct timespec *tp); }
-234	AUE_NULL	NOPROTO	{ int clock_getres(clockid_t clock_id, \
+234	AUE_NULL	NOPROTO	{ @success_zero int clock_getres(clockid_t clock_id, \
 				    _Out_ struct timespec *tp); }
 235	AUE_NULL	STD	{ int cheriabi_ktimer_create(\
 				    clockid_t clock_id, \
@@ -574,7 +572,7 @@
 				    _Out_ struct nstat *ub); }
 279	AUE_FSTAT	COMPAT11|NOPROTO { int nfstat(int fd, \
 				    _Out_ struct nstat *sb); }
-280	AUE_LSTAT	COMPAT11|NOPROTO { int nlstat(\
+280	AUE_LSTAT	COMPAT11|NOPROTO { @success_zero int nlstat(\
 				    _In_z_ const char *path, \
 				    _Out_ struct nstat *ub); }
 281	AUE_NULL	UNIMPL	nosys
@@ -625,7 +623,7 @@
 313	AUE_NULL	OBSOL	signanosleep
 314	AUE_AIO_RETURN	NOSTD	{ int cheriabi_aio_return( \
 				    _Inout_ struct aiocb_c *aiocbp); }
-; XXX-BD: aiobp more likely void * __capability *
+; XXX-BD: aiobp more likely void *  *
 315	AUE_AIO_SUSPEND	NOSTD	{ int cheriabi_aio_suspend( \
 				    _Inout_updates_(nent) \
 				    struct aiocb_c * const * aiocbp, int nent, \
@@ -787,9 +785,9 @@
 ; XXX-BD: Required permissions on value depend on what.  _updates_ would
 ; cause failure in checks fail if a read-only capability was passed.
 390	AUE_NULL	STD	{ int cheriabi_kenv(int what, \
-				    _In_z_opt_ const char * __capability name, \
+				    _In_z_opt_ const char *  name, \
 				    _Inout_updates_opt_(len) \
-				    char * __capability value, int len); }
+				    char *  value, int len); }
 391	AUE_LCHFLAGS	NOPROTO	{ int lchflags(_In_z_ const char *path, \
 				    u_long flags); }
 392	AUE_NULL	NOPROTO	{ int uuidgen( \
@@ -801,9 +799,9 @@
 				    _In_opt_ struct sf_hdtr_c *hdtr, \
 				    _Out_opt_ off_t *sbytes, int flags); }
 394	AUE_NULL	STD	{ int cheriabi_mac_syscall( \
-				    _In_z_ const char * __capability policy, \
+				    _In_z_ const char *  policy, \
 				    int call, \
-				    _In_opt_ void * __capability arg); }
+				    _In_opt_ void *  arg); }
 395	AUE_GETFSSTAT	OBSOL	fbsd11_getfsstat
 396	AUE_STATFS	OBSOL	fbsd11_statfs
 397	AUE_FSTATFS	OBSOL	fbsd11_ftatfs
@@ -844,8 +842,8 @@
 				    _In_z_ const char *attrname); }
 415	AUE_NULL	STD	{ int cheriabi___mac_execve( \
 				    _In_z_ char *fname, \
-				    _In_ void * __capability *argv, \
-				    _In_ void * __capability *envv, \
+				    _In_ void *  *argv, \
+				    _In_ void *  *envv, \
 				    _In_ struct mac_c *mac_p); }
 416	AUE_SIGACTION	STD	{ int cheriabi_sigaction(int sig, \
 				    _In_opt_ struct sigaction_c *act, \
@@ -913,7 +911,7 @@
 				    const void *record, \
 				    u_int length); }
 446	AUE_AUDITON	STD	{ int cheriabi_auditon(int cmd, \
-				    _In_opt_ void * __capability data, \
+				    _In_opt_ void *  data, \
 				    u_int length); }
 447	AUE_GETAUID	NOPROTO	{ int getauid(_Out_ uid_t *auid); }
 448	AUE_SETAUID	NOPROTO	{ int setauid(_In_ uid_t *auid); }
@@ -968,7 +966,7 @@
 ; generate an argument handler.
 463	AUE_NULL	STD|NOSTUB	{ void cheriabi_abort2(_In_z_ const char *why, \
 				    int nargs, \
-				    _In_reads_(nargs) void * __capability *args); }
+				    _In_reads_(nargs) void *  *args); }
 464	AUE_NULL 	NOPROTO	{ int thr_set_name(long id, \
 				    _In_z_ const char *name); }
 465	AUE_AIO_FSYNC	NOSTD	{ int cheriabi_aio_fsync(int op, \
@@ -1036,17 +1034,17 @@
 				    _In_z_ const char *path, \
 				    int flags, mode_t mode); }
 483	AUE_SHMUNLINK	NOPROTO	{ int shm_unlink(_In_z_ const char *path); }
-484	AUE_NULL	NOPROTO	{ int cpuset(_Out_ cpusetid_t *setid); }
-485	AUE_NULL	NOPROTO	{ int cpuset_setid(cpuwhich_t which, \
+484	AUE_NULL	NOPROTO	{ @success_zero int cpuset(_Out_ cpusetid_t *setid); }
+485	AUE_NULL	NOPROTO	{ @success_zero int cpuset_setid(cpuwhich_t which, \
 				    id_t id, cpusetid_t setid); }
-486	AUE_NULL	NOPROTO	{ int cpuset_getid(cpulevel_t level, \
+486	AUE_NULL	NOPROTO	{ @success_zero int cpuset_getid(cpulevel_t level, \
 				    cpuwhich_t which, id_t id, \
 				    _Out_ cpusetid_t *setid); }
-487	AUE_NULL	NOPROTO	{ int cpuset_getaffinity( \
+487	AUE_NULL	NOPROTO	{ @success_zero int cpuset_getaffinity( \
 				    cpulevel_t level, cpuwhich_t which, \
 				    id_t id, size_t cpusetsize, \
 				    _Out_ cpuset_t *mask); }
-488	AUE_NULL	NOPROTO	{ int cpuset_setaffinity( \
+488	AUE_NULL	NOPROTO	{ @success_zero int cpuset_setaffinity( \
 				    cpulevel_t level, cpuwhich_t which, \
 				    id_t id, size_t cpusetsize, \
 				    _Out_ const cpuset_t *mask); }
@@ -1059,16 +1057,16 @@
 491	AUE_FCHOWNAT	NOPROTO	{ int fchownat(int fd, _In_z_ const char *path, \
 				    uid_t uid, gid_t gid, int flag); }
 492	AUE_FEXECVE	STD	{ int cheriabi_fexecve(int fd, \
-				    _In_ void * __capability *argv, \
-				    _In_ void * __capability *envv); }
+				    _In_ void *  *argv, \
+				    _In_ void *  *envv); }
 493	AUE_FSTATAT	OBSOL	fbsd11_fstatat
 494	AUE_FUTIMESAT	NOPROTO	{ int futimesat(int fd, \
 				    _In_z_ const char *path, \
 				    _In_reads_(2) const struct timeval *times); }
 495	AUE_LINKAT	STD	{ int cheriabi_linkat(int fd1, \
-				    _In_z_ const char * __capability path1, \
+				    _In_z_ const char *  path1, \
 				    int fd2, \
-				    _In_z_ const char * __capability path2, \
+				    _In_z_ const char *  path2, \
 				    int flag); }
 496	AUE_MKDIRAT	NOPROTO	{ int mkdirat(int fd, _In_z_ const char *path, \
 				    mode_t mode); }
@@ -1076,7 +1074,7 @@
 				    _In_z_ const char *path, mode_t mode); }
 498	AUE_MKNODAT	OBSOL	fbsd11_mknodat
 499	AUE_OPENAT_RWTC	STD|VARARG	{ int cheriabi_openat(int fd, \
-				    _In_z_ const char * __capability path, \
+				    _In_z_ const char *  path, \
 				    int flag, mode_t mode); }
 500	AUE_READLINKAT	NOPROTO	{ int readlinkat(int fd, \
 				    _In_z_ const char *path, \
