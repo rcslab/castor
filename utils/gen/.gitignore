@@ -1,1 +1,2 @@
-events_gen.{c,h}
+events_gen.c
+events_gen.h
