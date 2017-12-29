@@ -11,14 +11,21 @@ import re
 
 cout = open("events_gen.c", "w")
 hout = open("events_gen.h", "w")
+verbose = False
+
+def debug(*args):
+    if verbose:
+        print " ".join(map(str,args))
 
 def c_output(line):
-    print "cout", line
+    if verbose:
+        debug("cout", line)
     line = line + '\n'
     cout.write(line)
 
 def h_output(line):
-    print "hout", line
+    if verbose:
+        debug("hout", line)
     line = line + '\n'
     hout.write(line)
 
@@ -38,7 +45,7 @@ def gen_log_data(spec):
         c_output("\t\t}")
 
 def generate_handler(spec):
-    print "handler_desc:", spec
+    debug("handler_desc:", spec)
     name = spec['name']
     result_type = spec['result_type']
     arg_list = [arg['type'] + ' ' + arg['name'] for arg in spec['args_spec']]
@@ -90,7 +97,7 @@ def generate_handler(spec):
     c_output("}")
 
 def parse_logspec(sal, type):
-    print "parse_logspec(%s, %s)" % (sal, type)
+    debug("parse_logspec(%s, %s)" % (sal, type))
     log_spec = None
     sal = sal.strip()
     if sal.startswith("_Out_writes_bytes_("):
@@ -104,9 +111,9 @@ def parse_logspec(sal, type):
 
 def parse_args(arg_string):
     args_spec = []
-    print "parse_args(%s)" % (arg_string)
+    debug("parse_args(%s)" % (arg_string))
     args = arg_string.split(',')
-    print "args:", args
+    debug("args:", args)
     for arg in args:
         arg_spec = {}
         if arg == 'void':
@@ -114,7 +121,7 @@ def parse_args(arg_string):
         arg = arg.replace('*', '* ')
         fields = arg.split()
         arg_spec['name'] = fields[-1]
-        print "arg_name:" + arg_spec['name']
+        debug("arg_name:" + arg_spec['name'])
         del(fields[-1])
         log_spec = None
         sal = None
@@ -122,9 +129,9 @@ def parse_args(arg_string):
             sal = fields[0]
             del fields[0]
             arg_spec['sal'] = sal
-            print "arg_sal:", arg_spec['sal']
+            debug("arg_sal:", arg_spec['sal'])
         arg_spec['type'] = ' '.join(fields)
-        print "arg_type:" + arg_spec['type']
+        debug("arg_type:" + arg_spec['type'])
         if sal != None:
             log_spec = parse_logspec(arg_spec['sal'], arg_spec['type'])
         arg_spec['log_spec'] = log_spec
@@ -133,12 +140,12 @@ def parse_args(arg_string):
 
 def parse_proto(line):
     handler_spec = {}
-    print "parse_proto(%s)" % (line)
+    debug("parse_proto(%s)" % (line))
     pivot = line.index('(')
     prefix = line[:pivot]
     suffix = line[pivot:]
-    print "prefix:" + prefix
-    print "suffix:%s<eol>" % (suffix)
+    debug("prefix:" + prefix)
+    debug("suffix:%s<eol>" % (suffix))
     prefix_list = prefix.split()
     success = None
     if len(prefix_list) == 3:
@@ -148,8 +155,8 @@ def parse_proto(line):
     else:
         result_type = prefix_list[0]
         name = prefix_list[1]
-    print "name:" + name
-    print "result_type:" + result_type
+    debug("name:" + name)
+    debug("result_type:" + result_type)
     handler_spec['name'] = name
     handler_spec['result_type'] = result_type
     handler_spec['success'] = success
@@ -158,12 +165,12 @@ def parse_proto(line):
     return handler_spec
 
 def parse_spec_line(line):
-    print "parse_spec_line(%s):" % (line)
+    debug("parse_spec_line(%s):" % (line))
     pivot = line.index('{')
     prefix = line[:pivot]
     proto = line[pivot:]
-    print "prefix:" + prefix
-    print "proto:" + proto
+    debug("prefix:" + prefix)
+    debug("proto:" + proto)
     number, name, type = prefix.split()
     if type in ['OBSOL', 'UNIMPL']:
         pass
@@ -172,15 +179,15 @@ def parse_spec_line(line):
         return parse_proto(proto)
 
 def parse_preprocessor(line):
-    print "preprocessor", line
+    debug("preprocessor", line)
     c_output(line)
 
 def parse_spec_comment(line):
-    print "spec_comment", line
+    debug("spec_comment", line)
     return
 
 def parse_newline(line):
-    print "<newline>"
+    debug("<newline>")
     c_output('')
 
 def parse_spec():
@@ -188,7 +195,7 @@ def parse_spec():
     partial_line = None
     handler_description_list = []
     for line in sys.stdin:
-        print line_number, line
+        debug(line_number, line)
 
         line_number += 1
         line = line.strip()
@@ -210,13 +217,13 @@ def parse_spec():
             if line.endswith('}'):
                 spec_line = partial_line.replace("\\","")
                 partial_line = None
-                print "spec_line: %s" % (spec_line)
+                debug("spec_line: %s" % (spec_line))
                 try:
                     handler_desc = parse_spec_line(spec_line)
                     if handler_desc:
                         handler_description_list.append(handler_desc)
                 except:
-                    print "Unknown parsing error on line %d" % line_number
+                    debug("Unknown parsing error on line %d" % line_number)
                     raise
     return handler_description_list
 
@@ -242,9 +249,9 @@ def generate_header_file(generated):
     h_output("#endif")
 
 def generate_includes():
-    with open('handler_includes') as f:
-            handler_includes_list = f.read().splitlines()
-    for include in handler_includes_list:
+    with open('autogenerate_includes') as f:
+            includes_list = f.read().splitlines()
+    for include in includes_list:
         c_output(include)
 
 def generate_bindings(generated):
@@ -252,15 +259,22 @@ def generate_bindings(generated):
     for name in generated:
         c_output("BIND_REF(%s);" % name)
 
+def parse_flags():
+    global verbose
+    if len(sys.argv) == 2 and sys.argv[1] == '-v':
+        verbose = True
+
 if __name__ == '__main__':
     generated = []
-    with open('autogenerate_list') as f:
+    parse_flags()
+    with open('autogenerate_syscalls') as f:
             autogenerate_list = f.read().splitlines()
     generate_preambles()
     generate_includes()
+    print "Generating event handlers..."
     handler_description_list = parse_spec()
-    print "desc:", handler_description_list
-    print "list:", autogenerate_list
+    debug("desc:", handler_description_list)
+    debug("list:", autogenerate_list)
     for desc in handler_description_list:
         if desc['name'] in autogenerate_list:
             generate_handler(desc)
