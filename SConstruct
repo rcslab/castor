@@ -148,6 +148,8 @@ env["SYSROOT"] = os.getcwd() + "/sysroot/usr/amd64-freebsd/"
 
 Export('env')
 
+SConscript("utils/gen/SConstruct")
+
 VariantDir("build/lib", "lib")
 SConscript("#build/lib/Runtime/SConstruct")
 SConscript("#build/lib/ThreadRuntime/SConstruct")
@@ -163,7 +165,6 @@ SConscript("#build/tools/cft/SConstruct")
 SConscript("#build/tools/rrdump/SConstruct")
 SConscript("#build/tools/rrtool/SConstruct")
 
-SConscript("utils/gen/SConstruct")
 
 cp = env.Command("#lib/Pass/libCastorPass.so",
             [ "lib/Pass/CastorPass.cc", "lib/Pass/CastorPass.h",

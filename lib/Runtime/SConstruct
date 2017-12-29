@@ -30,3 +30,4 @@ env.StaticLibrary("libCastorRuntime.a", src)
 rt = env.CopyFile("$SYSROOT/usr/lib/libCastorRuntime.a", "#build/lib/Runtime/libCastorRuntime.a")
 env.Alias("CastorRuntime", rt)
 
+Depends("CastorRuntime", "AutoGen")
