@@ -100,12 +100,17 @@ def parse_logspec(sal, type):
     debug("parse_logspec(%s, %s)" % (sal, type))
     log_spec = None
     sal = sal.strip()
-    if sal.startswith("_Out_writes_bytes_("):
+    if sal.startswith("_In_"):
+       pass 
+    elif sal.startswith("_Out_writes_bytes_("):
         size = sal.split('(')[1].strip(')')
         log_spec = { 'size': size}
     elif sal == "_Out_":
         size_type = type.split('*')[0].strip()
         log_spec = { 'size' : "sizeof(%s)" % size_type }
+    else:
+        print "unknown sal:" + sal
+
     return log_spec
 
 
