@@ -13,6 +13,9 @@ cout = open("events_gen.c", "w")
 hout = open("events_gen.h", "w")
 verbose = False
 
+def die(message):
+    raise ValueError(message)
+
 def debug(*args):
     if verbose:
         print " ".join(map(str,args))
@@ -29,15 +32,21 @@ def h_output(line):
     line = line + '\n'
     hout.write(line)
 
+def get_comparison(spec):
+    table = {'@success_zero': 'result == 0',
+             '@success_pos': 'result > 0',
+             '@success_nneg': 'result != -1'}
+    if spec['success'] == None:
+        die("syscall `%s` is missing an  @success annotation" % spec['name'])
+    return table[spec['success']]
+
 def gen_log_data(spec):
     gen_log = False
-    result_cmp_str = {'@success_zero': 'result == 0', '@success_pos': 'result > 0',
-                      '@success_nneg': 'result != -1'}[spec['success']]
     for arg in spec['args_spec']:
         if arg['log_spec'] != None:
             gen_log = True
     if gen_log:
-        c_output("\t\tif (%s) {" % result_cmp_str)
+        c_output("\t\tif (%s) {" % get_comparison(spec))
         for arg in spec['args_spec']:
             if arg['log_spec']:
                 c_output("\t\t\tlogData((uint8_t *)%s, %s);" %
@@ -101,7 +110,7 @@ def parse_logspec(sal, type):
     log_spec = None
     sal = sal.strip()
     if sal.startswith("_In_"):
-       pass 
+       pass
     elif sal.startswith("_Out_writes_bytes_("):
         size = sal.split('(')[1].strip(')')
         log_spec = { 'size': size}
@@ -130,7 +139,7 @@ def parse_args(arg_string):
         del(fields[-1])
         log_spec = None
         sal = None
-        if fields[0].startswith("_"):
+        if fields[0].startswith("_In") or fields[0].startswith("_Out"):
             sal = fields[0]
             del fields[0]
             arg_spec['sal'] = sal
@@ -170,7 +179,7 @@ def parse_proto(line):
     return handler_spec
 
 def parse_spec_line(line):
-    debug("parse_spec_line(%s):" % (line))
+    debug("spec_line:" + line)
     pivot = line.index('{')
     prefix = line[:pivot]
     proto = line[pivot:]
@@ -178,58 +187,78 @@ def parse_spec_line(line):
     debug("proto:" + proto)
     number, name, type = prefix.split()
     if type in ['OBSOL', 'UNIMPL']:
-        pass
+        debug("Obsolete or unused line")
     else:
         proto = proto.strip('{}')
         return parse_proto(proto)
 
 def parse_preprocessor(line):
-    debug("preprocessor", line)
+    debug("preprocessor:", line)
     c_output(line)
 
 def parse_spec_comment(line):
-    debug("spec_comment", line)
+    debug("spec_comment:", line)
     return
 
 def parse_newline(line):
-    debug("<newline>")
+    debug("<newline>:")
     c_output('')
+
+def parse_unused(line):
+    debug("unused:" + line)
+    #XXX: add an assertion to check this
 
 def parse_spec():
     line_number = 0
     partial_line = None
+    spec_line = None
     handler_description_list = []
-    for line in sys.stdin:
-        debug(line_number, line)
 
+    for line in sys.stdin:
+        if verbose:
+            sys.stdout.write("\n" + str(line_number) + " >> " +  line)
         line_number += 1
         line = line.strip()
 
-        if line == '':
-            parse_newline(line)
-        elif line.startswith("#"):
-            parse_preprocessor(line)
-        elif line.startswith(";"):
-            parse_spec_comment(line)
+        if not partial_line:
+            if line == '':
+                parse_newline(line)
+            elif line.startswith("#"):
+                parse_preprocessor(line)
+            elif line.startswith(";") or line.startswith("$"):
+                parse_spec_comment(line)
+            elif line[0].isdigit():
+                if '{' in line and '}' in line:
+                    spec_line = line
+                elif '{' in line:
+                    partial_line = line
+                else:
+                    parse_unused(line)
+            else:
+                die("parse error")
         else:
-            if line[0].isdigit():
-                partial_line = line
-            elif line.endswith("\\"):
+            if line.endswith("\\"):
                 partial_line = partial_line + line
+                debug("partial line:", partial_line)
             elif line.endswith('}'):
                 partial_line = partial_line + line
-
-            if line.endswith('}'):
+                debug("partial line:", partial_line)
                 spec_line = partial_line.replace("\\","")
                 partial_line = None
-                debug("spec_line: %s" % (spec_line))
-                try:
-                    handler_desc = parse_spec_line(spec_line)
-                    if handler_desc:
-                        handler_description_list.append(handler_desc)
-                except:
-                    debug("Unknown parsing error on line %d" % line_number)
-                    raise
+            else:
+                die("parse error")
+
+        if spec_line:
+            finished = spec_line
+            spec_line = None
+            try:
+                handler_desc = parse_spec_line(finished)
+                if handler_desc:
+                    handler_description_list.append(handler_desc)
+            except:
+                debug("Unknown parsing error on line %d" % line_number)
+                raise
+
     return handler_description_list
 
 def generate_preambles():

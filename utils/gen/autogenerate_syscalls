@@ -1,3 +1,7 @@
+shutdown
+getrusage
+setrlimit
+getrlimit
 cpuset
 cpuset_getaffinity
 cpuset_getid

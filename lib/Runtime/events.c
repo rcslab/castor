@@ -21,9 +21,6 @@
 // stat/fstat
 #include <sys/stat.h>
 
-// getrlimit, setrlimit
-#include <sys/resource.h>
-
 // sysctl
 #include <sys/sysctl.h>
 
@@ -1528,78 +1525,6 @@ __rr_stat(const char * restrict path, struct stat * restrict sb)
 }
 
 int
-__rr_getrlimit(int resource, struct rlimit *rlp)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_getrlimit, resource, rlp);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_getrlimit, resource, rlp);
-	    RRRecordI(RREVENT_GETRLIMIT, result);
-	    if (result == 0) {
-		logData((uint8_t*)rlp, sizeof(*rlp));
-	    }
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_GETRLIMIT, &result);
-	    if (result == 0) {
-		logData((uint8_t*)rlp, sizeof(*rlp));
-	    }
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_setrlimit(int resource, const struct rlimit *rlp)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_setrlimit, resource, rlp);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_setrlimit, resource, rlp);
-	    RRRecordI(RREVENT_SETRLIMIT, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_SETRLIMIT, &result);
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_getrusage(int who, struct rusage *rusage)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_getrusage, who, rusage);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_getrusage, who, rusage);
-	    RRRecordI(RREVENT_GETRUSAGE, result);
-	    if (result == 0) {
-		logData((uint8_t*)rusage, sizeof(*rusage));
-	    }
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_GETRUSAGE, &result);
-	    if (result == 0) {
-		logData((uint8_t*)rusage, sizeof(*rusage));
-	    }
-	    break;
-    }
-
-    return result;
-}
-
-int
 __rr_getpeername(int s, struct sockaddr * restrict name,
 		 socklen_t * restrict namelen)
 {
@@ -1685,7 +1610,7 @@ int
 __rr_sendfile(int fd, int s, off_t offset, size_t nbytes, struct sf_hdtr *hdtr, off_t *sbytes, int flags)
 {
     int result;
-    
+
     switch (rrMode) {
         case RRMODE_NORMAL:
             return syscall(SYS_sendfile, fd, s, offset, nbytes, hdtr, sbytes, flags);
@@ -1936,9 +1861,6 @@ BIND_REF(fsync);
 BIND_REF(lseek);
 BIND_REF(lstat);
 BIND_REF(umask);
-BIND_REF(getrlimit);
-BIND_REF(setrlimit);
-BIND_REF(getrusage);
 BIND_REF(getpeername);
 BIND_REF(getsockname);
 BIND_REF(getdents);

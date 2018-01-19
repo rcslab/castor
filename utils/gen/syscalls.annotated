@@ -65,8 +65,7 @@
 ; of the current calls.
 
 0	AUE_NULL	STD	{ int syscall(int number); }
-1	AUE_EXIT	NOPROTO|NOSTUB	{ void sys_exit(int rval); } exit \
-				    sys_exit_args void
+1	AUE_EXIT	NOPROTO|NOSTUB	{ void sys_exit(int rval); }
 2	AUE_FORK	NOPROTO	{ int fork(void); }
 3	AUE_READ	NOPROTO	{ @success_nneg ssize_t read(int fd, \
 				    _Out_writes_bytes_(nbyte) void *buf, \
@@ -286,7 +285,7 @@
 116	AUE_GETTIMEOFDAY	NOPROTO	{ int gettimeofday( \
 				    _Out_ struct timeval *tp, \
 				    _Out_opt_ struct timezone *tzp); }
-117	AUE_GETRUSAGE	NOPROTO	{ int getrusage(int who, \
+117	AUE_GETRUSAGE	NOPROTO	{ @success_zero int getrusage(int who, \
 				    _Out_ struct rusage *rusage); }
 118	AUE_GETSOCKOPT	NOPROTO	{ int getsockopt(int s, int level, \
 				    int name, \
@@ -409,12 +408,10 @@
 				    int name); }
 192	AUE_FPATHCONF	NOPROTO	{ int fpathconf(int fd, int name); }
 193	AUE_NULL	UNIMPL	nosys
-194	AUE_GETRLIMIT	NOPROTO	{ int getrlimit(u_int which, \
-				    _Out_ struct rlimit *rlp); } getrlimit \
-				    __getrlimit_args int
+194	AUE_GETRLIMIT	NOPROTO	{ @success_zero int getrlimit(u_int which, \
+				    _Out_ struct rlimit *rlp); }
 195	AUE_SETRLIMIT	NOPROTO	{ int setrlimit(u_int which, \
-				    _In_ struct rlimit *rlp); } setrlimit \
-				    __setrlimit_args int
+				    _In_ struct rlimit *rlp); }
 196	AUE_GETDIRENTRIES	OBSOL	fbsd11_getdirentries
 197	AUE_MMAP	OBSOL	mmap
 198	AUE_NULL	OBSOL	__syscall
@@ -427,7 +424,7 @@
 				    void *old, \
 				    _Inout_opt_ size_t *oldlenp, \
 				    _In_reads_bytes_opt_(newlen) void *new, \
-				    size_t newlen); } __sysctl sysctl_args int
+				    size_t newlen); }
 ; XXX-BD: unclear if these really require _Pagerange_.  It's mostly
 ; harmless to lock memory you don't own, but unlocking could cause (e.g.)
 ; keys to leak to swap so could be malicous.
