@@ -1,10 +1,4 @@
 #!/usr/bin/env python
-#XXX TODO
-#XXX -- generate header file
-#XXX -- move in a bunch of examples from events.c to make sure we support them.
-#XXX -- incorporate into runtime.
-#XXX -- migrate all handlers that can exploit this.
-#XXX -- document
 
 import sys
 import re
