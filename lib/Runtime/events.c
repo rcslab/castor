@@ -311,26 +311,6 @@ __rr_close(int fd)
     return result;
 }
 
-int
-__rr_shutdown(int s, int how)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-        return syscall(SYS_shutdown, s, how);
-	case RRMODE_RECORD:
-        result = syscall(SYS_shutdown, s, how);
-	    RRRecordOI(RREVENT_SHUTDOWN, s, result);
-	    break;
-	case RRMODE_REPLAY:
-        RRReplayI(RREVENT_SHUTDOWN, &result);
-        break;
-    }
-
-    return result;
-}
-
 ssize_t
 __rr_read(int fd, void *buf, size_t nbytes)
 {
@@ -1906,4 +1886,3 @@ BIND_REF(pwrite);
 BIND_REF(pread);
 BIND_REF(readv);
 BIND_REF(writev);
-BIND_REF(shutdown);
