@@ -111,7 +111,7 @@ def parse_logspec(sal, type):
         size_type = type.split('*')[0].strip()
         log_spec = { 'size' : "sizeof(%s)" % size_type }
     else:
-        print "unknown sal:" + sal
+        debug("unknown sal:" + sal)
 
     return log_spec
 
@@ -298,7 +298,7 @@ if __name__ == '__main__':
             autogenerate_list = f.read().splitlines()
     generate_preambles()
     generate_includes()
-    print "Generating event handlers..."
+    print "Generating event handlers: " + str(autogenerate_list)
     handler_description_list = parse_spec()
     debug("desc:", handler_description_list)
     debug("list:", autogenerate_list)
