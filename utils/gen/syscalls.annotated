@@ -408,10 +408,10 @@
 				    int name); }
 192	AUE_FPATHCONF	NOPROTO	{ int fpathconf(int fd, int name); }
 193	AUE_NULL	UNIMPL	nosys
-194	AUE_GETRLIMIT	NOPROTO	{ @success_zero int getrlimit(u_int which, \
+194	AUE_GETRLIMIT	NOPROTO	{ @success_zero int getrlimit(int which, \
 				    _Out_ struct rlimit *rlp); }
-195	AUE_SETRLIMIT	NOPROTO	{ int setrlimit(u_int which, \
-				    _In_ struct rlimit *rlp); }
+195	AUE_SETRLIMIT	NOPROTO	{ int setrlimit(int which, \
+				    _In_ const struct rlimit *rlp); }
 196	AUE_GETDIRENTRIES	OBSOL	fbsd11_getdirentries
 197	AUE_MMAP	OBSOL	mmap
 198	AUE_NULL	OBSOL	__syscall
