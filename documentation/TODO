@@ -40,6 +40,7 @@
 
 
 --BUGS
+    -getrlimit/setrlimit unit tests pass if we don't interpose on the calls, probably others do too.
     - several unit tests output rediction looks
       like its failing when run by the test harness 
       -- pipe and udp are example.
