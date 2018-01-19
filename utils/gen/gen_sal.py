@@ -73,8 +73,7 @@ def generate_handler(spec):
     call_str =  "syscall(%s)" % ", ".join(call_args)
     c_output("\t    return %s;"  % call_str)
 
-
-    leading_object = True if arg_types[0][0] == 'int' else False
+    leading_object = True if arg_types[0] == 'int' else False
     object_string = 'O' if leading_object else ''
     result_type_string = {'int' : 'I', 'ssize_t' : 'S'}[result_type]
     rr_event = "RREVENT_%s" % name.upper()
