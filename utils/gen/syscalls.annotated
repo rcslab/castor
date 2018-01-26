@@ -145,9 +145,13 @@
 35	AUE_FCHFLAGS	NOPROTO	{ int fchflags(int fd, u_long flags); }
 36	AUE_SYNC	NOPROTO	{ int sync(void); }
 37	AUE_KILL	NOPROTO	{ int kill(int pid, int signum); }
-38	AUE_STAT	OBSOL	stat
+
+;XXX non-standard declaration to match with library interface
+38	AUE_STAT	COMPAT	{ @success_zero int stat(const char *path, _Out_ struct stat *ub); }
 39	AUE_GETPPID	NOPROTO	{ pid_t getppid(void); }
-40	AUE_LSTAT	OBSOL	lstat
+
+;XXX non-standard declration to match with library interface
+40	AUE_LSTAT	COMPAT	{ @success_zero int lstat(const char *path, _Out_ struct stat *ub); }
 41	AUE_DUP		NOPROTO	{ int dup(u_int fd); }
 42	AUE_PIPE	OBSOL	pipe
 43	AUE_GETEGID	NOPROTO	{ gid_t getegid(void); }
@@ -1219,17 +1223,18 @@
 				    _In_ \
 				    const struct vm_domain_policy_entry *policy); }
 550	AUE_FSYNC	NOPROTO	{ int fdatasync(int fd); }
-551	AUE_FSTAT	NOPROTO	{ int fstat(int fd, _Out_ struct stat *sb); }
-552	AUE_FSTATAT	NOPROTO	{ int fstatat(int fd, _In_z_ const char *path, \
+551	AUE_FSTAT	NOPROTO	{ @success_zero int fstat(int fd, _Out_ struct stat *sb); }
+552	AUE_FSTATAT	NOPROTO	{ @success_zero int fstatat(int fd, _In_z_ const char *path, \
                                     _Out_ struct stat *buf, int flag); }
 553	AUE_FHSTAT	NOPROTO	{ int fhstat(_In_ const struct fhandle *u_fhp, \
                                     _Out_ struct stat *sb); }
 554	AUE_GETDIRENTRIES NOPROTO { ssize_t getdirentries(int fd, \
 				    _Out_writes_bytes_(count) char *buf, \
                                     size_t count, _Out_ off_t *basep); }
-555	AUE_STATFS	NOPROTO	{ int statfs(_In_z_ char *path, \
+;XXX non-standard declration to match with library interface
+555	AUE_STATFS	NOPROTO	{ @success_zero int statfs(_In_z_ const char *path, \
 				    _Out_ struct statfs *buf); }
-556	AUE_FSTATFS	NOPROTO	{ int fstatfs(int fd, \
+556	AUE_FSTATFS	NOPROTO	{ @success_zero int fstatfs(int fd, \
 				    _Out_ struct statfs *buf); }
 557	AUE_GETFSSTAT	NOPROTO	{ int getfsstat( \
 				    _Out_writes_bytes_opt_(bufsize) \

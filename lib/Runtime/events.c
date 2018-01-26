@@ -1398,33 +1398,6 @@ __rr_fstatat(int fd, const char *path, struct stat *buf, int flag)
     return result;
 }
 
-
-int
-__rr_fstat(int fd, struct stat *sb)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_fstat, fd, sb);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_fstat, fd, sb);
-	    RRRecordOI(RREVENT_FSTAT, fd, result);
-	    if (result == 0) {
-		logData((uint8_t*)sb, sizeof(*sb));
-	    }
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_FSTAT, &result);
-	    if (result == 0) {
-		logData((uint8_t*)sb, sizeof(*sb));
-	    }
-	    break;
-    }
-
-    return result;
-}
-
 int
 __rr_statfs(const char * path, struct statfs *buf)
 {
@@ -1828,7 +1801,6 @@ __strong_reference(__rr_getcwd, __getcwd);
 
 BIND_REF(stat);
 BIND_REF(openat);
-BIND_REF(fstat);
 BIND_REF(statfs);
 BIND_REF(fstatfs);
 BIND_REF(fstatat);
@@ -1886,3 +1858,8 @@ BIND_REF(pwrite);
 BIND_REF(pread);
 BIND_REF(readv);
 BIND_REF(writev);
+
+//XXX: This is ugly, for some reason things sometimes break strangely when this lives in
+//its own object fil.
+
+#include "events_gen.c"

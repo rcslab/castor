@@ -12,7 +12,12 @@ def die(message):
 
 def debug(*args):
     if verbose:
-        print " ".join(map(str,args))
+        print "DEBUG>>  ".join(map(str,args))
+
+def incomplete(*args):
+    if verbose:
+        print "INCOMPLETE ".join(map(str,args))
+
 
 def c_output(line):
     if verbose:
@@ -291,17 +296,22 @@ def parse_flags():
     if len(sys.argv) == 2 and sys.argv[1] == '-v':
         verbose = True
 
+def read_autogenerate_list():
+    with open('autogenerate_syscalls') as f:
+                autogenerate_list = f.read().splitlines()
+    autogenerate_list = map(lambda x: x.strip(), autogenerate_list)
+    autogenerate_list = filter(lambda x:not x.startswith(';') and len(x) > 0, autogenerate_list)
+    return autogenerate_list
+
 if __name__ == '__main__':
     generated = []
     parse_flags()
-    with open('autogenerate_syscalls') as f:
-            autogenerate_list = f.read().splitlines()
     generate_preambles()
     generate_includes()
+    autogenerate_list = read_autogenerate_list()
     print "Generating event handlers: " + str(autogenerate_list)
     handler_description_list = parse_spec()
     debug("desc:", handler_description_list)
-    debug("list:", autogenerate_list)
     for desc in handler_description_list:
         if desc['name'] in autogenerate_list:
             generate_handler(desc)
