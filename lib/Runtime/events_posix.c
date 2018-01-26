@@ -1,5 +1,6 @@
 
 #include <stdbool.h>
+#include <stdarg.h>
 #include <threads.h>
 
 #include <unistd.h>
@@ -20,6 +21,18 @@
 
 extern int __sys_shm_open(const char *path, int flags, mode_t mode);
 extern int __sys_shm_unlink(const char *path);
+
+// XXX: Patch libc to switch to new sem_* calls
+extern int _libc_sem_init_compat(sem_t *, int, unsigned int);
+extern int _libc_sem_destroy_compat(sem_t *);
+extern sem_t *_libc_sem_open_compat(const char *, int, ...);
+extern int _libc_sem_close_compat(sem_t *);
+extern int _libc_sem_unlink_compat(const char *);
+extern int _libc_sem_post_compat(sem_t *);
+extern int _libc_sem_wait_compat(sem_t *);
+extern int _libc_sem_trywait_compat(sem_t *);
+extern int _libc_sem_timedwait_compat(sem_t * __restrict, const struct timespec * __restrict);
+extern int _libc_sem_getvalue_compat(sem_t * __restrict, int * __restrict);
 
 int
 __rr_shm_open(const char *path, int flags, mode_t mode)
@@ -72,64 +85,231 @@ __rr_shm_unlink(const char *path)
     return status;
 }
 
+int
+__rr_sem_init(sem_t *sem, int pshared, unsigned int value)
+{
+    int status;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return _libc_sem_init_compat(sem, pshared, value);
+	case RRMODE_RECORD: {
+	    status = _libc_sem_init_compat(sem, pshared, value);
+	    RRRecordI(RREVENT_SEM_INIT, status);
+	    break;
+	}
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_SEM_INIT, &status);
+	    break;
+    }
+
+    return status;
+}
+
+int
+__rr_sem_destroy(sem_t *sem)
+{
+    int status;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return _libc_sem_destroy_compat(sem);
+	case RRMODE_RECORD: {
+	    status = _libc_sem_destroy_compat(sem);
+	    RRRecordI(RREVENT_SEM_DESTROY, status);
+	    break;
+	}
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_SEM_DESTROY, &status);
+	    break;
+    }
+
+    return status;
+}
+
 sem_t *
 __rr_sem_open(const char *name, int oflag, ...)
 {
-    errno = ENOSYS;
-    return NULL;
+    sem_t *rval;
+    mode_t mode;
+    va_list ap;
+
+    va_start(ap, oflag);
+    mode = va_arg(ap, int);
+    va_end(ap);
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return _libc_sem_open_compat(name, oflag, mode);
+	case RRMODE_RECORD: {
+	    rval = _libc_sem_open_compat(name, oflag, mode);
+	    RRRecordOU(RREVENT_SEM_OPEN, 0, (uintptr_t)rval);
+	    break;
+	}
+	case RRMODE_REPLAY: {
+	    RRReplayOU(RREVENT_SEM_OPEN, 0, (uintptr_t *)&rval);
+	    break;
+	}
+    }
+
+    return rval;
 }
 
 int
 __rr_sem_close(sem_t *sem)
 {
-    errno = ENOSYS;
-    return -1;
+    int status;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return _libc_sem_close_compat(sem);
+	case RRMODE_RECORD: {
+	    status = _libc_sem_close_compat(sem);
+	    RRRecordI(RREVENT_SEM_CLOSE, status);
+	    break;
+	}
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_SEM_CLOSE, &status);
+	    break;
+    }
+
+    return status;
 }
 
 int
 __rr_sem_unlink(const char *name)
 {
-    errno = ENOSYS;
-    return -1;
+    int status;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return _libc_sem_unlink_compat(name);
+	case RRMODE_RECORD: {
+	    status = _libc_sem_unlink_compat(name);
+	    RRRecordI(RREVENT_SEM_UNLINK, status);
+	    break;
+	}
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_SEM_UNLINK, &status);
+	    break;
+    }
+
+    return status;
 }
 
 int
 __rr_sem_post(sem_t *sem)
 {
-    errno = ENOSYS;
-    return -1;
+    int status;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return _libc_sem_post_compat(sem);
+	case RRMODE_RECORD: {
+	    RRRecordI(RREVENT_SEM_POST_START, 0);
+	    status = _libc_sem_post_compat(sem);
+	    RRRecordI(RREVENT_SEM_POST_END, status);
+	    break;
+	}
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_SEM_POST_START, NULL);
+	    RRReplayI(RREVENT_SEM_POST_END, &status);
+	    break;
+    }
+
+    return status;
 }
 
 int
 __rr_sem_wait(sem_t *sem)
 {
-    errno = ENOSYS;
-    return -1;
+    int status;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return _libc_sem_wait_compat(sem);
+	case RRMODE_RECORD: {
+	    status = _libc_sem_wait_compat(sem);
+	    RRRecordI(RREVENT_SEM_WAIT, status);
+	    break;
+	}
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_SEM_WAIT, &status);
+	    break;
+    }
+
+    return status;
 }
 
 int
 __rr_sem_trywait(sem_t *sem)
 {
-    errno = ENOSYS;
-    return -1;
+    int status;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return _libc_sem_trywait_compat(sem);
+	case RRMODE_RECORD: {
+	    status = _libc_sem_trywait_compat(sem);
+	    RRRecordI(RREVENT_SEM_TRYWAIT, status);
+	    break;
+	}
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_SEM_TRYWAIT, &status);
+	    break;
+    }
+
+    return status;
 }
 
 int
 __rr_sem_timedwait(sem_t *sem, const struct timespec *abs_timeout)
 {
-    errno = ENOSYS;
-    return -1;
+    int status;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return _libc_sem_timedwait_compat(sem, abs_timeout);
+	case RRMODE_RECORD: {
+	    status = _libc_sem_timedwait_compat(sem, abs_timeout);
+	    RRRecordI(RREVENT_SEM_TIMEDWAIT, status);
+	    break;
+	}
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_SEM_TIMEDWAIT, &status);
+	    break;
+    }
+
+    return status;
 }
 
 int
 __rr_sem_getvalue(sem_t *sem, int *sval)
 {
-    errno = ENOSYS;
-    return -1;
+    int status;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return _libc_sem_getvalue_compat(sem, sval);
+	case RRMODE_RECORD: {
+	    status = _libc_sem_getvalue_compat(sem, sval);
+	    RRRecordI(RREVENT_SEM_GETVALUE, status);
+	    logData((uint8_t *)sval, sizeof(*sval));
+	    break;
+	}
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_SEM_GETVALUE, &status);
+	    logData((uint8_t *)sval, sizeof(*sval));
+	    break;
+    }
+
+    return status;
 }
 
 BIND_REF(shm_open);
 BIND_REF(shm_unlink);
+__strong_reference(__rr_sem_init, sem_init);
+__strong_reference(__rr_sem_destroy, sem_destroy);
 __strong_reference(__rr_sem_open, sem_open);
 __strong_reference(__rr_sem_close, sem_close);
 __strong_reference(__rr_sem_unlink, sem_unlink);

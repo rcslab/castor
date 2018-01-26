@@ -1,4 +1,2 @@
 ;not sure what the bug is with sendfile
 sendfile
-;required system calls not yet supported
-semaphore_producer_consumer

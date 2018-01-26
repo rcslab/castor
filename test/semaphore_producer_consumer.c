@@ -103,5 +103,8 @@ int main()
         pthread_create(&idC, NULL, Consumer, (void*)index);
     }
 
+    return 0;
+
+    // XXX: pthread_exit contains a race in libthr from what I can tell
     pthread_exit(NULL);
 }
