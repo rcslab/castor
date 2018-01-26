@@ -26,6 +26,7 @@ for f in sorted(os.listdir('test/')):
 
 tests = [ ]
 failed = [ ]
+disabled = [ ]
 
 def write(str):
     sys.stdout.write(str)
@@ -70,6 +71,11 @@ def ReportTimeout(name):
     write(FORMAT % (name, RED, "Timeout") + "\n")
     failed.append(name)
 
+def ReportDisabled(name):
+    write(CLEAR)
+    write(FORMAT % (name, RED, "Disabled") + "\n")
+    disabled.append(name)
+
 def Run(tool, name, output):
     outfile = open(output, "w+")
     start = time.time()
@@ -87,6 +93,13 @@ def Run(tool, name, output):
             t.kill()
             ReportTimeout(name)
             return None
+
+def read_disabled_list():
+    with open('DISABLED') as f:
+                disabled_tests = f.read().splitlines()
+    autogenerate_list = map(lambda x: x.strip(), disabled_tests)
+    autogenerate_list = filter(lambda x:not x.startswith(';'), disabled_tests)
+    return disabled_tests
 
 def RunTest(name):
     write(FORMAT % (name, NORMAL, "Running"))
@@ -130,10 +143,17 @@ write("%-32s   %-9s   %-10s %-10s %-10s\n" %
         ("Test", "Status", "Normal", "Record", "Replay"))
 write("------------------------------------------------------------------------------\n")
 os.setpgid(0, 0)
+disabled_tests = read_disabled_list()
 for t in tests:
+    if t in disabled_tests:
+        ReportDisabled(t)
+        continue
     CleanTest(t)
     #BuildTest(t)
     RunTest(t)
+
+if len(disabled) != 0:
+    print str(len(disabled)) + " tests disabled"
 
 if len(failed) != 0:
     print str(len(failed)) + " tests failed"
