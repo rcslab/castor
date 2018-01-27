@@ -41,6 +41,7 @@
 
 
 --BUGS
+    -non-deterministic failures with thread_cond_signal unit test.
     -build only works reiability with: scons -c; scons ; scons testbench -- shouldn't need this.
 
     -getrlimit/setrlimit unit tests pass if we don't interpose on the calls, probably others do too.

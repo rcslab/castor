@@ -1,7 +1,6 @@
 ;getcwd
 ;socket
 ;bind
-
 ;listen
 ;connect
 ;setsockopt
@@ -31,12 +30,11 @@
 ;sendmsg
 ;sendfile
 ;sendto
-;symlink
-;unlink
-;unlinkat
-;link
-;linkat
-
+symlink
+unlink
+unlinkat
+link
+linkat
 readlinkat
 readlink
 stat

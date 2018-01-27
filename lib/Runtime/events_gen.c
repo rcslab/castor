@@ -45,6 +45,44 @@
 
 
 int
+__rr_link(const char * path, const char * to)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_link, path, to);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_link, path, to);
+	    RRRecordI(RREVENT_LINK, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_LINK, &result);
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_unlink(const char * path)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_unlink, path);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_unlink, path);
+	    RRRecordI(RREVENT_UNLINK, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_UNLINK, &result);
+	    break;
+    }
+    return result;
+}
+
+int
 __rr_stat(const char * path, struct stat * ub)
 {
 	int result;
@@ -89,6 +127,25 @@ __rr_lstat(const char * path, struct stat * ub)
 		if (result == 0) {
 			logData((uint8_t *)ub, sizeof(struct stat));
 		}
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_symlink(const char * path, const char * link)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_symlink, path, link);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_symlink, path, link);
+	    RRRecordI(RREVENT_SYMLINK, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_SYMLINK, &result);
 	    break;
     }
     return result;
@@ -326,6 +383,25 @@ __rr_cpuset_setaffinity(cpulevel_t level, cpuwhich_t which, id_t id, size_t cpus
     return result;
 }
 
+int
+__rr_linkat(int fd1, const char * path1, int fd2, const char * path2, int flag)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_linkat, fd1, path1, fd2, path2, flag);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_linkat, fd1, path1, fd2, path2, flag);
+	    RRRecordOI(RREVENT_LINKAT, fd1, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_LINKAT, fd1, &result);
+	    break;
+    }
+    return result;
+}
+
 ssize_t
 __rr_readlinkat(int fd, const char * path, char * buf, size_t bufsize)
 {
@@ -346,6 +422,25 @@ __rr_readlinkat(int fd, const char * path, char * buf, size_t bufsize)
 		if (result != -1) {
 			logData((uint8_t *)buf, bufsize);
 		}
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_unlinkat(int fd, const char * path, int flag)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_unlinkat, fd, path, flag);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_unlinkat, fd, path, flag);
+	    RRRecordOI(RREVENT_UNLINKAT, fd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_UNLINKAT, fd, &result);
 	    break;
     }
     return result;
@@ -451,8 +546,11 @@ __rr_fstatfs(int fd, struct statfs * buf)
     return result;
 }
 
+BIND_REF(link);
+BIND_REF(unlink);
 BIND_REF(stat);
 BIND_REF(lstat);
+BIND_REF(symlink);
 BIND_REF(readlink);
 BIND_REF(getrusage);
 BIND_REF(shutdown);
@@ -463,7 +561,9 @@ BIND_REF(cpuset_setid);
 BIND_REF(cpuset_getid);
 BIND_REF(cpuset_getaffinity);
 BIND_REF(cpuset_setaffinity);
+BIND_REF(linkat);
 BIND_REF(readlinkat);
+BIND_REF(unlinkat);
 BIND_REF(fstat);
 BIND_REF(fstatat);
 BIND_REF(statfs);

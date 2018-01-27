@@ -768,46 +768,6 @@ __rr_setsockopt(int s, int level, int optname, const void *optval, socklen_t
     return result;
 }
 
-int
-__rr_link(const char *name1, const char *name2)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_link, name1, name2);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_link, name1, name2);
-	    RRRecordI(RREVENT_LINK, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_LINK, &result);
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_linkat(int fd1, const char *name1, int fd2, const char *name2, int flag)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_linkat, fd1, name1, fd2, name2, flag);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_linkat, fd1, name1, fd2, name2, flag);
-	    RRRecordI(RREVENT_LINKAT, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_LINKAT, &result);
-	    break;
-    }
-
-    return result;
-}
-
 ssize_t
 __rr_pread(int fd, void *buf, size_t nbytes, off_t offset)
 {
@@ -828,67 +788,6 @@ __rr_pread(int fd, void *buf, size_t nbytes, off_t offset)
 	    if (result != -1) {
 		logData((uint8_t*)buf, nbytes);
 	    }
-	    break;
-    }
-
-    return result;
-}
-
-
-int
-__rr_symlink(const char *name1, const char *name2)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_symlink, name1, name2);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_symlink, name1, name2);
-	    RRRecordI(RREVENT_SYMLINK, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_SYMLINK, &result);
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_unlink(const char *path)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_unlink, path);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_unlink, path);
-	    RRRecordI(RREVENT_UNLINK, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_UNLINK, &result);
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_unlinkat(int fd, const char *path, int flag)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_unlinkat, fd, path, flag);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_unlinkat, fd, path, flag);
-	    RRRecordOI(RREVENT_UNLINKAT, fd, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_UNLINKAT, &result);
 	    break;
     }
 
@@ -1613,8 +1512,6 @@ __strong_reference(__rr_fcntl, _fcntl);
 __strong_reference(__rr_getcwd, __getcwd);
 
 BIND_REF(openat);
-// BIND_REF(readlink);
-// BIND_REF(readlinkat);
 BIND_REF(truncate);
 BIND_REF(ftruncate);
 BIND_REF(flock);
@@ -1641,11 +1538,6 @@ BIND_REF(fchmodat);
 BIND_REF(fchdir);
 BIND_REF(chdir);
 BIND_REF(rmdir);
-BIND_REF(link);
-BIND_REF(linkat);
-BIND_REF(symlink);
-BIND_REF(unlink);
-BIND_REF(unlinkat);
 BIND_REF(rename);
 BIND_REF(open);
 BIND_REF(ioctl);
