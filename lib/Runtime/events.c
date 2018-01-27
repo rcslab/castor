@@ -1301,32 +1301,6 @@ __rr_fchdir(int fd)
     return result;
 }
 
-int
-__rr_lstat(const char *path, struct stat *sb)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_lstat, path, sb);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_lstat, path, sb);
-	    RRRecordI(RREVENT_LSTAT, result);
-	    if (result == 0) {
-		logData((uint8_t*)sb, sizeof(*sb));
-	    }
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_LSTAT, &result);
-	    if (result == 0) {
-		logData((uint8_t*)sb, sizeof(*sb));
-	    }
-	    break;
-    }
-
-    return result;
-}
-
 mode_t
 __rr_umask(mode_t numask)
 {
@@ -1391,32 +1365,6 @@ __rr_fstatat(int fd, const char *path, struct stat *buf, int flag)
 	    RRReplayI(RREVENT_FSTATAT, &result);
 	    if (result == 0) {
 		logData((uint8_t*)buf, sizeof(*buf));
-	    }
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_stat(const char * restrict path, struct stat * restrict sb)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_stat, path, sb);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_stat, path, sb);
-	    RRRecordI(RREVENT_STAT, result);
-	    if (result == 0) {
-		logData((uint8_t*)sb, sizeof(*sb));
-	    }
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_STAT, &result);
-	    if (result == 0) {
-		logData((uint8_t*)sb, sizeof(*sb));
 	    }
 	    break;
     }
@@ -1746,7 +1694,6 @@ __strong_reference(__rr_fcntl, _fcntl);
 
 __strong_reference(__rr_getcwd, __getcwd);
 
-BIND_REF(stat);
 BIND_REF(openat);
 BIND_REF(fstatat);
 BIND_REF(readlink);
@@ -1756,7 +1703,6 @@ BIND_REF(ftruncate);
 BIND_REF(flock);
 BIND_REF(fsync);
 BIND_REF(lseek);
-BIND_REF(lstat);
 BIND_REF(umask);
 BIND_REF(getpeername);
 BIND_REF(getsockname);

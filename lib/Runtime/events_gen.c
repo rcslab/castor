@@ -44,6 +44,56 @@
 
 
 int
+__rr_stat(const char * path, struct stat * ub)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_stat, path, ub);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_stat, path, ub);
+	    RRRecordI(RREVENT_STAT, result);
+		if (result == 0) {
+			logData((uint8_t *)ub, sizeof(struct stat));
+		}
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_STAT, &result);
+		if (result == 0) {
+			logData((uint8_t *)ub, sizeof(struct stat));
+		}
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_lstat(const char * path, struct stat * ub)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_lstat, path, ub);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_lstat, path, ub);
+	    RRRecordI(RREVENT_LSTAT, result);
+		if (result == 0) {
+			logData((uint8_t *)ub, sizeof(struct stat));
+		}
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_LSTAT, &result);
+		if (result == 0) {
+			logData((uint8_t *)ub, sizeof(struct stat));
+		}
+	    break;
+    }
+    return result;
+}
+
+int
 __rr_getrusage(int who, struct rusage * rusage)
 {
 	int result;
@@ -325,6 +375,8 @@ __rr_fstatfs(int fd, struct statfs * buf)
     return result;
 }
 
+BIND_REF(stat);
+BIND_REF(lstat);
 BIND_REF(getrusage);
 BIND_REF(shutdown);
 BIND_REF(getrlimit);

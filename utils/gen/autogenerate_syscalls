@@ -37,9 +37,8 @@
 ;sendmsg
 ;sendfile
 ;sendto
-;lstat
-;stat
-;lstat
+stat
+lstat
 ;fstatat
 statfs
 fstatfs
