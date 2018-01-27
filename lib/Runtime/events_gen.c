@@ -275,6 +275,56 @@ __rr_fstat(int fd, struct stat * sb)
     return result;
 }
 
+int
+__rr_statfs(const char * path, struct statfs * buf)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_statfs, path, buf);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_statfs, path, buf);
+	    RRRecordI(RREVENT_STATFS, result);
+		if (result == 0) {
+			logData((uint8_t *)buf, sizeof(struct statfs));
+		}
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_STATFS, &result);
+		if (result == 0) {
+			logData((uint8_t *)buf, sizeof(struct statfs));
+		}
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_fstatfs(int fd, struct statfs * buf)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_fstatfs, fd, buf);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_fstatfs, fd, buf);
+	    RRRecordOI(RREVENT_FSTATFS, fd, result);
+		if (result == 0) {
+			logData((uint8_t *)buf, sizeof(struct statfs));
+		}
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_FSTATFS, fd, &result);
+		if (result == 0) {
+			logData((uint8_t *)buf, sizeof(struct statfs));
+		}
+	    break;
+    }
+    return result;
+}
+
 BIND_REF(getrusage);
 BIND_REF(shutdown);
 BIND_REF(getrlimit);
@@ -285,3 +335,5 @@ BIND_REF(cpuset_getid);
 BIND_REF(cpuset_getaffinity);
 BIND_REF(cpuset_setaffinity);
 BIND_REF(fstat);
+BIND_REF(statfs);
+BIND_REF(fstatfs);

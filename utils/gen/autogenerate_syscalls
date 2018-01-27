@@ -41,8 +41,8 @@
 ;stat
 ;lstat
 ;fstatat
-;statfs
-;fstatfs
+statfs
+fstatfs
 fstat
 shutdown
 getrusage

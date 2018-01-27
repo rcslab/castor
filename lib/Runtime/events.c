@@ -1399,59 +1399,6 @@ __rr_fstatat(int fd, const char *path, struct stat *buf, int flag)
 }
 
 int
-__rr_statfs(const char * path, struct statfs *buf)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_statfs, path, buf);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_statfs, path, buf);
-	    RRRecordI(RREVENT_STATFS, result);
-	    if (result == 0) {
-		logData((uint8_t*)buf, sizeof(*buf));
-	    }
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_STATFS, &result);
-	    if (result == 0) {
-		logData((uint8_t*)buf, sizeof(*buf));
-	    }
-	    break;
-    }
-
-    return result;
-}
-
-
-int
-__rr_fstatfs(int fd, struct statfs *buf)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_fstatfs, fd, buf);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_fstatfs, fd, buf);
-	    RRRecordOI(RREVENT_FSTATFS, fd, result);
-	    if (result == 0) {
-		logData((uint8_t*)buf, sizeof(*buf));
-	    }
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_FSTATFS, &result);
-	    if (result == 0) {
-		logData((uint8_t*)buf, sizeof(*buf));
-	    }
-	    break;
-    }
-
-    return result;
-}
-
-int
 __rr_stat(const char * restrict path, struct stat * restrict sb)
 {
     int result;
@@ -1801,8 +1748,6 @@ __strong_reference(__rr_getcwd, __getcwd);
 
 BIND_REF(stat);
 BIND_REF(openat);
-BIND_REF(statfs);
-BIND_REF(fstatfs);
 BIND_REF(fstatat);
 BIND_REF(readlink);
 BIND_REF(readlinkat);
