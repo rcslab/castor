@@ -43,6 +43,7 @@
 
 
 
+
 int
 __rr_stat(const char * path, struct stat * ub)
 {
@@ -87,6 +88,31 @@ __rr_lstat(const char * path, struct stat * ub)
 	    RRReplayI(RREVENT_LSTAT, &result);
 		if (result == 0) {
 			logData((uint8_t *)ub, sizeof(struct stat));
+		}
+	    break;
+    }
+    return result;
+}
+
+ssize_t
+__rr_readlink(const char * path, char * buf, size_t count)
+{
+	ssize_t result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_readlink, path, buf, count);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_readlink, path, buf, count);
+	    RRRecordS(RREVENT_READLINK, result);
+		if (result != -1) {
+			logData((uint8_t *)buf, count * sizeof(char));
+		}
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayS(RREVENT_READLINK, &result);
+		if (result != -1) {
+			logData((uint8_t *)buf, count * sizeof(char));
 		}
 	    break;
     }
@@ -300,6 +326,31 @@ __rr_cpuset_setaffinity(cpulevel_t level, cpuwhich_t which, id_t id, size_t cpus
     return result;
 }
 
+ssize_t
+__rr_readlinkat(int fd, const char * path, char * buf, size_t bufsize)
+{
+	ssize_t result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_readlinkat, fd, path, buf, bufsize);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_readlinkat, fd, path, buf, bufsize);
+	    RRRecordOS(RREVENT_READLINKAT, fd, result);
+		if (result != -1) {
+			logData((uint8_t *)buf, bufsize);
+		}
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOS(RREVENT_READLINKAT, fd, &result);
+		if (result != -1) {
+			logData((uint8_t *)buf, bufsize);
+		}
+	    break;
+    }
+    return result;
+}
+
 int
 __rr_fstat(int fd, struct stat * sb)
 {
@@ -402,6 +453,7 @@ __rr_fstatfs(int fd, struct statfs * buf)
 
 BIND_REF(stat);
 BIND_REF(lstat);
+BIND_REF(readlink);
 BIND_REF(getrusage);
 BIND_REF(shutdown);
 BIND_REF(getrlimit);
@@ -411,6 +463,7 @@ BIND_REF(cpuset_setid);
 BIND_REF(cpuset_getid);
 BIND_REF(cpuset_getaffinity);
 BIND_REF(cpuset_setaffinity);
+BIND_REF(readlinkat);
 BIND_REF(fstat);
 BIND_REF(fstatat);
 BIND_REF(statfs);

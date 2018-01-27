@@ -112,6 +112,10 @@ def parse_logspec(sal, type):
     elif sal.startswith("_Out_writes_bytes_("):
         size = sal.split('(')[1].strip(')')
         log_spec = { 'size': size}
+    elif sal.startswith("_Out_writes_z_("):
+        count = sal.split('(')[1].strip(')')
+        base_type = type.split('*')[0].strip()
+        log_spec = { 'size': "%s * sizeof(%s)" % (count, base_type) }
     elif sal == "_Out_":
         size_type = type.split('*')[0].strip()
         log_spec = { 'size' : "sizeof(%s)" % size_type }

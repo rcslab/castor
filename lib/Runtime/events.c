@@ -610,62 +610,6 @@ __rr_fcntl(int fd, int cmd, ...)
     return result;
 }
 
-ssize_t
-__rr_readlink(const char *restrict path, char *restrict buf, size_t bufsize)
-
-{
-    ssize_t result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_readlink, path, buf, bufsize);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_readlink, path, buf, bufsize);
-	    RRRecordS(RREVENT_READLINK, result);
-	    if (result != -1) {
-		logData((uint8_t*)buf, bufsize);
-	    }
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayS(RREVENT_READLINK, &result);
-	    if (result != -1) {
-		logData((uint8_t*)buf, bufsize);
-	    }
-	    break;
-    }
-
-    return result;
-}
-
-ssize_t
-__rr_readlinkat(int fd, const char *restrict path, char *restrict buf, size_t bufsize)
-
-{
-    ssize_t result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_readlinkat, fd, path, buf, bufsize);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_readlinkat, fd, path, buf, bufsize);
-	    RRRecordOS(RREVENT_READLINKAT, fd, result);
-	    if (result != -1) {
-		logData((uint8_t*)buf, bufsize);
-	    }
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayOS(RREVENT_READLINKAT, fd, &result);
-	    if (result != -1) {
-		logData((uint8_t*)buf, bufsize);
-	    }
-	    break;
-    }
-
-    return result;
-}
-
-
-
 int
 __rr_socket(int domain, int type, int protocol)
 {
@@ -1669,8 +1613,8 @@ __strong_reference(__rr_fcntl, _fcntl);
 __strong_reference(__rr_getcwd, __getcwd);
 
 BIND_REF(openat);
-BIND_REF(readlink);
-BIND_REF(readlinkat);
+// BIND_REF(readlink);
+// BIND_REF(readlinkat);
 BIND_REF(truncate);
 BIND_REF(ftruncate);
 BIND_REF(flock);

@@ -1,17 +1,11 @@
 ;getcwd
-;readlinkat
 ;socket
 ;bind
 
 ;listen
 ;connect
 ;setsockopt
-;link
-;linkat
 ;pread
-;symlink
-;unlink
-;unlinkat
 ;rename
 ;mkdir
 ;rmdir
@@ -37,6 +31,14 @@
 ;sendmsg
 ;sendfile
 ;sendto
+;symlink
+;unlink
+;unlinkat
+;link
+;linkat
+
+readlinkat
+readlink
 stat
 lstat
 fstatat
