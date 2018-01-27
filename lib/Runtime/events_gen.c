@@ -326,6 +326,31 @@ __rr_fstat(int fd, struct stat * sb)
 }
 
 int
+__rr_fstatat(int fd, const char * path, struct stat * buf, int flag)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_fstatat, fd, path, buf, flag);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_fstatat, fd, path, buf, flag);
+	    RRRecordOI(RREVENT_FSTATAT, fd, result);
+		if (result == 0) {
+			logData((uint8_t *)buf, sizeof(struct stat));
+		}
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_FSTATAT, fd, &result);
+		if (result == 0) {
+			logData((uint8_t *)buf, sizeof(struct stat));
+		}
+	    break;
+    }
+    return result;
+}
+
+int
 __rr_statfs(const char * path, struct statfs * buf)
 {
 	int result;
@@ -387,5 +412,6 @@ BIND_REF(cpuset_getid);
 BIND_REF(cpuset_getaffinity);
 BIND_REF(cpuset_setaffinity);
 BIND_REF(fstat);
+BIND_REF(fstatat);
 BIND_REF(statfs);
 BIND_REF(fstatfs);

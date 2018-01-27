@@ -39,7 +39,7 @@
 ;sendto
 stat
 lstat
-;fstatat
+fstatat
 statfs
 fstatfs
 fstat

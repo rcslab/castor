@@ -1347,32 +1347,6 @@ int __rr_getdents(int fd, char *buf, int nbytes)
 }
 
 int
-__rr_fstatat(int fd, const char *path, struct stat *buf, int flag)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_fstatat, fd, path, buf, flag);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_fstatat, fd, path, buf, flag);
-	    RRRecordOI(RREVENT_FSTATAT, fd, result);
-	    if (result == 0) {
-		logData((uint8_t*)buf, sizeof(*buf));
-	    }
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_FSTATAT, &result);
-	    if (result == 0) {
-		logData((uint8_t*)buf, sizeof(*buf));
-	    }
-	    break;
-    }
-
-    return result;
-}
-
-int
 __rr_getpeername(int s, struct sockaddr * restrict name,
 		 socklen_t * restrict namelen)
 {
@@ -1695,7 +1669,6 @@ __strong_reference(__rr_fcntl, _fcntl);
 __strong_reference(__rr_getcwd, __getcwd);
 
 BIND_REF(openat);
-BIND_REF(fstatat);
 BIND_REF(readlink);
 BIND_REF(readlinkat);
 BIND_REF(truncate);
