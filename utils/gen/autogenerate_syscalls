@@ -5,6 +5,15 @@
 ;connect
 ;setsockopt
 ;pread
+;umask -- XXX will require adding new type to generator
+;getdents
+;accept
+;accept4
+;getpeername
+;getsockname
+;sendmsg
+;sendfile
+;sendto
 ;rename
 ;mkdir
 ;rmdir
@@ -21,15 +30,7 @@
 ;lseek
 ;chdir
 ;fchdir
-;umask -- XXX will require adding new type to generator
-;getdents
-;accept
-;accept4
-;getpeername
-;getsockname
-;sendmsg
-;sendfile
-;sendto
+
 symlink
 unlink
 unlinkat
