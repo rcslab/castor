@@ -794,86 +794,6 @@ __rr_pread(int fd, void *buf, size_t nbytes, off_t offset)
     return result;
 }
 
-int
-__rr_chmod(const char *path, mode_t mode)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_chmod, path, mode);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_chmod, path, mode);
-	    RRRecordI(RREVENT_CHMOD, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_CHMOD, &result);
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_lchmod(const char *path, mode_t mode)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_lchmod, path, mode);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_lchmod, path, mode);
-	    RRRecordI(RREVENT_LCHMOD, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_LCHMOD, &result);
-	    break;
-    }
-
-    return result;
-}
-
-
-int
-__rr_fchmod(int fd, mode_t mode)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_fchmod, fd, mode);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_fchmod, fd, mode);
-	    RRRecordOI(RREVENT_FCHMOD, fd, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_FCHMOD, &result);
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_fchmodat(int fd, const char *path, mode_t mode, int flag)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_fchmodat, fd, path, mode, flag);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_fchmodat, fd, path, mode, flag);
-	    RRRecordOI(RREVENT_FCHMODAT, fd, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_FCHMODAT, &result);
-	    break;
-    }
-
-    return result;
-}
 
 int
 __rr_access(const char *path, int mode)
@@ -1429,10 +1349,6 @@ BIND_REF(recvfrom);
 BIND_REF(access);
 BIND_REF(eaccess);
 BIND_REF(faccessat);
-BIND_REF(chmod);
-BIND_REF(lchmod);
-BIND_REF(fchmod);
-BIND_REF(fchmodat);
 BIND_REF(open);
 BIND_REF(ioctl);
 BIND_REF(setsockopt);

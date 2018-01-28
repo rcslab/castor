@@ -121,6 +121,25 @@ __rr_fchdir(int fd)
 }
 
 int
+__rr_chmod(const char * path, mode_t mode)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_chmod, path, mode);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_chmod, path, mode);
+	    RRRecordI(RREVENT_CHMOD, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_CHMOD, &result);
+	    break;
+    }
+    return result;
+}
+
+int
 __rr_stat(const char * path, struct stat * ub)
 {
 	int result;
@@ -234,6 +253,25 @@ __rr_getrusage(int who, struct rusage * rusage)
 		if (result == 0) {
 			logData((uint8_t *)rusage, sizeof(struct rusage));
 		}
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_fchmod(int fd, mode_t mode)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_fchmod, fd, mode);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_fchmod, fd, mode);
+	    RRRecordOI(RREVENT_FCHMOD, fd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_FCHMOD, fd, &result);
 	    break;
     }
     return result;
@@ -360,6 +398,25 @@ __rr_setrlimit(int which, const struct rlimit * rlp)
 }
 
 int
+__rr_lchmod(const char * path, mode_t mode)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_lchmod, path, mode);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_lchmod, path, mode);
+	    RRRecordI(RREVENT_LCHMOD, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_LCHMOD, &result);
+	    break;
+    }
+    return result;
+}
+
+int
 __rr_cpuset(cpusetid_t * setid)
 {
 	int result;
@@ -473,6 +530,25 @@ __rr_cpuset_setaffinity(cpulevel_t level, cpuwhich_t which, id_t id, size_t cpus
 		if (result == 0) {
 			logData((uint8_t *)mask, sizeof(const cpuset_t));
 		}
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_fchmodat(int fd, const char * path, mode_t mode, int flag)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_fchmodat, fd, path, mode, flag);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_fchmodat, fd, path, mode, flag);
+	    RRRecordOI(RREVENT_FCHMODAT, fd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_FCHMODAT, fd, &result);
 	    break;
     }
     return result;
@@ -645,22 +721,26 @@ BIND_REF(link);
 BIND_REF(unlink);
 BIND_REF(chdir);
 BIND_REF(fchdir);
+BIND_REF(chmod);
 BIND_REF(stat);
 BIND_REF(lstat);
 BIND_REF(symlink);
 BIND_REF(readlink);
 BIND_REF(getrusage);
+BIND_REF(fchmod);
 BIND_REF(rename);
 BIND_REF(shutdown);
 BIND_REF(mkdir);
 BIND_REF(rmdir);
 BIND_REF(getrlimit);
 BIND_REF(setrlimit);
+BIND_REF(lchmod);
 BIND_REF(cpuset);
 BIND_REF(cpuset_setid);
 BIND_REF(cpuset_getid);
 BIND_REF(cpuset_getaffinity);
 BIND_REF(cpuset_setaffinity);
+BIND_REF(fchmodat);
 BIND_REF(linkat);
 BIND_REF(readlinkat);
 BIND_REF(unlinkat);
