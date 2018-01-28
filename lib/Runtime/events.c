@@ -794,67 +794,6 @@ __rr_pread(int fd, void *buf, size_t nbytes, off_t offset)
     return result;
 }
 
-
-int
-__rr_rename(const char *name1, const char *name2)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_rename, name1, name2);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_rename, name1, name2);
-	    RRRecordI(RREVENT_RENAME, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_RENAME, &result);
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_mkdir(const char *path, mode_t mode)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_mkdir, path, mode);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_mkdir, path, mode);
-	    RRRecordI(RREVENT_MKDIR, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_MKDIR, &result);
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_rmdir(const char *path)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_rmdir, path);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_rmdir, path);
-	    RRRecordI(RREVENT_RMDIR, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_RMDIR, &result);
-	    break;
-    }
-
-    return result;
-}
-
 int
 __rr_chmod(const char *path, mode_t mode)
 {
@@ -1098,46 +1037,6 @@ __rr_lseek(int fildes, off_t offset, int whence)
 	    break;
 	case RRMODE_REPLAY:
 	    RRReplayOS(RREVENT_LSEEK, fildes, &result);
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_chdir(const char *path)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_chdir, path);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_chdir, path);
-	    RRRecordI(RREVENT_CHDIR, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_CHDIR, &result);
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_fchdir(int fd)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_fchdir, fd);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_fchdir, fd);
-	    RRRecordOI(RREVENT_FCHDIR, fd, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_FCHDIR, &result);
 	    break;
     }
 
@@ -1527,7 +1426,6 @@ BIND_REF(sendfile);
 BIND_REF(select);
 BIND_REF(recvmsg);
 BIND_REF(recvfrom);
-BIND_REF(mkdir);
 BIND_REF(access);
 BIND_REF(eaccess);
 BIND_REF(faccessat);
@@ -1535,10 +1433,6 @@ BIND_REF(chmod);
 BIND_REF(lchmod);
 BIND_REF(fchmod);
 BIND_REF(fchmodat);
-BIND_REF(fchdir);
-BIND_REF(chdir);
-BIND_REF(rmdir);
-BIND_REF(rename);
 BIND_REF(open);
 BIND_REF(ioctl);
 BIND_REF(setsockopt);

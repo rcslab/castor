@@ -83,6 +83,44 @@ __rr_unlink(const char * path)
 }
 
 int
+__rr_chdir(const char * path)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_chdir, path);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_chdir, path);
+	    RRRecordI(RREVENT_CHDIR, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_CHDIR, &result);
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_fchdir(int fd)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_fchdir, fd);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_fchdir, fd);
+	    RRRecordOI(RREVENT_FCHDIR, fd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_FCHDIR, fd, &result);
+	    break;
+    }
+    return result;
+}
+
+int
 __rr_stat(const char * path, struct stat * ub)
 {
 	int result;
@@ -202,6 +240,25 @@ __rr_getrusage(int who, struct rusage * rusage)
 }
 
 int
+__rr_rename(const char * from, const char * to)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_rename, from, to);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_rename, from, to);
+	    RRRecordI(RREVENT_RENAME, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_RENAME, &result);
+	    break;
+    }
+    return result;
+}
+
+int
 __rr_shutdown(int s, int how)
 {
 	int result;
@@ -215,6 +272,44 @@ __rr_shutdown(int s, int how)
 	    break;
 	case RRMODE_REPLAY:
 	    RRReplayOI(RREVENT_SHUTDOWN, s, &result);
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_mkdir(const char * path, mode_t mode)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_mkdir, path, mode);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_mkdir, path, mode);
+	    RRRecordI(RREVENT_MKDIR, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_MKDIR, &result);
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_rmdir(const char * path)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_rmdir, path);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_rmdir, path);
+	    RRRecordI(RREVENT_RMDIR, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_RMDIR, &result);
 	    break;
     }
     return result;
@@ -548,12 +643,17 @@ __rr_fstatfs(int fd, struct statfs * buf)
 
 BIND_REF(link);
 BIND_REF(unlink);
+BIND_REF(chdir);
+BIND_REF(fchdir);
 BIND_REF(stat);
 BIND_REF(lstat);
 BIND_REF(symlink);
 BIND_REF(readlink);
 BIND_REF(getrusage);
+BIND_REF(rename);
 BIND_REF(shutdown);
+BIND_REF(mkdir);
+BIND_REF(rmdir);
 BIND_REF(getrlimit);
 BIND_REF(setrlimit);
 BIND_REF(cpuset);

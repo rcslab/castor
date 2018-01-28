@@ -14,9 +14,6 @@
 ;sendmsg
 ;sendfile
 ;sendto
-;rename
-;mkdir
-;rmdir
 ;chmod
 ;lchmod
 ;fchmod
@@ -28,8 +25,11 @@
 ;ftruncate
 ;fsync
 ;lseek
-;chdir
-;fchdir
+rename
+chdir
+fchdir
+mkdir
+rmdir
 
 symlink
 unlink
