@@ -14,13 +14,15 @@
 ;sendmsg
 ;sendfile
 ;sendto
-;access
-;eaccess
-;faccessat
-;truncate
-;ftruncate
 ;fsync
 ;lseek
+;XXX -- something in this block breaking, do in smaller chunks.
+access
+eaccess
+faccessat
+truncate
+;ftruncate
+;XXX
 chmod
 lchmod
 fchmod

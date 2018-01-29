@@ -140,6 +140,25 @@ __rr_chmod(const char * path, mode_t mode)
 }
 
 int
+__rr_access(const char * path, int amode)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_access, path, amode);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_access, path, amode);
+	    RRRecordI(RREVENT_ACCESS, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_ACCESS, &result);
+	    break;
+    }
+    return result;
+}
+
+int
 __rr_stat(const char * path, struct stat * ub)
 {
 	int result;
@@ -417,6 +436,44 @@ __rr_lchmod(const char * path, mode_t mode)
 }
 
 int
+__rr_eaccess(const char * path, int amode)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_eaccess, path, amode);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_eaccess, path, amode);
+	    RRRecordI(RREVENT_EACCESS, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_EACCESS, &result);
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_truncate(const char * path, off_t length)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_truncate, path, length);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_truncate, path, length);
+	    RRRecordI(RREVENT_TRUNCATE, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_TRUNCATE, &result);
+	    break;
+    }
+    return result;
+}
+
+int
 __rr_cpuset(cpusetid_t * setid)
 {
 	int result;
@@ -530,6 +587,25 @@ __rr_cpuset_setaffinity(cpulevel_t level, cpuwhich_t which, id_t id, size_t cpus
 		if (result == 0) {
 			logData((uint8_t *)mask, sizeof(const cpuset_t));
 		}
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_faccessat(int fd, const char * path, int amode, int flag)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_faccessat, fd, path, amode, flag);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_faccessat, fd, path, amode, flag);
+	    RRRecordOI(RREVENT_FACCESSAT, fd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_FACCESSAT, fd, &result);
 	    break;
     }
     return result;
@@ -722,6 +798,7 @@ BIND_REF(unlink);
 BIND_REF(chdir);
 BIND_REF(fchdir);
 BIND_REF(chmod);
+BIND_REF(access);
 BIND_REF(stat);
 BIND_REF(lstat);
 BIND_REF(symlink);
@@ -735,11 +812,14 @@ BIND_REF(rmdir);
 BIND_REF(getrlimit);
 BIND_REF(setrlimit);
 BIND_REF(lchmod);
+BIND_REF(eaccess);
+BIND_REF(truncate);
 BIND_REF(cpuset);
 BIND_REF(cpuset_setid);
 BIND_REF(cpuset_getid);
 BIND_REF(cpuset_getaffinity);
 BIND_REF(cpuset_setaffinity);
+BIND_REF(faccessat);
 BIND_REF(fchmodat);
 BIND_REF(linkat);
 BIND_REF(readlinkat);

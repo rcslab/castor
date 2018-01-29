@@ -794,114 +794,48 @@ __rr_pread(int fd, void *buf, size_t nbytes, off_t offset)
     return result;
 }
 
+// int
+// __rr_truncate(const char *path, off_t length)
+// {
+//     int result;
 
-int
-__rr_access(const char *path, int mode)
-{
-    int result;
+//     switch (rrMode) {
+// 	case RRMODE_NORMAL:
+// 	    return syscall(SYS_truncate, path, length);
+// 	case RRMODE_RECORD:
+// 	    result = syscall(SYS_truncate, path, length);
+// 	    RRRecordI(RREVENT_TRUNCATE, result);
+// 	    break;
+// 	case RRMODE_REPLAY:
+// 	    RRReplayI(RREVENT_TRUNCATE, &result);
+// 	    break;
+//     }
 
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_access, path, mode);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_access, path, mode);
-	    RRRecordI(RREVENT_ACCESS, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_ACCESS, &result);
-	    break;
-    }
+//     return result;
+// }
 
-    return result;
-}
+// int
+// __rr_ftruncate(int fd, off_t length)
+// {
+//     int result;
 
-int
-__rr_eaccess(const char *path, int mode)
-{
-    int result;
+//     switch (rrMode) {
+// 	case RRMODE_NORMAL:
+// 	    return syscall(SYS_ftruncate, fd, length);
+// 	case RRMODE_RECORD:
+// 	    result = syscall(SYS_ftruncate, fd, length);
+// 	    RRRecordOI(RREVENT_FTRUNCATE, fd, result);
+// 	    break;
+// 	case RRMODE_REPLAY:
+// 	    RRReplayI(RREVENT_FTRUNCATE, &result);
+// 	    if (result == 0) {
+// 		FDInfo_FTruncate(fd, length);
+// 	    }
+// 	    break;
+//     }
 
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_eaccess, path, mode);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_eaccess, path, mode);
-	    RRRecordI(RREVENT_EACCESS, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_EACCESS, &result);
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_faccessat(int fd, const char *path, int mode, int flag)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_faccessat, fd, path, mode, flag);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_faccessat, fd, path, mode, flag);
-	    RRRecordOI(RREVENT_FACCESSAT, fd, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_FACCESSAT, &result);
-	    break;
-    }
-
-    return result;
-}
-
-
-int
-__rr_truncate(const char *path, off_t length)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_truncate, path, length);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_truncate, path, length);
-
-
-
-
-	    RRRecordI(RREVENT_TRUNCATE, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_TRUNCATE, &result);
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_ftruncate(int fd, off_t length)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_ftruncate, fd, length);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_ftruncate, fd, length);
-	    RRRecordOI(RREVENT_FTRUNCATE, fd, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_FTRUNCATE, &result);
-	    if (result == 0) {
-		FDInfo_FTruncate(fd, length);
-	    }
-	    break;
-    }
-
-    return result;
-}
+//     return result;
+// }
 
 int
 __rr_flock(int fd, int operation)
@@ -1331,8 +1265,6 @@ __strong_reference(__rr_fcntl, _fcntl);
 __strong_reference(__rr_getcwd, __getcwd);
 
 BIND_REF(openat);
-BIND_REF(truncate);
-BIND_REF(ftruncate);
 BIND_REF(flock);
 BIND_REF(fsync);
 BIND_REF(lseek);
@@ -1346,9 +1278,6 @@ BIND_REF(sendfile);
 BIND_REF(select);
 BIND_REF(recvmsg);
 BIND_REF(recvfrom);
-BIND_REF(access);
-BIND_REF(eaccess);
-BIND_REF(faccessat);
 BIND_REF(open);
 BIND_REF(ioctl);
 BIND_REF(setsockopt);

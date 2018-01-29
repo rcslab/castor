@@ -758,7 +758,8 @@
 				    _In_z_ const char *attrname); }
 374	AUE_SETUGID	NOPROTO	{ int __setugid(int flag); }
 375	AUE_NULL	UNIMPL	nfsclnt
-376	AUE_EACCESS	NOPROTO	{ int eaccess(_In_z_ char *path, int amode); }
+;XXX non-standard declaration to match with library interface
+376	AUE_EACCESS	NOPROTO	{ int eaccess(_In_z_ const char *path, int amode); }
 377	AUE_NULL	UNIMPL	afs3_syscall
 378	AUE_NMOUNT	STD	{ int nmount( \
 				    _In_reads_(iovcnt) struct iovec_c *iovp, \
