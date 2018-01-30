@@ -13,7 +13,7 @@
 ;getsockname
 ;sendmsg
 ;sendfile
-;sendto
+sendto
 fsync
 lseek
 access

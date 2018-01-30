@@ -334,6 +334,25 @@ __rr_rename(const char * from, const char * to)
     return result;
 }
 
+ssize_t
+__rr_sendto(int s, const void * buf, size_t len, int flags, const struct sockaddr * to, __socklen_t tolen)
+{
+	ssize_t result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_sendto, s, buf, len, flags, to, tolen);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_sendto, s, buf, len, flags, to, tolen);
+	    RRRecordOS(RREVENT_SENDTO, s, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOS(RREVENT_SENDTO, s, &result);
+	    break;
+    }
+    return result;
+}
+
 int
 __rr_shutdown(int s, int how)
 {
@@ -864,6 +883,7 @@ BIND_REF(fsync);
 BIND_REF(getrusage);
 BIND_REF(fchmod);
 BIND_REF(rename);
+BIND_REF(sendto);
 BIND_REF(shutdown);
 BIND_REF(mkdir);
 BIND_REF(rmdir);
