@@ -116,8 +116,9 @@
 27	AUE_RECVMSG	STD	{ ssize_t recvmsg(int s, \
 				    _In_ struct msghdr_c *msg, \
 				    int flags); }
+;XXX non-standard declaration to match with library interface
 28	AUE_SENDMSG	STD	{ ssize_t sendmsg(int s, \
-				    _In_ const struct msghdr_c *msg, \
+				    _In_ const struct msghdr *msg, \
 				    int flags); }
 29	AUE_RECVFROM	NOPROTO	{ ssize_t recvfrom(int s, \
 				    _Out_writes_bytes_(len) void *buf, \

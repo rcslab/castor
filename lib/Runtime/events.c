@@ -921,26 +921,6 @@ __rr_getsockname(int s, struct sockaddr * restrict name,
     return result;
 }
 
-ssize_t
-__rr_sendmsg(int s, const struct msghdr *msg, int flags)
-{
-    ssize_t result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_sendmsg, s, msg, flags);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_sendmsg, s, msg, flags);
-	    RRRecordOS(RREVENT_SENDMSG, s, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayOS(RREVENT_SENDMSG, s, &result);
-	    break;
-    }
-
-    return result;
-}
-
 int
 __rr_sendfile(int fd, int s, off_t offset, size_t nbytes, struct sf_hdtr *hdtr, off_t *sbytes, int flags)
 {
@@ -1149,7 +1129,6 @@ Events_Init()
     Add_Interposer(INTERPOS_readv,  (interpos_func_t)&__rr_readv);
     Add_Interposer(INTERPOS_recvmsg,  (interpos_func_t)&__rr_recvmsg);
     Add_Interposer(INTERPOS_select,  (interpos_func_t)&__rr_select);
-    Add_Interposer(INTERPOS_sendmsg,  (interpos_func_t)&__rr_sendmsg);
     Add_Interposer(INTERPOS_writev,  (interpos_func_t)&__rr_writev);
 }
 
@@ -1166,7 +1145,6 @@ BIND_REF(umask);
 BIND_REF(getpeername);
 BIND_REF(getsockname);
 BIND_REF(getdents);
-BIND_REF(sendmsg);
 BIND_REF(sendfile);
 BIND_REF(select);
 BIND_REF(recvmsg);

@@ -6,13 +6,13 @@
 ;setsockopt
 ;pread
 ;umask -- XXX will require adding new type to generator
+;sendfile --- XXX get unit test working first
 ;getdents
 ;accept
 ;accept4
 ;getpeername
 ;getsockname
-;sendmsg
-;sendfile
+sendmsg
 sendto
 fsync
 lseek

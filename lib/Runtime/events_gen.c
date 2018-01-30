@@ -139,6 +139,25 @@ __rr_chmod(const char * path, mode_t mode)
     return result;
 }
 
+ssize_t
+__rr_sendmsg(int s, const struct msghdr * msg, int flags)
+{
+	ssize_t result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_sendmsg, s, msg, flags);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_sendmsg, s, msg, flags);
+	    RRRecordOS(RREVENT_SENDMSG, s, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOS(RREVENT_SENDMSG, s, &result);
+	    break;
+    }
+    return result;
+}
+
 int
 __rr_access(const char * path, int amode)
 {
@@ -874,6 +893,7 @@ BIND_REF(unlink);
 BIND_REF(chdir);
 BIND_REF(fchdir);
 BIND_REF(chmod);
+BIND_REF(sendmsg);
 BIND_REF(access);
 BIND_REF(stat);
 BIND_REF(lstat);
