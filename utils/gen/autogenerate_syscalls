@@ -1,9 +1,4 @@
 ;getcwd
-;socket
-;bind
-;listen
-;connect
-;setsockopt
 ;pread
 ;umask -- XXX will require adding new type to generator
 ;sendfile --- XXX get unit test working first
@@ -12,6 +7,11 @@
 ;accept4
 ;getpeername
 ;getsockname
+;socket
+;bind
+;listen
+;connect
+setsockopt
 sendmsg
 sendto
 fsync

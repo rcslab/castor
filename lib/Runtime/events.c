@@ -747,27 +747,6 @@ __rr_accept4(int s, struct sockaddr *addr, socklen_t *addrlen, int flags)
     return accept_handler(SYS_accept4, s, addr, addrlen, flags);
 }
 
-int
-__rr_setsockopt(int s, int level, int optname, const void *optval, socklen_t 
-	optlen)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_setsockopt, s, level, optname, optval, optlen);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_setsockopt, s, level, optname, optval, optlen);
-	    RRRecordOI(RREVENT_SETSOCKOPT, s, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_SETSOCKOPT, &result);
-	    break;
-    }
-
-    return result;
-}
-
 ssize_t
 __rr_pread(int fd, void *buf, size_t nbytes, off_t offset)
 {
@@ -1151,7 +1130,6 @@ BIND_REF(recvmsg);
 BIND_REF(recvfrom);
 BIND_REF(open);
 BIND_REF(ioctl);
-BIND_REF(setsockopt);
 BIND_REF(socket);
 BIND_REF(bind);
 BIND_REF(listen);

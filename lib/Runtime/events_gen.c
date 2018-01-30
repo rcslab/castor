@@ -291,6 +291,25 @@ __rr_fsync(int fd)
 }
 
 int
+__rr_setsockopt(int s, int level, int name, const void * val, __socklen_t valsize)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_setsockopt, s, level, name, val, valsize);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_setsockopt, s, level, name, val, valsize);
+	    RRRecordOI(RREVENT_SETSOCKOPT, s, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_SETSOCKOPT, s, &result);
+	    break;
+    }
+    return result;
+}
+
+int
 __rr_getrusage(int who, struct rusage * rusage)
 {
 	int result;
@@ -900,6 +919,7 @@ BIND_REF(lstat);
 BIND_REF(symlink);
 BIND_REF(readlink);
 BIND_REF(fsync);
+BIND_REF(setsockopt);
 BIND_REF(getrusage);
 BIND_REF(fchmod);
 BIND_REF(rename);
