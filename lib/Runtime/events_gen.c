@@ -253,6 +253,25 @@ __rr_readlink(const char * path, char * buf, size_t count)
 }
 
 int
+__rr_fsync(int fd)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_fsync, fd);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_fsync, fd);
+	    RRRecordOI(RREVENT_FSYNC, fd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_FSYNC, fd, &result);
+	    break;
+    }
+    return result;
+}
+
+int
 __rr_getrusage(int who, struct rusage * rusage)
 {
 	int result;
@@ -841,6 +860,7 @@ BIND_REF(stat);
 BIND_REF(lstat);
 BIND_REF(symlink);
 BIND_REF(readlink);
+BIND_REF(fsync);
 BIND_REF(getrusage);
 BIND_REF(fchmod);
 BIND_REF(rename);

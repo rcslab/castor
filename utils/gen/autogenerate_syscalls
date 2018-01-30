@@ -14,7 +14,7 @@
 ;sendmsg
 ;sendfile
 ;sendto
-;fsync
+fsync
 lseek
 access
 eaccess
