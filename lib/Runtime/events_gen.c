@@ -291,6 +291,25 @@ __rr_fsync(int fd)
 }
 
 int
+__rr_socket(int domain, int type, int protocol)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_socket, domain, type, protocol);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_socket, domain, type, protocol);
+	    RRRecordOI(RREVENT_SOCKET, domain, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_SOCKET, domain, &result);
+	    break;
+    }
+    return result;
+}
+
+int
 __rr_connect(int s, const struct sockaddr * name, __socklen_t namelen)
 {
 	int result;
@@ -310,6 +329,25 @@ __rr_connect(int s, const struct sockaddr * name, __socklen_t namelen)
 }
 
 int
+__rr_bind(int s, const struct sockaddr * name, __socklen_t namelen)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_bind, s, name, namelen);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_bind, s, name, namelen);
+	    RRRecordOI(RREVENT_BIND, s, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_BIND, s, &result);
+	    break;
+    }
+    return result;
+}
+
+int
 __rr_setsockopt(int s, int level, int name, const void * val, __socklen_t valsize)
 {
 	int result;
@@ -323,6 +361,25 @@ __rr_setsockopt(int s, int level, int name, const void * val, __socklen_t valsiz
 	    break;
 	case RRMODE_REPLAY:
 	    RRReplayOI(RREVENT_SETSOCKOPT, s, &result);
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_listen(int s, int backlog)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_listen, s, backlog);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_listen, s, backlog);
+	    RRRecordOI(RREVENT_LISTEN, s, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_LISTEN, s, &result);
 	    break;
     }
     return result;
@@ -938,8 +995,11 @@ BIND_REF(lstat);
 BIND_REF(symlink);
 BIND_REF(readlink);
 BIND_REF(fsync);
+BIND_REF(socket);
 BIND_REF(connect);
+BIND_REF(bind);
 BIND_REF(setsockopt);
+BIND_REF(listen);
 BIND_REF(getrusage);
 BIND_REF(fchmod);
 BIND_REF(rename);

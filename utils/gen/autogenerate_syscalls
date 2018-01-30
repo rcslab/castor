@@ -7,9 +7,9 @@
 ;accept4
 ;getpeername
 ;getsockname
-;socket
-;bind
-;listen
+socket
+bind
+listen
 connect
 setsockopt
 sendmsg

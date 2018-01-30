@@ -610,66 +610,6 @@ __rr_fcntl(int fd, int cmd, ...)
     return result;
 }
 
-int
-__rr_socket(int domain, int type, int protocol)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_socket, domain, type, protocol);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_socket, domain, type, protocol);
-	    RRRecordI(RREVENT_SOCKET, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_SOCKET, &result);
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_bind(int s, const struct sockaddr *addr, socklen_t addrlen)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_bind, s, addr, addrlen);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_bind, s, addr, addrlen);
-	    RRRecordOI(RREVENT_BIND, s, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_BIND, &result);
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_listen(int s, int backlog)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_listen, s, backlog);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_listen, s, backlog);
-	    RRRecordOI(RREVENT_LISTEN, s, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_LISTEN, &result);
-	    break;
-    }
-
-    return result;
-}
-
 static inline int
 call_accept(int callnum, int s, struct sockaddr * restrict addr,
           socklen_t * restrict addrlen, int flags)
@@ -1109,9 +1049,6 @@ BIND_REF(recvmsg);
 BIND_REF(recvfrom);
 BIND_REF(open);
 BIND_REF(ioctl);
-BIND_REF(socket);
-BIND_REF(bind);
-BIND_REF(listen);
 BIND_REF(accept);
 BIND_REF(accept4);
 BIND_REF(poll);
