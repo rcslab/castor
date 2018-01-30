@@ -794,49 +794,6 @@ __rr_pread(int fd, void *buf, size_t nbytes, off_t offset)
     return result;
 }
 
-// int
-// __rr_truncate(const char *path, off_t length)
-// {
-//     int result;
-
-//     switch (rrMode) {
-// 	case RRMODE_NORMAL:
-// 	    return syscall(SYS_truncate, path, length);
-// 	case RRMODE_RECORD:
-// 	    result = syscall(SYS_truncate, path, length);
-// 	    RRRecordI(RREVENT_TRUNCATE, result);
-// 	    break;
-// 	case RRMODE_REPLAY:
-// 	    RRReplayI(RREVENT_TRUNCATE, &result);
-// 	    break;
-//     }
-
-//     return result;
-// }
-
-// int
-// __rr_ftruncate(int fd, off_t length)
-// {
-//     int result;
-
-//     switch (rrMode) {
-// 	case RRMODE_NORMAL:
-// 	    return syscall(SYS_ftruncate, fd, length);
-// 	case RRMODE_RECORD:
-// 	    result = syscall(SYS_ftruncate, fd, length);
-// 	    RRRecordOI(RREVENT_FTRUNCATE, fd, result);
-// 	    break;
-// 	case RRMODE_REPLAY:
-// 	    RRReplayI(RREVENT_FTRUNCATE, &result);
-// 	    if (result == 0) {
-// 		FDInfo_FTruncate(fd, length);
-// 	    }
-// 	    break;
-//     }
-
-//     return result;
-// }
-
 int
 __rr_flock(int fd, int operation)
 {
