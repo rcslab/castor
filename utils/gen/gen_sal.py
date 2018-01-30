@@ -74,7 +74,7 @@ def generate_handler(spec):
 
     leading_object = True if arg_types[0] == 'int' else False
     object_string = 'O' if leading_object else ''
-    result_type_string = {'int' : 'I', 'ssize_t' : 'S'}[result_type]
+    result_type_string = {'int' : 'I', 'ssize_t' : 'S', 'off_t': 'S'}[result_type]
     rr_event = "RREVENT_%s" % name.upper()
 
     record_method = "RRRecord%s%s" % (object_string, result_type_string)

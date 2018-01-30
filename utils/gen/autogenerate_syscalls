@@ -15,14 +15,12 @@
 ;sendfile
 ;sendto
 ;fsync
-;lseek
-;XXX -- something in this block breaking, do in smaller chunks.
+lseek
 access
 eaccess
 faccessat
 truncate
-;ftruncate
-;XXX
+ftruncate
 chmod
 lchmod
 fchmod

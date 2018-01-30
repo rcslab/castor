@@ -834,25 +834,25 @@ __rr_fsync(int fd)
     return result;
 }
 
-off_t
-__rr_lseek(int fildes, off_t offset, int whence)
-{
-    off_t result;
+// off_t
+// __rr_lseek(int fildes, off_t offset, int whence)
+// {
+//     off_t result;
 
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_lseek, fildes, offset, whence);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_lseek, fildes, offset, whence);
-	    RRRecordOS(RREVENT_LSEEK, fildes, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayOS(RREVENT_LSEEK, fildes, &result);
-	    break;
-    }
+//     switch (rrMode) {
+// 	case RRMODE_NORMAL:
+// 	    return syscall(SYS_lseek, fildes, offset, whence);
+// 	case RRMODE_RECORD:
+// 	    result = syscall(SYS_lseek, fildes, offset, whence);
+// 	    RRRecordOS(RREVENT_LSEEK, fildes, result);
+// 	    break;
+// 	case RRMODE_REPLAY:
+// 	    RRReplayOS(RREVENT_LSEEK, fildes, &result);
+// 	    break;
+//     }
 
-    return result;
-}
+//     return result;
+// }
 
 mode_t
 __rr_umask(mode_t numask)
@@ -1224,7 +1224,7 @@ __strong_reference(__rr_getcwd, __getcwd);
 BIND_REF(openat);
 BIND_REF(flock);
 BIND_REF(fsync);
-BIND_REF(lseek);
+// BIND_REF(lseek);
 BIND_REF(umask);
 BIND_REF(getpeername);
 BIND_REF(getsockname);

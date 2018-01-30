@@ -153,7 +153,11 @@ for t in tests:
     RunTest(t)
 
 print str(len(disabled)) + " tests disabled"
-print str(len(failed)) + " tests failed"
+
+if len(failed) > 0:
+    print "\n>>>>>>> !!!!!TESTS FAILED !!!!!<<<<<<<<"
+    print str(len(failed)) + " tests failed"
+    print ">>>>>>>> !!!!!!!!!!<<<<<<<<\n"
 
 if len(failed) != 0:
     print "Killing any left over processes."

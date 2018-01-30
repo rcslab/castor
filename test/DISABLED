@@ -2,3 +2,5 @@
 sendfile
 ;required system calls not yet supported
 semaphore_producer_consumer
+;flakey
+thread_cond_broadcast

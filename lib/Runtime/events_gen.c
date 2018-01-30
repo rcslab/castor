@@ -454,6 +454,25 @@ __rr_eaccess(const char * path, int amode)
     return result;
 }
 
+off_t
+__rr_lseek(int fd, off_t offset, int whence)
+{
+	off_t result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_lseek, fd, offset, whence);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_lseek, fd, offset, whence);
+	    RRRecordOS(RREVENT_LSEEK, fd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOS(RREVENT_LSEEK, fd, &result);
+	    break;
+    }
+    return result;
+}
+
 int
 __rr_truncate(const char * path, off_t length)
 {
@@ -468,6 +487,25 @@ __rr_truncate(const char * path, off_t length)
 	    break;
 	case RRMODE_REPLAY:
 	    RRReplayI(RREVENT_TRUNCATE, &result);
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_ftruncate(int fd, off_t length)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_ftruncate, fd, length);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_ftruncate, fd, length);
+	    RRRecordOI(RREVENT_FTRUNCATE, fd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_FTRUNCATE, fd, &result);
 	    break;
     }
     return result;
@@ -813,7 +851,9 @@ BIND_REF(getrlimit);
 BIND_REF(setrlimit);
 BIND_REF(lchmod);
 BIND_REF(eaccess);
+BIND_REF(lseek);
 BIND_REF(truncate);
+BIND_REF(ftruncate);
 BIND_REF(cpuset);
 BIND_REF(cpuset_setid);
 BIND_REF(cpuset_getid);
