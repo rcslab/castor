@@ -291,6 +291,25 @@ __rr_fsync(int fd)
 }
 
 int
+__rr_connect(int s, const struct sockaddr * name, __socklen_t namelen)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_connect, s, name, namelen);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_connect, s, name, namelen);
+	    RRRecordOI(RREVENT_CONNECT, s, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_CONNECT, s, &result);
+	    break;
+    }
+    return result;
+}
+
+int
 __rr_setsockopt(int s, int level, int name, const void * val, __socklen_t valsize)
 {
 	int result;
@@ -919,6 +938,7 @@ BIND_REF(lstat);
 BIND_REF(symlink);
 BIND_REF(readlink);
 BIND_REF(fsync);
+BIND_REF(connect);
 BIND_REF(setsockopt);
 BIND_REF(getrusage);
 BIND_REF(fchmod);

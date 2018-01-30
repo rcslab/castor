@@ -670,26 +670,6 @@ __rr_listen(int s, int backlog)
     return result;
 }
 
-int
-__rr_connect(int s, const struct sockaddr *name, socklen_t namelen)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_connect, s, name, namelen);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_connect, s, name, namelen);
-	    RRRecordOI(RREVENT_CONNECT, s, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_CONNECT, &result);
-	    break;
-    }
-
-    return result;
-}
-
 static inline int
 call_accept(int callnum, int s, struct sockaddr * restrict addr,
           socklen_t * restrict addrlen, int flags)
@@ -1103,7 +1083,6 @@ Events_Init()
     Add_Interposer(INTERPOS_fcntl, (interpos_func_t)&__rr_fcntl);
     Add_Interposer(INTERPOS_recvfrom,  (interpos_func_t)&__rr_recvfrom);
     Add_Interposer(INTERPOS_accept,  (interpos_func_t)&__rr_accept);
-    Add_Interposer(INTERPOS_connect,  (interpos_func_t)&__rr_connect);
     Add_Interposer(INTERPOS_poll,  (interpos_func_t)&__rr_poll);
     Add_Interposer(INTERPOS_readv,  (interpos_func_t)&__rr_readv);
     Add_Interposer(INTERPOS_recvmsg,  (interpos_func_t)&__rr_recvmsg);
@@ -1133,7 +1112,6 @@ BIND_REF(ioctl);
 BIND_REF(socket);
 BIND_REF(bind);
 BIND_REF(listen);
-BIND_REF(connect);
 BIND_REF(accept);
 BIND_REF(accept4);
 BIND_REF(poll);

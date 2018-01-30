@@ -10,7 +10,7 @@
 ;socket
 ;bind
 ;listen
-;connect
+connect
 setsockopt
 sendmsg
 sendto
