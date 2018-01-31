@@ -44,6 +44,31 @@
 
 
 
+ssize_t
+__rr_read(int fd, void * buf, size_t nbyte)
+{
+	ssize_t result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_read, fd, buf, nbyte);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_read, fd, buf, nbyte);
+	    RRRecordOS(RREVENT_READ, fd, result);
+		if (result != -1) {
+			logData((uint8_t *)buf, nbyte);
+		}
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOS(RREVENT_READ, fd, &result);
+		if (result != -1) {
+			logData((uint8_t *)buf, nbyte);
+		}
+	    break;
+    }
+    return result;
+}
+
 int
 __rr_link(const char * path, const char * to)
 {
@@ -536,6 +561,25 @@ __rr_rename(const char * from, const char * to)
 	    break;
 	case RRMODE_REPLAY:
 	    RRReplayI(RREVENT_RENAME, &result);
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_flock(int fd, int how)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_flock, fd, how);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_flock, fd, how);
+	    RRRecordOI(RREVENT_FLOCK, fd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_FLOCK, fd, &result);
 	    break;
     }
     return result;
@@ -1136,6 +1180,7 @@ __rr_fstatfs(int fd, struct statfs * buf)
     return result;
 }
 
+BIND_REF(read);
 BIND_REF(link);
 BIND_REF(unlink);
 BIND_REF(chdir);
@@ -1159,6 +1204,7 @@ BIND_REF(listen);
 BIND_REF(getrusage);
 BIND_REF(fchmod);
 BIND_REF(rename);
+BIND_REF(flock);
 BIND_REF(sendto);
 BIND_REF(shutdown);
 BIND_REF(mkdir);

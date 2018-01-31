@@ -1,4 +1,3 @@
-
 #include <assert.h>
 #include <stddef.h>
 #include <stdbool.h>
@@ -312,32 +311,6 @@ __rr_close(int fd)
 }
 
 ssize_t
-__rr_read(int fd, void *buf, size_t nbytes)
-{
-    ssize_t result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_read, fd, buf, nbytes);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_read, fd, buf, nbytes);
-	    RRRecordOS(RREVENT_READ, fd, result);
-	    if (result != -1) {
-		logData((uint8_t*)buf, nbytes);
-	    }
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayOS(RREVENT_READ, fd, &result);
-	    if (result != -1) {
-		logData((uint8_t*)buf, nbytes);
-	    }
-	    break;
-    }
-
-    return result;
-}
-
-ssize_t
 __rr_readv(int fd, const struct iovec *iov, int iovcnt)
 {
     ssize_t result;
@@ -610,52 +583,6 @@ __rr_fcntl(int fd, int cmd, ...)
     return result;
 }
 
-// ssize_t
-// __rr_pread(int fd, void *buf, size_t nbytes, off_t offset)
-// {
-//     ssize_t result;
-
-//     switch (rrMode) {
-// 	case RRMODE_NORMAL:
-// 	    return syscall(SYS_pread, fd, buf, nbytes, offset);
-// 	case RRMODE_RECORD:
-// 	    result = syscall(SYS_pread, fd, buf, nbytes, offset);
-// 	    RRRecordOS(RREVENT_PREAD, fd, result);
-// 	    if (result != -1) {
-// 		logData((uint8_t*)buf, nbytes);
-// 	    }
-// 	    break;
-// 	case RRMODE_REPLAY:
-// 	    RRReplayOS(RREVENT_PREAD, fd, &result);
-// 	    if (result != -1) {
-// 		logData((uint8_t*)buf, nbytes);
-// 	    }
-// 	    break;
-//     }
-
-//     return result;
-// }
-
-int
-__rr_flock(int fd, int operation)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_flock, fd, operation);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_flock, fd, operation);
-	    RRRecordOI(RREVENT_FLOCK, fd, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_FLOCK, &result);
-	    break;
-    }
-
-    return result;
-}
-
 mode_t
 __rr_umask(mode_t numask)
 {
@@ -897,13 +824,11 @@ void Add_Interposer(int slotNum, interpos_func_t newHandler)
 void
 Events_Init()
 {
-    Add_Interposer(INTERPOS_read, (interpos_func_t)&__rr_read);
     Add_Interposer(INTERPOS_write, (interpos_func_t)&__rr_write);
     Add_Interposer(INTERPOS_openat, (interpos_func_t)&__rr_openat);
     Add_Interposer(INTERPOS_close, (interpos_func_t)&__rr_close);
     Add_Interposer(INTERPOS_fcntl, (interpos_func_t)&__rr_fcntl);
     Add_Interposer(INTERPOS_recvfrom,  (interpos_func_t)&__rr_recvfrom);
-    // Add_Interposer(INTERPOS_accept,  (interpos_func_t)&__rr_accept);
     Add_Interposer(INTERPOS_poll,  (interpos_func_t)&__rr_poll);
     Add_Interposer(INTERPOS_readv,  (interpos_func_t)&__rr_readv);
     Add_Interposer(INTERPOS_recvmsg,  (interpos_func_t)&__rr_recvmsg);
@@ -911,7 +836,6 @@ Events_Init()
     Add_Interposer(INTERPOS_writev,  (interpos_func_t)&__rr_writev);
 }
 
-__strong_reference(__rr_read, _read);
 __strong_reference(__rr_write, _write);
 __strong_reference(__rr_close, _close);
 __strong_reference(__rr_fcntl, _fcntl);
@@ -919,7 +843,6 @@ __strong_reference(__rr_fcntl, _fcntl);
 __strong_reference(__rr_getcwd, __getcwd);
 
 BIND_REF(openat);
-BIND_REF(flock);
 BIND_REF(umask);
 BIND_REF(getdents);
 BIND_REF(sendfile);

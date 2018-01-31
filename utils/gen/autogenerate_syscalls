@@ -1,7 +1,9 @@
-;getcwd
+;getcwd -- XXX weird naming convention thing not supported yet.
 ;umask -- XXX will require adding new type to generator
 ;sendfile --- XXX get unit test working first
-;getdents
+;getdents --- XXX uses result of call for logData size, not supported yet.
+flock
+read
 pread
 accept
 accept4
