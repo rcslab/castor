@@ -1,3 +1,67 @@
+;getcwd -- XXX weird naming convention thing not supported yet.
+;umask -- XXX will require adding new type to generator
+;sendfile --- XXX get unit test working first
+;XXX uses result of call for logData size, not supported yet.
+;getdents
+;getgroups
+;XXX
+;XXX -- need to support uid_t/gid_t result types
+;getuid 
+;geteuid
+;getgid
+;getegid
+;XXX
+kqueue
+cap_rights_limit
+cap_enter
+setgroups
+setuid
+seteuid
+setgid
+setegid
+flock
+read
+pread
+accept
+accept4
+getpeername
+getsockname
+socket
+bind
+listen
+connect
+setsockopt
+sendmsg
+sendto
+fsync
+lseek
+access
+eaccess
+faccessat
+truncate
+ftruncate
+chmod
+lchmod
+fchmod
+fchmodat
+rename
+chdir
+fchdir
+mkdir
+rmdir
+symlink
+unlink
+unlinkat
+link
+linkat
+readlinkat
+readlink
+stat
+lstat
+fstatat
+statfs
+fstatfs
+fstat
 shutdown
 getrusage
 setrlimit

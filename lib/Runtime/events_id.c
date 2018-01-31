@@ -53,26 +53,6 @@ __rr_getgroups(int gidsetlen, gid_t *gidset)
     return result;
 }
 
-int
-__rr_setgroups(int ngroups, const gid_t *gidset)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_setgroups, ngroups, gidset);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_setgroups, ngroups, gidset);
-	    RRRecordI(RREVENT_SETGROUPS, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_SETGROUPS, &result);
-	    break;
-    }
-
-    return result;
-}
-
 static inline id_t
 id_get(int syscallNum, uint32_t eventNum)
 {
@@ -117,58 +97,9 @@ __rr_getegid(void)
     return id_get(SYS_getegid, RREVENT_GETEGID);
 }
 
-static inline int
-id_set(int syscallNum, uint32_t eventNum, id_t id)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(syscallNum, id);
-	case RRMODE_RECORD:
-	    result = syscall(syscallNum, id);
-	    RRRecordI(eventNum, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(eventNum, &result);
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_setuid(uid_t uid)
-{
-    return id_set(SYS_setuid, RREVENT_SETUID, uid);
-}
-
-int
-__rr_seteuid(uid_t euid)
-{
-    return id_set(SYS_seteuid, RREVENT_SETEUID, euid);
-}
-
-int
-__rr_setgid(gid_t gid)
-{
-    return id_set(SYS_setgid, RREVENT_SETGID, gid);
-}
-
-int
-__rr_setegid(gid_t egid)
-{
-    return id_set(SYS_setegid, RREVENT_SETEGID, egid);
-}
-
 BIND_REF(getgroups);
-BIND_REF(setgroups);
 BIND_REF(getuid);
 BIND_REF(geteuid);
 BIND_REF(getgid);
 BIND_REF(getegid);
-BIND_REF(setuid);
-BIND_REF(seteuid);
-BIND_REF(setgid);
-BIND_REF(setegid);
 

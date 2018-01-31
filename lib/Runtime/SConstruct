@@ -8,7 +8,6 @@ src = [
     "fdinfo.c",
     "freebsd.c",
     "events.c",
-    "events_gen.c",
     "events_freebsd.c",
     "events_id.c",
     "events_mem.c",
@@ -30,4 +29,4 @@ env.StaticLibrary("libCastorRuntime.a", src)
 rt = env.CopyFile("$SYSROOT/usr/lib/libCastorRuntime.a", "#build/lib/Runtime/libCastorRuntime.a")
 env.Alias("CastorRuntime", rt)
 
-Depends("CastorRuntime", "AutoGen")
+#Depends("CastorRuntime", "AutoGen")
