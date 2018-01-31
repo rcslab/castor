@@ -159,6 +159,31 @@ __rr_sendmsg(int s, const struct msghdr * msg, int flags)
 }
 
 int
+__rr_getpeername(int fdes, struct sockaddr * __restrict asa, __socklen_t * alen)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_getpeername, fdes, asa, alen);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_getpeername, fdes, asa, alen);
+	    RRRecordOI(RREVENT_GETPEERNAME, fdes, result);
+		if (result == 0) {
+			logData((uint8_t *)asa, *alen);
+		}
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_GETPEERNAME, fdes, &result);
+		if (result == 0) {
+			logData((uint8_t *)asa, *alen);
+		}
+	    break;
+    }
+    return result;
+}
+
+int
 __rr_getsockname(int fdes, struct sockaddr * __restrict asa, __socklen_t * alen)
 {
 	int result;
@@ -1016,6 +1041,7 @@ BIND_REF(chdir);
 BIND_REF(fchdir);
 BIND_REF(chmod);
 BIND_REF(sendmsg);
+BIND_REF(getpeername);
 BIND_REF(getsockname);
 BIND_REF(access);
 BIND_REF(stat);

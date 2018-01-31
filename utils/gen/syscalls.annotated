@@ -131,7 +131,7 @@
 				    _Out_writes_bytes_opt_(*anamelen) \
 				    struct sockaddr * __restrict name, \
 				    _Inout_opt_ __socklen_t *anamelen); }
-31	AUE_GETPEERNAME	NOPROTO	{ int getpeername(int fdes, \
+31	AUE_GETPEERNAME	NOPROTO	{ @success_zero int getpeername(int fdes, \
 				    _Out_writes_bytes_(*alen) \
 				    struct sockaddr * __restrict asa, \
 				    _Inout_opt_ __socklen_t *alen); }

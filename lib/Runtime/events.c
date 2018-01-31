@@ -759,37 +759,6 @@ int __rr_getdents(int fd, char *buf, int nbytes)
 }
 
 int
-__rr_getpeername(int s, struct sockaddr * restrict name,
-		 socklen_t * restrict namelen)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_getpeername, s, name, namelen);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_getpeername, s, name, namelen);
-	    RRRecordOI(RREVENT_GETPEERNAME, s, result);
-	    if (result == 0) {
-		//XXX: slow, store in value[] directly
-		logData((uint8_t*)namelen, sizeof(*namelen));
-		logData((uint8_t*)name, *namelen);
-	    }
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_GETPEERNAME, &result);
-	    if (result == 0) {
-		//XXX: slow, store in value[] directly
-		logData((uint8_t*)namelen, sizeof(*namelen));
-		logData((uint8_t*)name, *namelen);
-	    }
-	    break;
-    }
-
-    return result;
-}
-
-int
 __rr_sendfile(int fd, int s, off_t offset, size_t nbytes, struct sf_hdtr *hdtr, off_t *sbytes, int flags)
 {
     int result;
@@ -1009,7 +978,6 @@ __strong_reference(__rr_getcwd, __getcwd);
 BIND_REF(openat);
 BIND_REF(flock);
 BIND_REF(umask);
-BIND_REF(getpeername);
 BIND_REF(getdents);
 BIND_REF(sendfile);
 BIND_REF(select);
