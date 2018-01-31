@@ -135,26 +135,6 @@ int __rr_sysctl(const int *name, u_int namelen, void *oldp,
 }
 
 int
-__rr_kqueue()
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_kqueue);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_kqueue);
-	    RRRecordI(RREVENT_KQUEUE, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_KQUEUE, &result);
-	    break;
-    }
-
-    return result;
-}
-
-int
 __rr_kevent(int kq, const struct kevent *changelist, int nchanges,
 	struct kevent *eventlist, int nevents,
 	const struct timespec *timeout)
@@ -209,7 +189,6 @@ __rr_kevent(int kq, const struct kevent *changelist, int nchanges,
 
 
 BIND_REF(getdirentries);
-//BIND_REF(kqueue);
 BIND_REF(kevent);
 __strong_reference(__rr_sysctl, __sysctl);
 
