@@ -699,6 +699,31 @@ __rr_eaccess(const char * path, int amode)
     return result;
 }
 
+ssize_t
+__rr_pread(int fd, void * buf, size_t nbyte, off_t offset)
+{
+	ssize_t result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_pread, fd, buf, nbyte, offset);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_pread, fd, buf, nbyte, offset);
+	    RRRecordOS(RREVENT_PREAD, fd, result);
+		if (result != -1) {
+			logData((uint8_t *)buf, nbyte);
+		}
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOS(RREVENT_PREAD, fd, &result);
+		if (result != -1) {
+			logData((uint8_t *)buf, nbyte);
+		}
+	    break;
+    }
+    return result;
+}
+
 off_t
 __rr_lseek(int fd, off_t offset, int whence)
 {
@@ -1142,6 +1167,7 @@ BIND_REF(getrlimit);
 BIND_REF(setrlimit);
 BIND_REF(lchmod);
 BIND_REF(eaccess);
+BIND_REF(pread);
 BIND_REF(lseek);
 BIND_REF(truncate);
 BIND_REF(ftruncate);

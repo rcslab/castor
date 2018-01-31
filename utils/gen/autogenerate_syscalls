@@ -1,8 +1,8 @@
 ;getcwd
-;pread
 ;umask -- XXX will require adding new type to generator
 ;sendfile --- XXX get unit test working first
 ;getdents
+pread
 accept
 accept4
 getpeername

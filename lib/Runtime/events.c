@@ -610,31 +610,31 @@ __rr_fcntl(int fd, int cmd, ...)
     return result;
 }
 
-ssize_t
-__rr_pread(int fd, void *buf, size_t nbytes, off_t offset)
-{
-    ssize_t result;
+// ssize_t
+// __rr_pread(int fd, void *buf, size_t nbytes, off_t offset)
+// {
+//     ssize_t result;
 
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_pread, fd, buf, nbytes, offset);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_pread, fd, buf, nbytes, offset);
-	    RRRecordOS(RREVENT_PREAD, fd, result);
-	    if (result != -1) {
-		logData((uint8_t*)buf, nbytes);
-	    }
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayOS(RREVENT_PREAD, fd, &result);
-	    if (result != -1) {
-		logData((uint8_t*)buf, nbytes);
-	    }
-	    break;
-    }
+//     switch (rrMode) {
+// 	case RRMODE_NORMAL:
+// 	    return syscall(SYS_pread, fd, buf, nbytes, offset);
+// 	case RRMODE_RECORD:
+// 	    result = syscall(SYS_pread, fd, buf, nbytes, offset);
+// 	    RRRecordOS(RREVENT_PREAD, fd, result);
+// 	    if (result != -1) {
+// 		logData((uint8_t*)buf, nbytes);
+// 	    }
+// 	    break;
+// 	case RRMODE_REPLAY:
+// 	    RRReplayOS(RREVENT_PREAD, fd, &result);
+// 	    if (result != -1) {
+// 		logData((uint8_t*)buf, nbytes);
+// 	    }
+// 	    break;
+//     }
 
-    return result;
-}
+//     return result;
+// }
 
 int
 __rr_flock(int fd, int operation)
@@ -928,8 +928,6 @@ BIND_REF(recvmsg);
 BIND_REF(recvfrom);
 BIND_REF(open);
 BIND_REF(ioctl);
-// BIND_REF(accept);
-// BIND_REF(accept4);
 BIND_REF(poll);
 BIND_REF(getsockopt);
 BIND_REF(dup2);
@@ -937,7 +935,6 @@ BIND_REF(dup);
 BIND_REF(pipe);
 BIND_REF(pipe2);
 BIND_REF(pwrite);
-BIND_REF(pread);
 BIND_REF(readv);
 BIND_REF(writev);
 
