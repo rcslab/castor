@@ -822,6 +822,25 @@ __rr_lchmod(const char * path, mode_t mode)
 }
 
 int
+__rr_kqueue()
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_kqueue);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_kqueue);
+	    RRRecordI(RREVENT_KQUEUE, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_KQUEUE, &result);
+	    break;
+    }
+    return result;
+}
+
+int
 __rr_eaccess(const char * path, int amode)
 {
 	int result;
@@ -1143,6 +1162,44 @@ __rr_unlinkat(int fd, const char * path, int flag)
 }
 
 int
+__rr_cap_enter()
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_cap_enter);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_cap_enter);
+	    RRRecordI(RREVENT_CAP_ENTER, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_CAP_ENTER, &result);
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_cap_rights_limit(int fd, cap_rights_t * rightsp)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_cap_rights_limit, fd, rightsp);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_cap_rights_limit, fd, rightsp);
+	    RRRecordOI(RREVENT_CAP_RIGHTS_LIMIT, fd, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_CAP_RIGHTS_LIMIT, fd, &result);
+	    break;
+    }
+    return result;
+}
+
+int
 __rr_accept4(int s, struct sockaddr * __restrict name, __socklen_t * __restrict anamelen, int flags)
 {
 	int result;
@@ -1314,6 +1371,7 @@ BIND_REF(seteuid);
 BIND_REF(getrlimit);
 BIND_REF(setrlimit);
 BIND_REF(lchmod);
+BIND_REF(kqueue);
 BIND_REF(eaccess);
 BIND_REF(pread);
 BIND_REF(lseek);
@@ -1329,6 +1387,8 @@ BIND_REF(fchmodat);
 BIND_REF(linkat);
 BIND_REF(readlinkat);
 BIND_REF(unlinkat);
+BIND_REF(cap_enter);
+BIND_REF(cap_rights_limit);
 BIND_REF(accept4);
 BIND_REF(fstat);
 BIND_REF(fstatat);

@@ -207,50 +207,9 @@ __rr_kevent(int kq, const struct kevent *changelist, int nchanges,
     return result;
 }
 
-int
-__rr_cap_enter(void)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_cap_enter);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_cap_enter);
-	    RRRecordI(RREVENT_CAP_ENTER, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_CAP_ENTER, &result);
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_cap_rights_limit(int fd, const cap_rights_t *rights)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_cap_rights_limit, fd, rights);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_cap_rights_limit, fd, rights);
-	    RRRecordOI(RREVENT_CAP_RIGHTS_LIMIT, fd, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_CAP_RIGHTS_LIMIT, &result);
-	    break;
-    }
-
-    return result;
-}
 
 BIND_REF(getdirentries);
-BIND_REF(cap_enter);
-BIND_REF(cap_rights_limit);
-BIND_REF(kqueue);
+//BIND_REF(kqueue);
 BIND_REF(kevent);
 __strong_reference(__rr_sysctl, __sysctl);
 
