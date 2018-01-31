@@ -148,8 +148,6 @@ env["SYSROOT"] = os.getcwd() + "/sysroot/usr/amd64-freebsd/"
 
 Export('env')
 
-#SConscript("utils/gen/SConstruct")
-
 VariantDir("build/lib", "lib")
 SConscript("#build/lib/Runtime/SConstruct")
 SConscript("#build/lib/ThreadRuntime/SConstruct")
