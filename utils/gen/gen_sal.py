@@ -47,9 +47,14 @@ def gen_log_data(spec):
     if gen_log:
         c_output("\t\tif (%s) {" % get_comparison(spec))
         for arg in spec['args_spec']:
-            if arg['log_spec']:
+            if arg['log_spec'] != None:
+                #XXX formatting ugly
+                if arg['log_spec']['null_check']:
+                    c_output("\t\t\t if (%s != NULL) {" % (arg['name']))
                 c_output("\t\t\tlogData((uint8_t *)%s, %s);" %
                             (arg['name'], arg['log_spec']['size']))
+                if arg['log_spec']['null_check']:
+                    c_output("\t\t\t }")
         c_output("\t\t}")
 
 def generate_handler(spec):
@@ -105,10 +110,14 @@ def generate_handler(spec):
 
 def parse_logspec(sal, type):
     debug("parse_logspec(%s, %s)" % (str(sal), type))
-    log_spec = None
     sal_tag = sal['tag']
     sal_arg = sal['arg']
-    if sal_tag == '_In_':
+
+    log_spec = None
+    null_check = '_opt_' in sal_tag
+    sal_tag = re.sub("opt_","",sal_tag)
+
+    if sal_tag.startswith('_In_'):
        pass
     elif sal_tag == "_Out_writes_bytes_":
         log_spec = { 'size': sal_arg}
@@ -121,6 +130,9 @@ def parse_logspec(sal, type):
         log_spec = { 'size' : "sizeof(%s)" % size_type }
     else:
         debug("unknown sal:" + str(sal))
+
+    if log_spec != None:
+        log_spec['null_check'] = null_check
 
     return log_spec
 

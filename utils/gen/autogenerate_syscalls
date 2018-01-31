@@ -3,9 +3,8 @@
 ;umask -- XXX will require adding new type to generator
 ;sendfile --- XXX get unit test working first
 ;getdents
-;accept
-;accept4
-;getsockopt
+accept
+accept4
 getpeername
 getsockname
 socket

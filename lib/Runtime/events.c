@@ -610,63 +610,6 @@ __rr_fcntl(int fd, int cmd, ...)
     return result;
 }
 
-static inline int
-call_accept(int callnum, int s, struct sockaddr * restrict addr,
-          socklen_t * restrict addrlen, int flags)
-{
-    if (callnum == SYS_accept) {
-	return syscall(SYS_accept, s, addr, addrlen);
-    } else {
-	return syscall(SYS_accept4, s, addr, addrlen, flags);
-    }
-}
-
-
-static inline int
-accept_handler(int callnum, int s, struct sockaddr * restrict addr,
-          socklen_t * restrict addrlen, int flags)
-{
-    int result;
-    uint32_t event_type = (callnum == SYS_accept) ? RREVENT_ACCEPT : RREVENT_ACCEPT4;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return call_accept(callnum, s, addr, addrlen, flags);
-	case RRMODE_RECORD:
-	    result = call_accept(callnum, s, addr, addrlen, flags);
-	    RRRecordOI(event_type, s, result);
-	    if (result != -1) {
-		//XXX: slow, store in value[] directly
-		logData((uint8_t*)addrlen, sizeof(*addrlen));
-		logData((uint8_t*)addr, *addrlen);
-	    }
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(event_type, &result);
-	    if (result != -1) {
-		//XXX: slow, store in value[] directly
-		logData((uint8_t*)addrlen, sizeof(*addrlen));
-		logData((uint8_t*)addr, *addrlen);
-	    }
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_accept(int s, struct sockaddr *addr, socklen_t *addrlen)
-{
-    return accept_handler(SYS_accept, s, addr, addrlen, 0);
-}
-
-int
-__rr_accept4(int s, struct sockaddr *addr, socklen_t *addrlen, int flags)
-{
-
-    return accept_handler(SYS_accept4, s, addr, addrlen, flags);
-}
-
 ssize_t
 __rr_pread(int fd, void *buf, size_t nbytes, off_t offset)
 {
@@ -960,7 +903,7 @@ Events_Init()
     Add_Interposer(INTERPOS_close, (interpos_func_t)&__rr_close);
     Add_Interposer(INTERPOS_fcntl, (interpos_func_t)&__rr_fcntl);
     Add_Interposer(INTERPOS_recvfrom,  (interpos_func_t)&__rr_recvfrom);
-    Add_Interposer(INTERPOS_accept,  (interpos_func_t)&__rr_accept);
+    // Add_Interposer(INTERPOS_accept,  (interpos_func_t)&__rr_accept);
     Add_Interposer(INTERPOS_poll,  (interpos_func_t)&__rr_poll);
     Add_Interposer(INTERPOS_readv,  (interpos_func_t)&__rr_readv);
     Add_Interposer(INTERPOS_recvmsg,  (interpos_func_t)&__rr_recvmsg);
@@ -985,8 +928,8 @@ BIND_REF(recvmsg);
 BIND_REF(recvfrom);
 BIND_REF(open);
 BIND_REF(ioctl);
-BIND_REF(accept);
-BIND_REF(accept4);
+// BIND_REF(accept);
+// BIND_REF(accept4);
 BIND_REF(poll);
 BIND_REF(getsockopt);
 BIND_REF(dup2);

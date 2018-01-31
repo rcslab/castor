@@ -159,6 +159,41 @@ __rr_sendmsg(int s, const struct msghdr * msg, int flags)
 }
 
 int
+__rr_accept(int s, struct sockaddr * __restrict name, __socklen_t * anamelen)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_accept, s, name, anamelen);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_accept, s, name, anamelen);
+	    RRRecordOI(RREVENT_ACCEPT, s, result);
+		if (result != -1) {
+			 if (name != NULL) {
+			logData((uint8_t *)name, *anamelen);
+			 }
+			 if (anamelen != NULL) {
+			logData((uint8_t *)anamelen, sizeof(__socklen_t));
+			 }
+		}
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_ACCEPT, s, &result);
+		if (result != -1) {
+			 if (name != NULL) {
+			logData((uint8_t *)name, *anamelen);
+			 }
+			 if (anamelen != NULL) {
+			logData((uint8_t *)anamelen, sizeof(__socklen_t));
+			 }
+		}
+	    break;
+    }
+    return result;
+}
+
+int
 __rr_getpeername(int fdes, struct sockaddr * __restrict asa, __socklen_t * alen)
 {
 	int result;
@@ -171,12 +206,18 @@ __rr_getpeername(int fdes, struct sockaddr * __restrict asa, __socklen_t * alen)
 	    RRRecordOI(RREVENT_GETPEERNAME, fdes, result);
 		if (result == 0) {
 			logData((uint8_t *)asa, *alen);
+			 if (alen != NULL) {
+			logData((uint8_t *)alen, sizeof(__socklen_t));
+			 }
 		}
 	    break;
 	case RRMODE_REPLAY:
 	    RRReplayOI(RREVENT_GETPEERNAME, fdes, &result);
 		if (result == 0) {
 			logData((uint8_t *)asa, *alen);
+			 if (alen != NULL) {
+			logData((uint8_t *)alen, sizeof(__socklen_t));
+			 }
 		}
 	    break;
     }
@@ -936,6 +977,41 @@ __rr_unlinkat(int fd, const char * path, int flag)
 }
 
 int
+__rr_accept4(int s, struct sockaddr * __restrict name, __socklen_t * __restrict anamelen, int flags)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_accept4, s, name, anamelen, flags);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_accept4, s, name, anamelen, flags);
+	    RRRecordOI(RREVENT_ACCEPT4, s, result);
+		if (result != -1) {
+			 if (name != NULL) {
+			logData((uint8_t *)name, *anamelen);
+			 }
+			 if (anamelen != NULL) {
+			logData((uint8_t *)anamelen, sizeof(__socklen_t));
+			 }
+		}
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_ACCEPT4, s, &result);
+		if (result != -1) {
+			 if (name != NULL) {
+			logData((uint8_t *)name, *anamelen);
+			 }
+			 if (anamelen != NULL) {
+			logData((uint8_t *)anamelen, sizeof(__socklen_t));
+			 }
+		}
+	    break;
+    }
+    return result;
+}
+
+int
 __rr_fstat(int fd, struct stat * sb)
 {
 	int result;
@@ -1041,6 +1117,7 @@ BIND_REF(chdir);
 BIND_REF(fchdir);
 BIND_REF(chmod);
 BIND_REF(sendmsg);
+BIND_REF(accept);
 BIND_REF(getpeername);
 BIND_REF(getsockname);
 BIND_REF(access);
@@ -1078,6 +1155,7 @@ BIND_REF(fchmodat);
 BIND_REF(linkat);
 BIND_REF(readlinkat);
 BIND_REF(unlinkat);
+BIND_REF(accept4);
 BIND_REF(fstat);
 BIND_REF(fstatat);
 BIND_REF(statfs);
