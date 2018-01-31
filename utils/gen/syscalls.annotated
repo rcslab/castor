@@ -135,7 +135,7 @@
 				    _Out_writes_bytes_(*alen) \
 				    struct sockaddr * __restrict asa, \
 				    _Inout_opt_ __socklen_t *alen); }
-32	AUE_GETSOCKNAME	NOPROTO	{ int getsockname(int fdes, \
+32	AUE_GETSOCKNAME	NOPROTO	{ @success_zero int getsockname(int fdes, \
 				    _Out_writes_bytes_(*alen) \
 				    struct sockaddr * __restrict asa, \
 				    _Inout_ __socklen_t *alen); }

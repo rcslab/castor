@@ -9,3 +9,4 @@ make sure unit tests pass.
 -change code to correctly reference events_gen.h in the variant build directory.
 
 -cleanup formatting for generated code.
+-optimize recording of socketlen_t parameters by storing them as values.

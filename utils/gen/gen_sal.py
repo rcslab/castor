@@ -104,54 +104,66 @@ def generate_handler(spec):
     c_output("}")
 
 def parse_logspec(sal, type):
-    debug("parse_logspec(%s, %s)" % (sal, type))
+    debug("parse_logspec(%s, %s)" % (str(sal), type))
     log_spec = None
-    sal = sal.strip()
-    if sal.startswith("_In_"):
+    sal_tag = sal['tag']
+    sal_arg = sal['arg']
+    if sal_tag == '_In_':
        pass
-    elif sal.startswith("_Out_writes_bytes_("):
-        size = sal.split('(')[1].strip(')')
-        log_spec = { 'size': size}
-    elif sal.startswith("_Out_writes_z_("):
-        count = sal.split('(')[1].strip(')')
+    elif sal_tag == "_Out_writes_bytes_":
+        log_spec = { 'size': sal_arg}
+    elif sal_tag == "_Out_writes_z_":
+        count = sal_arg
         base_type = type.split('*')[0].strip()
         log_spec = { 'size': "%s * sizeof(%s)" % (count, base_type) }
-    elif sal == "_Out_":
+    elif sal_tag == "_Out_" or sal_tag == '_Inout_':
         size_type = type.split('*')[0].strip()
         log_spec = { 'size' : "sizeof(%s)" % size_type }
     else:
-        debug("unknown sal:" + sal)
+        debug("unknown sal:" + str(sal))
 
     return log_spec
 
 
 def parse_args(arg_string):
     args_spec = []
-    debug("parse_args(%s)" % (arg_string))
     args = arg_string.split(',')
     debug("args:", args)
     for arg in args:
         arg_spec = {}
         if arg == 'void':
             break
-        arg = arg.replace('*', '* ')
-        fields = arg.split()
-        arg_spec['name'] = fields[-1]
+        arg = arg.strip()
+
+        #chop name
+        so = re.search("(\w+$)", arg)
+        name = so.group()
+        arg = re.sub("\w+$", "", arg)
+        arg_spec['name']  = name
         debug("arg_name:" + arg_spec['name'])
-        del(fields[-1])
-        log_spec = None
+
+        #chop sal
         sal = None
-        if fields[0].startswith("_In") or fields[0].startswith("_Out"):
-            sal = fields[0]
-            del fields[0]
+        if arg.startswith("_In") or arg.startswith("_Out"):
+            SAL_PATTERN = "^(?P<tag>(\_\w+\_))(\((?P<arg>[\w\*]+)\))?"
+            so = re.search(SAL_PATTERN, arg)
+            sal = {'tag': so.group('tag'), 'arg' :so.group('arg')}
+            arg = re.sub(SAL_PATTERN,"",arg)
             arg_spec['sal'] = sal
-            debug("arg_sal:", arg_spec['sal'])
-        arg_spec['type'] = ' '.join(fields)
+            debug("arg_sal:", str(sal))
+
+        #type is whats left
+        arg_spec['type'] = arg.strip()
+
         debug("arg_type:" + arg_spec['type'])
+
         if sal != None:
-            log_spec = parse_logspec(arg_spec['sal'], arg_spec['type'])
-        arg_spec['log_spec'] = log_spec
+            arg_spec['log_spec'] = parse_logspec(arg_spec['sal'], arg_spec['type'])
+        else:
+            arg_spec['log_spec'] = None
+
         args_spec = args_spec + [arg_spec]
+    debug("args_spec: " + str(args_spec))
     return args_spec
 
 def parse_proto(line):
