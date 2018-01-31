@@ -6,7 +6,7 @@
 ;accept
 ;accept4
 ;getpeername
-;getsockname
+getsockname
 socket
 bind
 listen

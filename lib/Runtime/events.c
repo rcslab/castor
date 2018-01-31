@@ -790,37 +790,6 @@ __rr_getpeername(int s, struct sockaddr * restrict name,
 }
 
 int
-__rr_getsockname(int s, struct sockaddr * restrict name,
-		 socklen_t * restrict namelen)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_getsockname, s, name, namelen);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_getsockname, s, name, namelen);
-	    RRRecordOI(RREVENT_GETSOCKNAME, s, result);
-	    if (result == 0) {
-		logData((uint8_t*)namelen, sizeof(*namelen));
-		logData((uint8_t*)name, *namelen);
-		//XXX:slow, store directly in value
-	    }
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_GETSOCKNAME, &result);
-	    if (result == 0) {
-		logData((uint8_t*)namelen, sizeof(*namelen));
-		logData((uint8_t*)name, *namelen);
-		//XXX:slow, store directly in value
-	    }
-	    break;
-    }
-
-    return result;
-}
-
-int
 __rr_sendfile(int fd, int s, off_t offset, size_t nbytes, struct sf_hdtr *hdtr, off_t *sbytes, int flags)
 {
     int result;
@@ -836,7 +805,7 @@ __rr_sendfile(int fd, int s, off_t offset, size_t nbytes, struct sf_hdtr *hdtr, 
             RRReplayOI(RREVENT_SENDFILE, s, &result);
             break;
     }
-    
+
     return result;
 }
 
@@ -1041,7 +1010,6 @@ BIND_REF(openat);
 BIND_REF(flock);
 BIND_REF(umask);
 BIND_REF(getpeername);
-BIND_REF(getsockname);
 BIND_REF(getdents);
 BIND_REF(sendfile);
 BIND_REF(select);
