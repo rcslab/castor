@@ -1,9 +1,0 @@
-Import('env')
-header_path = "#build/include/castor/events_gen.h"
-code_path = "#build/lib/Runtime/events_gen.c"
-ag = env.Command([header_path, code_path],
-            ['gen_sal.py', 'autogenerate_syscalls', 'autogenerate_includes', 'syscalls.annotated'],
-            "cd utils/gen; ./gen_sal.py < syscalls.annotated; mv events_gen.c ../../build/lib/Runtime/events_gen.c; mv events_gen.h ../../include/castor/events_gen.h")
-
-env.Alias("AutoGen", ag)
-
