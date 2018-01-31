@@ -1,7 +1,21 @@
 ;getcwd -- XXX weird naming convention thing not supported yet.
 ;umask -- XXX will require adding new type to generator
 ;sendfile --- XXX get unit test working first
-;getdents --- XXX uses result of call for logData size, not supported yet.
+;XXX uses result of call for logData size, not supported yet.
+;getdents
+;getgroups
+;XXX
+;XXX -- need to support uid_t/gid_t result types
+;getuid 
+;geteuid
+;getgid
+;getegid
+;XXX
+setgroups
+setuid
+seteuid
+setgid
+setegid
 flock
 read
 pread

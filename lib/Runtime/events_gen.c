@@ -44,6 +44,8 @@
 
 
 
+
+
 ssize_t
 __rr_read(int fd, void * buf, size_t nbyte)
 {
@@ -159,6 +161,25 @@ __rr_chmod(const char * path, mode_t mode)
 	    break;
 	case RRMODE_REPLAY:
 	    RRReplayI(RREVENT_CHMOD, &result);
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_setuid(uid_t uid)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_setuid, uid);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_setuid, uid);
+	    RRRecordI(RREVENT_SETUID, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_SETUID, &result);
 	    break;
     }
     return result;
@@ -384,6 +405,25 @@ __rr_readlink(const char * path, char * buf, size_t count)
 		if (result != -1) {
 			logData((uint8_t *)buf, count * sizeof(char));
 		}
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_setgroups(int gidsetsize, const gid_t * gidset)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_setgroups, gidsetsize, gidset);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_setgroups, gidsetsize, gidset);
+	    RRRecordOI(RREVENT_SETGROUPS, gidsetsize, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayOI(RREVENT_SETGROUPS, gidsetsize, &result);
 	    break;
     }
     return result;
@@ -656,6 +696,63 @@ __rr_rmdir(const char * path)
 	    break;
 	case RRMODE_REPLAY:
 	    RRReplayI(RREVENT_RMDIR, &result);
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_setgid(gid_t gid)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_setgid, gid);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_setgid, gid);
+	    RRRecordI(RREVENT_SETGID, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_SETGID, &result);
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_setegid(gid_t egid)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_setegid, egid);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_setegid, egid);
+	    RRRecordI(RREVENT_SETEGID, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_SETEGID, &result);
+	    break;
+    }
+    return result;
+}
+
+int
+__rr_seteuid(uid_t euid)
+{
+	int result;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return syscall(SYS_seteuid, euid);
+	case RRMODE_RECORD:
+	    result = syscall(SYS_seteuid, euid);
+	    RRRecordI(RREVENT_SETEUID, result);
+	    break;
+	case RRMODE_REPLAY:
+	    RRReplayI(RREVENT_SETEUID, &result);
 	    break;
     }
     return result;
@@ -1186,6 +1283,7 @@ BIND_REF(unlink);
 BIND_REF(chdir);
 BIND_REF(fchdir);
 BIND_REF(chmod);
+BIND_REF(setuid);
 BIND_REF(sendmsg);
 BIND_REF(accept);
 BIND_REF(getpeername);
@@ -1195,6 +1293,7 @@ BIND_REF(stat);
 BIND_REF(lstat);
 BIND_REF(symlink);
 BIND_REF(readlink);
+BIND_REF(setgroups);
 BIND_REF(fsync);
 BIND_REF(socket);
 BIND_REF(connect);
@@ -1209,6 +1308,9 @@ BIND_REF(sendto);
 BIND_REF(shutdown);
 BIND_REF(mkdir);
 BIND_REF(rmdir);
+BIND_REF(setgid);
+BIND_REF(setegid);
+BIND_REF(seteuid);
 BIND_REF(getrlimit);
 BIND_REF(setrlimit);
 BIND_REF(lchmod);
