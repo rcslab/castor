@@ -1,11 +1,10 @@
 -finish pending stuff in syscall list
 -finish parsing all SAL annotations.
 -finish code gen for all SAL annotations.
--change @success to _Success_(expr) to conform with SAL
+-change @success to _Success_(expr) to conform with SAL, document.
 
 -go through SYSCALL_TODO, add more unsupported calls, write some unit tests.
 -change code to correctly reference events_gen.h in the variant build directory.
 
--cleanup formatting for generated code.
 -optimize recording of socketlen_t parameters by storing them as values.
 -consider what to do with unsupported calls.
