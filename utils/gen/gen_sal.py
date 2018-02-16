@@ -2,9 +2,14 @@
 
 import sys
 import re
+import subprocess
 
-cout = open("events_gen.c", "w")
-hout = open("events_gen.h", "w")
+HANDLER_PATH = "./events_gen.c"
+HEADER_PATH = "./events_gen.h"
+
+cout = open(HANDLER_PATH, "w")
+hout = open(HEADER_PATH, "w")
+
 verbose = False
 
 def die(message):
@@ -12,7 +17,12 @@ def die(message):
 
 def debug(*args):
     if verbose:
-        print " ".join(map(str,args))
+        print "DEBUG>>  ".join(map(str,args))
+
+def incomplete(*args):
+    if verbose:
+        print "INCOMPLETE ".join(map(str,args))
+
 
 def c_output(line):
     if verbose:
@@ -42,9 +52,14 @@ def gen_log_data(spec):
     if gen_log:
         c_output("\t\tif (%s) {" % get_comparison(spec))
         for arg in spec['args_spec']:
-            if arg['log_spec']:
+            if arg['log_spec'] != None:
+                #XXX formatting ugly
+                if arg['log_spec']['null_check']:
+                    c_output("\t\t\t if (%s != NULL) {" % (arg['name']))
                 c_output("\t\t\tlogData((uint8_t *)%s, %s);" %
                             (arg['name'], arg['log_spec']['size']))
+                if arg['log_spec']['null_check']:
+                    c_output("\t\t\t }")
         c_output("\t\t}")
 
 def generate_handler(spec):
@@ -55,94 +70,129 @@ def generate_handler(spec):
     arg_names = [arg['name'] for arg in spec['args_spec']]
     arg_types =  [arg['type'] for arg in spec['args_spec']]
     arg_string = ", ".join(arg_list)
+    syscall_number = "SYS_" + name
+    event_number = "RREVENT_%s" % name.upper()
+    leading_object = arg_types and (arg_types[0] == 'int')
+    call_args = [syscall_number] + arg_names
+    syscall_str =  "syscall(%s)" % ", ".join(call_args)
 
+    #handler opening
     c_output("\n%s" % result_type)
     c_output("__rr_%s(%s)" % (name, arg_string))
     c_output("{")
-    c_output("\t%s result;\n" % result_type)
+    c_output("%s result;" % result_type)
+    c_output("RRLogEntry *e;\n")
 
-    c_output("    switch (rrMode) {")
-    c_output("\tcase RRMODE_NORMAL:")
-    call_args = ["SYS_" + name] + arg_names
-    call_str =  "syscall(%s)" % ", ".join(call_args)
-    c_output("\t    return %s;"  % call_str)
+    #c_output("DLOG(\"entering %s\");" % name)
+    c_output("switch (rrMode) {")
 
-    leading_object = True if arg_types[0] == 'int' else False
-    object_string = 'O' if leading_object else ''
-    result_type_string = {'int' : 'I', 'ssize_t' : 'S'}[result_type]
-    rr_event = "RREVENT_%s" % name.upper()
+    #normal mode
+    c_output("case RRMODE_NORMAL:")
+    c_output("return %s;"  % syscall_str)
 
-    record_method = "RRRecord%s%s" % (object_string, result_type_string)
-    c_output("\tcase RRMODE_RECORD:")
-    c_output("\t    result = %s;" % call_str)
+    #record mode
+    c_output("case RRMODE_RECORD:")
+    c_output("result = %s;" % syscall_str)
+    c_output("e = RRLog_Alloc(rrlog, threadId);")
+    c_output("e->event = %s;" % event_number)
     if leading_object:
-        c_output("\t    %s(%s, %s, result);" % (record_method, rr_event, arg_names[0]))
-    else:
-        c_output("\t    %s(%s, result);" % (record_method, rr_event))
-
+        c_output("e->objectId = (uint64_t)%s;" % arg_names[0])
+    c_output("e->value[0] = (uint64_t)result;")
+    c_output("if (result == -1) {")
+    c_output("e->value[1] = (uint64_t)errno;")
+    c_output("}")
+    c_output("RRLog_Append(rrlog, e);")
     gen_log_data(spec)
+    c_output("break;")
 
+    #replay mode
+    c_output("case RRMODE_REPLAY:")
+    c_output("e = RRPlay_Dequeue(rrlog, threadId);")
+    c_output("AssertEvent(e, %s);" % event_number)
+    if leading_object:
+        c_output("AssertObject(e, (uint64_t)%s);" % arg_names[0])
+    c_output("result = (%s)e->value[0];" % result_type)
+    c_output("if (result == -1) {")
+    c_output("errno = e->value[1];")
+    c_output("}")
+    c_output("RRPlay_Free(rrlog, e);")
+    gen_log_data(spec)
     c_output("\t    break;")
 
-    replay_method = "RRReplay%s%s" % (object_string, result_type_string)
-    c_output("\tcase RRMODE_REPLAY:")
-    if leading_object:
-        c_output("\t    %s(%s, %s, &result);" % (replay_method, rr_event, arg_names[0]))
-    else:
-        c_output("\t    %s(%s, &result);" % (replay_method, rr_event))
+    c_output("    }") #end switch
 
-    gen_log_data(spec)
-
-    c_output("\t    break;")
-    c_output("    }")
-    c_output("    return result;")
+    c_output("return result;")
     c_output("}")
 
+
 def parse_logspec(sal, type):
-    debug("parse_logspec(%s, %s)" % (sal, type))
+    debug("parse_logspec(%s, %s)" % (str(sal), type))
+    sal_tag = sal['tag']
+    sal_arg = sal['arg']
+
     log_spec = None
-    sal = sal.strip()
-    if sal.startswith("_In_"):
+    null_check = '_opt_' in sal_tag
+    sal_tag = re.sub("opt_","",sal_tag)
+
+    if sal_tag.startswith('_In_'):
        pass
-    elif sal.startswith("_Out_writes_bytes_("):
-        size = sal.split('(')[1].strip(')')
-        log_spec = { 'size': size}
-    elif sal == "_Out_":
+    elif sal_tag == "_Out_writes_bytes_":
+        log_spec = { 'size': sal_arg}
+    elif sal_tag == "_Out_writes_z_":
+        count = sal_arg
+        base_type = type.split('*')[0].strip()
+        log_spec = { 'size': "%s * sizeof(%s)" % (count, base_type) }
+    elif sal_tag == "_Out_" or sal_tag == '_Inout_':
         size_type = type.split('*')[0].strip()
         log_spec = { 'size' : "sizeof(%s)" % size_type }
     else:
-        debug("unknown sal:" + sal)
+        debug("unknown sal:" + str(sal))
+
+    if log_spec != None:
+        log_spec['null_check'] = null_check
 
     return log_spec
 
 
 def parse_args(arg_string):
     args_spec = []
-    debug("parse_args(%s)" % (arg_string))
     args = arg_string.split(',')
     debug("args:", args)
     for arg in args:
         arg_spec = {}
         if arg == 'void':
             break
-        arg = arg.replace('*', '* ')
-        fields = arg.split()
-        arg_spec['name'] = fields[-1]
+        arg = arg.strip()
+
+        #chop name
+        so = re.search("(\w+$)", arg)
+        name = so.group()
+        arg = re.sub("\w+$", "", arg)
+        arg_spec['name']  = name
         debug("arg_name:" + arg_spec['name'])
-        del(fields[-1])
-        log_spec = None
+
+        #chop sal
         sal = None
-        if fields[0].startswith("_In") or fields[0].startswith("_Out"):
-            sal = fields[0]
-            del fields[0]
+        if arg.startswith("_In") or arg.startswith("_Out"):
+            SAL_PATTERN = "^(?P<tag>(\_\w+\_))(\((?P<arg>[\w\*]+)\))?"
+            so = re.search(SAL_PATTERN, arg)
+            sal = {'tag': so.group('tag'), 'arg' :so.group('arg')}
+            arg = re.sub(SAL_PATTERN,"",arg)
             arg_spec['sal'] = sal
-            debug("arg_sal:", arg_spec['sal'])
-        arg_spec['type'] = ' '.join(fields)
+            debug("arg_sal:", str(sal))
+
+        #type is whats left
+        arg_spec['type'] = arg.strip()
+
         debug("arg_type:" + arg_spec['type'])
+
         if sal != None:
-            log_spec = parse_logspec(arg_spec['sal'], arg_spec['type'])
-        arg_spec['log_spec'] = log_spec
+            arg_spec['log_spec'] = parse_logspec(arg_spec['sal'], arg_spec['type'])
+        else:
+            arg_spec['log_spec'] = None
+
         args_spec = args_spec + [arg_spec]
+    debug("args_spec: " + str(args_spec))
     return args_spec
 
 def parse_proto(line):
@@ -256,7 +306,7 @@ def parse_spec():
 
 def generate_preambles():
     preamble = """
-/*** this code has been autogenerated by code in utils/gen, do not modify it directly. ***/
+/*** !!! this code has been autogenerated by utils/gen_sal.py, do not modify it directly. !!! ***/
 
 """
     c_output(preamble)
@@ -291,17 +341,26 @@ def parse_flags():
     if len(sys.argv) == 2 and sys.argv[1] == '-v':
         verbose = True
 
+def read_autogenerate_list():
+    with open('autogenerate_syscalls') as f:
+                autogenerate_list = f.read().splitlines()
+    autogenerate_list = map(lambda x: x.strip(), autogenerate_list)
+    autogenerate_list = filter(lambda x:not x.startswith(';') and len(x) > 0, autogenerate_list)
+    return autogenerate_list
+
+def format_handlers():
+    subprocess.call(["indent","-i4", HANDLER_PATH])
+    print "...formatting complete..."
+
 if __name__ == '__main__':
     generated = []
     parse_flags()
-    with open('autogenerate_syscalls') as f:
-            autogenerate_list = f.read().splitlines()
     generate_preambles()
     generate_includes()
+    autogenerate_list = read_autogenerate_list()
     print "Generating event handlers: " + str(autogenerate_list)
     handler_description_list = parse_spec()
     debug("desc:", handler_description_list)
-    debug("list:", autogenerate_list)
     for desc in handler_description_list:
         if desc['name'] in autogenerate_list:
             generate_handler(desc)
@@ -312,3 +371,5 @@ if __name__ == '__main__':
     if len(missing) != 0:
         sys.exit("Failed to generate: %s " % str(list(missing)))
     cout.close()
+    hout.close()
+    format_handlers()

@@ -152,11 +152,14 @@ for t in tests:
     #BuildTest(t)
     RunTest(t)
 
-if len(disabled) != 0:
-    print str(len(disabled)) + " tests disabled"
+print str(len(disabled)) + " tests disabled"
+
+if len(failed) > 0:
+    print "\n>>>>>>> !!!!!TESTS FAILED !!!!!<<<<<<<<"
+    print str(len(failed)) + " tests failed"
+    print ">>>>>>>> !!!!!!!!!!<<<<<<<<\n"
 
 if len(failed) != 0:
-    print str(len(failed)) + " tests failed"
     print "Killing any left over processes."
     signal.signal(signal.SIGTERM, signal.SIG_IGN)
     os.killpg(0, signal.SIGTERM)

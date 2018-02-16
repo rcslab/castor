@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/syscall.h>
+#include <sys/stat.h>
 
 #include <castor/debug.h>
 #include <castor/rrlog.h>

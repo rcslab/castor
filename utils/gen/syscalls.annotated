@@ -116,8 +116,9 @@
 27	AUE_RECVMSG	STD	{ ssize_t recvmsg(int s, \
 				    _In_ struct msghdr_c *msg, \
 				    int flags); }
+;XXX non-standard declaration to match with library interface
 28	AUE_SENDMSG	STD	{ ssize_t sendmsg(int s, \
-				    _In_ const struct msghdr_c *msg, \
+				    _In_ const struct msghdr *msg, \
 				    int flags); }
 29	AUE_RECVFROM	NOPROTO	{ ssize_t recvfrom(int s, \
 				    _Out_writes_bytes_(len) void *buf, \
@@ -126,15 +127,15 @@
 				    struct sockaddr * __restrict from, \
 				    _Inout_opt_ \
 				    __socklen_t * __restrict fromlenaddr); }
-30	AUE_ACCEPT	NOPROTO	{ int accept(int s, \
+30	AUE_ACCEPT	NOPROTO	{ @success_nneg int accept(int s, \
 				    _Out_writes_bytes_opt_(*anamelen) \
 				    struct sockaddr * __restrict name, \
 				    _Inout_opt_ __socklen_t *anamelen); }
-31	AUE_GETPEERNAME	NOPROTO	{ int getpeername(int fdes, \
+31	AUE_GETPEERNAME	NOPROTO	{ @success_zero int getpeername(int fdes, \
 				    _Out_writes_bytes_(*alen) \
 				    struct sockaddr * __restrict asa, \
 				    _Inout_opt_ __socklen_t *alen); }
-32	AUE_GETSOCKNAME	NOPROTO	{ int getsockname(int fdes, \
+32	AUE_GETSOCKNAME	NOPROTO	{ @success_zero int getsockname(int fdes, \
 				    _Out_writes_bytes_(*alen) \
 				    struct sockaddr * __restrict asa, \
 				    _Inout_ __socklen_t *alen); }
@@ -145,9 +146,13 @@
 35	AUE_FCHFLAGS	NOPROTO	{ int fchflags(int fd, u_long flags); }
 36	AUE_SYNC	NOPROTO	{ int sync(void); }
 37	AUE_KILL	NOPROTO	{ int kill(int pid, int signum); }
-38	AUE_STAT	OBSOL	stat
+
+;XXX non-standard declaration to match with library interface
+38	AUE_STAT	COMPAT	{ @success_zero int stat(const char *path, _Out_ struct stat *ub); }
 39	AUE_GETPPID	NOPROTO	{ pid_t getppid(void); }
-40	AUE_LSTAT	OBSOL	lstat
+
+;XXX non-standard declaration to match with library interface
+40	AUE_LSTAT	COMPAT	{ @success_zero int lstat(const char *path, _Out_ struct stat *ub); }
 41	AUE_DUP		NOPROTO	{ int dup(u_int fd); }
 42	AUE_PIPE	OBSOL	pipe
 43	AUE_GETEGID	NOPROTO	{ gid_t getegid(void); }
@@ -176,7 +181,7 @@
 56	AUE_REVOKE	NOPROTO	{ int revoke(_In_z_ const char *path); }
 57	AUE_SYMLINK	NOPROTO	{ int symlink(_In_z_ const char *path, \
 				    _In_z_ const char *link); }
-58	AUE_READLINK	NOPROTO	{ ssize_t readlink(_In_z_ const char *path, \
+58	AUE_READLINK	NOPROTO	{ @success_nneg ssize_t readlink(_In_z_ const char *path, \
 				    _Out_writes_z_(count) char *buf, \
 				    size_t count); }
 ; XXX-BD: Arguably argv and envv are _In_z_, but the SAL documentation is
@@ -220,11 +225,14 @@
 				    size_t len, \
 				    _Out_writes_bytes_(len/PAGE_SIZE) \
 				    char *vec); }
+
 79	AUE_GETGROUPS	NOPROTO	{ int getgroups(u_int gidsetsize, \
 				    _Out_writes_opt_(gidsetsize) \
 				    gid_t *gidset); }
-80	AUE_SETGROUPS	NOPROTO	{ int setgroups(u_int gidsetsize, \
-				    _In_reads_(gidsetsize) gid_t *gidset); }
+
+;XXX non-standard declaration to match with library interface
+80	AUE_SETGROUPS	NOPROTO	{ int setgroups(int gidsetsize, \
+				    _In_reads_(gidsetsize) const gid_t *gidset); }
 81	AUE_GETPGRP	NOPROTO	{ int getpgrp(void); }
 82	AUE_SETPGRP	NOPROTO	{ int setpgid(int pid, int pgid); }
 83	AUE_SETITIMER	NOPROTO	{ int setitimer(int which, \
@@ -754,7 +762,8 @@
 				    _In_z_ const char *attrname); }
 374	AUE_SETUGID	NOPROTO	{ int __setugid(int flag); }
 375	AUE_NULL	UNIMPL	nfsclnt
-376	AUE_EACCESS	NOPROTO	{ int eaccess(_In_z_ char *path, int amode); }
+;XXX non-standard declaration to match with library interface
+376	AUE_EACCESS	NOPROTO	{ int eaccess(_In_z_ const char *path, int amode); }
 377	AUE_NULL	UNIMPL	afs3_syscall
 378	AUE_NMOUNT	STD	{ int nmount( \
 				    _In_reads_(iovcnt) struct iovec_c *iovp, \
@@ -1006,7 +1015,7 @@
 				    _Out_ __socklen_t *fromlenaddr, \
 				    _In_opt_ struct sctp_sndrcvinfo *sinfo, \
 				    _Out_opt_ int *msg_flags); }
-475	AUE_PREAD	NOPROTO	{ ssize_t pread(int fd, \
+475	AUE_PREAD	NOPROTO	{ @success_nneg ssize_t pread(int fd, \
 				    _Out_writes_bytes_(nbyte) void *buf, \
 				    size_t nbyte, off_t offset); }
 476	AUE_PWRITE	NOPROTO	{ ssize_t pwrite(int fd, \
@@ -1072,7 +1081,9 @@
 499	AUE_OPENAT_RWTC	STD|VARARG	{ int openat(int fd, \
 				    _In_z_ const char *  path, \
 				    int flag, mode_t mode); }
-500	AUE_READLINKAT	NOPROTO	{ int readlinkat(int fd, \
+
+;XXX non-standard declaration to match with library interface
+500	AUE_READLINKAT	NOPROTO	{ @success_nneg ssize_t readlinkat(int fd, \
 				    _In_z_ const char *path, \
 				    _Out_writes_bytes_(bufsize) char *buf, \
 				    size_t bufsize); }
@@ -1082,7 +1093,7 @@
 502	AUE_SYMLINKAT	NOPROTO	{ int symlinkat(_In_z_ const char *path1, \
 				    int fd, _In_z_ const char *path2); }
 503	AUE_UNLINKAT	STD	{ int unlinkat(int fd, \
-				    _In_z_ const char * __capability path, \
+				    _In_z_ const char * path, \
 				    int flag); }
 504	AUE_POSIX_OPENPT	NOPROTO	{ int posix_openpt(int flags); }
 ; 505 is initialised by the kgssapi code, if present.
@@ -1185,7 +1196,7 @@
 540	AUE_CHFLAGSAT	NOPROTO	{ int chflagsat(int fd, \
 				    _In_z_ const char *path, \
 				    u_long flags, int atflag); }
-541	AUE_ACCEPT	NOPROTO	{ int accept4(int s, \
+541	AUE_ACCEPT	NOPROTO	{ @success_nneg int accept4(int s, \
 				    _Out_writes_bytes_opt_(*anamelen) \
 				    struct sockaddr * __restrict name, \
 				    _Inout_opt_ \
@@ -1219,17 +1230,18 @@
 				    _In_ \
 				    const struct vm_domain_policy_entry *policy); }
 550	AUE_FSYNC	NOPROTO	{ int fdatasync(int fd); }
-551	AUE_FSTAT	NOPROTO	{ int fstat(int fd, _Out_ struct stat *sb); }
-552	AUE_FSTATAT	NOPROTO	{ int fstatat(int fd, _In_z_ const char *path, \
+551	AUE_FSTAT	NOPROTO	{ @success_zero int fstat(int fd, _Out_ struct stat *sb); }
+552	AUE_FSTATAT	NOPROTO	{ @success_zero int fstatat(int fd, _In_z_ const char *path, \
                                     _Out_ struct stat *buf, int flag); }
 553	AUE_FHSTAT	NOPROTO	{ int fhstat(_In_ const struct fhandle *u_fhp, \
                                     _Out_ struct stat *sb); }
 554	AUE_GETDIRENTRIES NOPROTO { ssize_t getdirentries(int fd, \
 				    _Out_writes_bytes_(count) char *buf, \
                                     size_t count, _Out_ off_t *basep); }
-555	AUE_STATFS	NOPROTO	{ int statfs(_In_z_ char *path, \
+;XXX non-standard declaration to match with library interface
+555	AUE_STATFS	NOPROTO	{ @success_zero int statfs(_In_z_ const char *path, \
 				    _Out_ struct statfs *buf); }
-556	AUE_FSTATFS	NOPROTO	{ int fstatfs(int fd, \
+556	AUE_FSTATFS	NOPROTO	{ @success_zero int fstatfs(int fd, \
 				    _Out_ struct statfs *buf); }
 557	AUE_GETFSSTAT	NOPROTO	{ int getfsstat( \
 				    _Out_writes_bytes_opt_(bufsize) \
