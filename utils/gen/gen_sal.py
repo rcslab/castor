@@ -229,8 +229,8 @@ def parse_spec_line(line):
     debug("prefix:" + prefix)
     debug("proto:" + proto)
     number, name, type = prefix.split()
-    if type in ['OBSOL', 'UNIMPL']:
-        debug("Obsolete or unused line")
+    if type.startswith('COMPAT') or (type in ['OBSOL', 'UNIMPL']) or name == 'AUE_NULL':
+        debug("===Unused line===")
     else:
         proto = proto.strip('{}')
         return parse_proto(proto)
