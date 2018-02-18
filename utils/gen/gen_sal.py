@@ -229,7 +229,11 @@ def parse_spec_line(line):
     debug("prefix:" + prefix)
     debug("proto:" + proto)
     number, name, type = prefix.split()
-    if type.startswith('COMPAT') or (type in ['OBSOL', 'UNIMPL']) or name == 'AUE_NULL':
+    compat = re.search('COMPAT([0-9]*)', type)
+
+    if compat and compat.group(1) != '':
+        debug("===Unused line=== COMPAT with version unsupported...")
+    elif type in ['OBSOL', 'UNIMPL']:
         debug("===Unused line===")
     else:
         proto = proto.strip('{}')
