@@ -38,13 +38,13 @@ def h_output(line):
     hout.write(line)
 
 def get_comparison(spec):
+    if 'success_cmp' not in spec.keys():
+        die("syscall `%s` is missing a __Success__() annotation." % spec['name'])
     comp_str = spec['success_cmp']
     comp_str = re.sub(' ', '', comp_str) #normalize
     table = {'return==0': 'result == 0',
              'return>0': 'result > 0',
              'return!=-1': 'result != -1'}
-    if spec['success_cmp'] == None:
-        die("syscall `%s` is missing a __Success__() annotation" % spec['name'])
     return table[comp_str]
 
 def gen_log_data(spec):
