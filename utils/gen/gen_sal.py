@@ -276,10 +276,11 @@ def parse_spec():
             elif line.startswith(";") or line.startswith("$"):
                 parse_spec_comment(line)
             elif line[0].isdigit():
-                if '{' in line and '}' in line:
-                    spec_line = line
-                elif '{' in line:
+                if line.endswith("\\"):
                     partial_line = line
+                    debug("partial line:", line)
+                elif '{' in line and '}' in line:
+                    spec_line = line
                 else:
                     parse_unused(line)
             else:
@@ -288,13 +289,11 @@ def parse_spec():
             if line.endswith("\\"):
                 partial_line = partial_line + line
                 debug("partial line:", partial_line)
-            elif line.endswith('}'):
+            else:
                 partial_line = partial_line + line
                 debug("partial line:", partial_line)
                 spec_line = partial_line.replace("\\","")
                 partial_line = None
-            else:
-                die("parse error")
 
         if spec_line:
             finished = spec_line
