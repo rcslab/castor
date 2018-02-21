@@ -218,7 +218,9 @@ def parse_spec_line(line):
     if not type in ['STD', 'COMPAT']:
         debug("===Unused line===")
     else:
-        proto = proto.strip('{}')
+        tail = proto.rfind('}')
+        proto = proto[:tail]
+        proto = proto.strip('{')
         return parse_proto(proto, handler_spec)
 
 def parse_preprocessor(line):
