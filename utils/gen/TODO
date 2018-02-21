@@ -1,10 +1,11 @@
+-move to using sycalls.master with SAL annotations from freebsd.
+    -add support for type translations (caddr_t, etc.)
+    -port over success annotations.
+
 -finish pending stuff in syscall list
 -finish parsing all SAL annotations.
 -finish code gen for all SAL annotations.
 
--change @success to _Success_(expr) to conform with SAL, document 
-    -- make sure you understand this annotaiton
-    -- translate appropriately
 -add success annotations for every function we support to ensure appropriate errno handling.
 -fix errno handling, use success to only check/set errno when needed --- when this is, 
 can we assume that any function for whome result != -1 is success will set errno on failure?

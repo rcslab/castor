@@ -37,12 +37,14 @@ def h_output(line):
     hout.write(line)
 
 def get_comparison(spec):
-    table = {'@success_zero': 'result == 0',
-             '@success_pos': 'result > 0',
-             '@success_nneg': 'result != -1'}
-    if spec['success'] == None:
-        die("syscall `%s` is missing an  @success annotation" % spec['name'])
-    return table[spec['success']]
+    comp_str = spec['success_cmp']
+    comp_str = re.sub(' ', '', comp_str) #normalize
+    table = {'return==0': 'result == 0',
+             'return>0': 'result > 0',
+             'return!=-1': 'result != -1'}
+    if spec['success_cmp'] == None:
+        die("syscall `%s` is missing a __Success__() annotation" % spec['name'])
+    return table[comp_str]
 
 def gen_log_data(spec):
     gen_log = False
@@ -195,28 +197,26 @@ def parse_args(arg_string):
     debug("args_spec: " + str(args_spec))
     return args_spec
 
-def parse_proto(line):
+def parse_proto(proto):
     handler_spec = {}
-    debug("parse_proto(%s)" % (line))
-    pivot = line.index('(')
-    prefix = line[:pivot]
-    suffix = line[pivot:]
+    debug("parse_proto(%s)" % (proto))
+    proto = proto.strip()
+    success_annotation = re.search('^__Success__\((?P<comp>([^)]*))\)', proto)
+    if success_annotation != None:
+        comp = success_annotation.group('comp')
+        debug("Success comparison:" + comp)
+        proto = re.sub("^__Success__\([^)]*\)", "", proto)
+        handler_spec['success_cmp'] = comp
+    pivot = proto.index('(')
+    prefix = proto[:pivot]
+    suffix = proto[pivot:]
     debug("prefix:" + prefix)
     debug("suffix:%s<eol>" % (suffix))
-    prefix_list = prefix.split()
-    success = None
-    if len(prefix_list) == 3:
-        success = prefix_list[0]
-        result_type = prefix_list[1]
-        name = prefix_list[2]
-    else:
-        result_type = prefix_list[0]
-        name = prefix_list[1]
+    result_type, name = prefix.split()
     debug("name:" + name)
     debug("result_type:" + result_type)
     handler_spec['name'] = name
     handler_spec['result_type'] = result_type
-    handler_spec['success'] = success
     arg_string = suffix.strip('(); ')
     handler_spec['args_spec'] = parse_args(arg_string)
     return handler_spec

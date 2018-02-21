@@ -67,17 +67,17 @@
 0	AUE_NULL	STD	{ int syscall(int number); }
 1	AUE_EXIT	NOPROTO|NOSTUB	{ void sys_exit(int rval); }
 2	AUE_FORK	NOPROTO	{ int fork(void); }
-3	AUE_READ	NOPROTO	{ @success_nneg ssize_t read(int fd, \
+3	AUE_READ	NOPROTO	{ __Success__(return != -1) ssize_t read(int fd, \
 				    _Out_writes_bytes_(nbyte) void *buf, \
 				    size_t nbyte); }
-4	AUE_WRITE	NOPROTO	{ @success_nneg ssize_t write(int fd, \
+4	AUE_WRITE	NOPROTO	{ __Success__(return != -1) ssize_t write(int fd, \
 				    _In_reads_bytes_(nbyte) const void *buf, \
 				    size_t nbyte); }
 5	AUE_OPEN_RWTC	STD|VARARG	{ int open( \
 				    _In_z_ const char *  path, \
 				    int flags, \
 				    mode_t mode); }
-6	AUE_CLOSE	NOPROTO	{ @success_zero int close(int fd); }
+6	AUE_CLOSE	NOPROTO	{ __Success__(return == 0) int close(int fd); }
 7	AUE_WAIT4	NOPROTO	{ int wait4(int pid, _Out_opt_ int *status, \
 				    int options, \
 				    _Out_opt_ struct rusage *rusage); }
@@ -127,15 +127,15 @@
 				    struct sockaddr * __restrict from, \
 				    _Inout_opt_ \
 				    __socklen_t * __restrict fromlenaddr); }
-30	AUE_ACCEPT	NOPROTO	{ @success_nneg int accept(int s, \
+30	AUE_ACCEPT	NOPROTO	{ __Success__(return != -1) int accept(int s, \
 				    _Out_writes_bytes_opt_(*anamelen) \
 				    struct sockaddr * __restrict name, \
 				    _Inout_opt_ __socklen_t *anamelen); }
-31	AUE_GETPEERNAME	NOPROTO	{ @success_zero int getpeername(int fdes, \
+31	AUE_GETPEERNAME	NOPROTO	{ __Success__(return == 0) int getpeername(int fdes, \
 				    _Out_writes_bytes_(*alen) \
 				    struct sockaddr * __restrict asa, \
 				    _Inout_opt_ __socklen_t *alen); }
-32	AUE_GETSOCKNAME	NOPROTO	{ @success_zero int getsockname(int fdes, \
+32	AUE_GETSOCKNAME	NOPROTO	{ __Success__(return == 0) int getsockname(int fdes, \
 				    _Out_writes_bytes_(*alen) \
 				    struct sockaddr * __restrict asa, \
 				    _Inout_ __socklen_t *alen); }
@@ -148,11 +148,11 @@
 37	AUE_KILL	NOPROTO	{ int kill(int pid, int signum); }
 
 ;XXX non-standard declaration to match with library interface
-38	AUE_STAT	COMPAT	{ @success_zero int stat(const char *path, _Out_ struct stat *ub); }
+38	AUE_STAT	COMPAT	{ __Success__(return == 0) int stat(const char *path, _Out_ struct stat *ub); }
 39	AUE_GETPPID	NOPROTO	{ pid_t getppid(void); }
 
 ;XXX non-standard declaration to match with library interface
-40	AUE_LSTAT	COMPAT	{ @success_zero int lstat(const char *path, _Out_ struct stat *ub); }
+40	AUE_LSTAT	COMPAT	{ __Success__(return == 0) int lstat(const char *path, _Out_ struct stat *ub); }
 41	AUE_DUP		NOPROTO	{ int dup(u_int fd); }
 42	AUE_PIPE	OBSOL	pipe
 43	AUE_GETEGID	NOPROTO	{ gid_t getegid(void); }
@@ -181,7 +181,7 @@
 56	AUE_REVOKE	NOPROTO	{ int revoke(_In_z_ const char *path); }
 57	AUE_SYMLINK	NOPROTO	{ int symlink(_In_z_ const char *path, \
 				    _In_z_ const char *link); }
-58	AUE_READLINK	NOPROTO	{ @success_nneg ssize_t readlink(_In_z_ const char *path, \
+58	AUE_READLINK	NOPROTO	{ __Success__(return != -1) ssize_t readlink(_In_z_ const char *path, \
 				    _Out_writes_z_(count) char *buf, \
 				    size_t count); }
 ; XXX-BD: Arguably argv and envv are _In_z_, but the SAL documentation is
@@ -293,7 +293,7 @@
 116	AUE_GETTIMEOFDAY	NOPROTO	{ int gettimeofday( \
 				    _Out_ struct timeval *tp, \
 				    _Out_opt_ struct timezone *tzp); }
-117	AUE_GETRUSAGE	NOPROTO	{ @success_zero int getrusage(int who, \
+117	AUE_GETRUSAGE	NOPROTO	{ __Success__(return == 0) int getrusage(int who, \
 				    _Out_ struct rusage *rusage); }
 118	AUE_GETSOCKOPT	NOPROTO	{ int getsockopt(int s, int level, \
 				    int name, \
@@ -416,7 +416,7 @@
 				    int name); }
 192	AUE_FPATHCONF	NOPROTO	{ int fpathconf(int fd, int name); }
 193	AUE_NULL	UNIMPL	nosys
-194	AUE_GETRLIMIT	NOPROTO	{ @success_zero int getrlimit(int which, \
+194	AUE_GETRLIMIT	NOPROTO	{ __Success__(return == 0) int getrlimit(int which, \
 				    _Out_ struct rlimit *rlp); }
 195	AUE_SETRLIMIT	NOPROTO	{ int setrlimit(int which, \
 				    _In_ const struct rlimit *rlp); }
@@ -493,11 +493,11 @@
 				    _Pagerange_vmmap_opt_(1) void *shmaddr); }
 231	AUE_SHMGET	NOSTD|NOPROTO	{ int shmget(key_t key, int size, \
 				    int shmflg); }
-232	AUE_NULL	NOPROTO	{ @success_zero int clock_gettime(clockid_t clock_id, \
+232	AUE_NULL	NOPROTO	{ __Success__(return == 0) int clock_gettime(clockid_t clock_id, \
 				    _Out_ struct timespec *tp); }
-233	AUE_CLOCK_SETTIME	NOPROTO	{ @success_zero int clock_settime(clockid_t clock_id, \
+233	AUE_CLOCK_SETTIME	NOPROTO	{ __Success__(return == 0) int clock_settime(clockid_t clock_id, \
 				    _In_ const struct timespec *tp); }
-234	AUE_NULL	NOPROTO	{ @success_zero int clock_getres(clockid_t clock_id, \
+234	AUE_NULL	NOPROTO	{ __Success__(return == 0) int clock_getres(clockid_t clock_id, \
 				    _Out_ struct timespec *tp); }
 235	AUE_NULL	STD	{ int ktimer_create(\
 				    clockid_t clock_id, \
@@ -577,7 +577,7 @@
 				    _Out_ struct nstat *ub); }
 279	AUE_FSTAT	COMPAT11|NOPROTO { int nfstat(int fd, \
 				    _Out_ struct nstat *sb); }
-280	AUE_LSTAT	COMPAT11|NOPROTO { @success_zero int nlstat(\
+280	AUE_LSTAT	COMPAT11|NOPROTO { __Success__(return == 0) int nlstat(\
 				    _In_z_ const char *path, \
 				    _Out_ struct nstat *ub); }
 281	AUE_NULL	UNIMPL	nosys
@@ -1015,7 +1015,7 @@
 				    _Out_ __socklen_t *fromlenaddr, \
 				    _In_opt_ struct sctp_sndrcvinfo *sinfo, \
 				    _Out_opt_ int *msg_flags); }
-475	AUE_PREAD	NOPROTO	{ @success_nneg ssize_t pread(int fd, \
+475	AUE_PREAD	NOPROTO	{ __Success__(return != -1) ssize_t pread(int fd, \
 				    _Out_writes_bytes_(nbyte) void *buf, \
 				    size_t nbyte, off_t offset); }
 476	AUE_PWRITE	NOPROTO	{ ssize_t pwrite(int fd, \
@@ -1039,17 +1039,17 @@
 				    _In_z_ const char *path, \
 				    int flags, mode_t mode); }
 483	AUE_SHMUNLINK	NOPROTO	{ int shm_unlink(_In_z_ const char *path); }
-484	AUE_NULL	NOPROTO	{ @success_zero int cpuset(_Out_ cpusetid_t *setid); }
-485	AUE_NULL	NOPROTO	{ @success_zero int cpuset_setid(cpuwhich_t which, \
+484	AUE_NULL	NOPROTO	{ __Success__(return == 0) int cpuset(_Out_ cpusetid_t *setid); }
+485	AUE_NULL	NOPROTO	{ __Success__(return == 0) int cpuset_setid(cpuwhich_t which, \
 				    id_t id, cpusetid_t setid); }
-486	AUE_NULL	NOPROTO	{ @success_zero int cpuset_getid(cpulevel_t level, \
+486	AUE_NULL	NOPROTO	{ __Success__(return == 0) int cpuset_getid(cpulevel_t level, \
 				    cpuwhich_t which, id_t id, \
 				    _Out_ cpusetid_t *setid); }
-487	AUE_NULL	NOPROTO	{ @success_zero int cpuset_getaffinity( \
+487	AUE_NULL	NOPROTO	{ __Success__(return == 0) int cpuset_getaffinity( \
 				    cpulevel_t level, cpuwhich_t which, \
 				    id_t id, size_t cpusetsize, \
 				    _Out_ cpuset_t *mask); }
-488	AUE_NULL	NOPROTO	{ @success_zero int cpuset_setaffinity( \
+488	AUE_NULL	NOPROTO	{ __Success__(return == 0) int cpuset_setaffinity( \
 				    cpulevel_t level, cpuwhich_t which, \
 				    id_t id, size_t cpusetsize, \
 				    _Out_ const cpuset_t *mask); }
@@ -1083,7 +1083,7 @@
 				    int flag, mode_t mode); }
 
 ;XXX non-standard declaration to match with library interface
-500	AUE_READLINKAT	NOPROTO	{ @success_nneg ssize_t readlinkat(int fd, \
+500	AUE_READLINKAT	NOPROTO	{ __Success__(return != -1) ssize_t readlinkat(int fd, \
 				    _In_z_ const char *path, \
 				    _Out_writes_bytes_(bufsize) char *buf, \
 				    size_t bufsize); }
@@ -1196,7 +1196,7 @@
 540	AUE_CHFLAGSAT	NOPROTO	{ int chflagsat(int fd, \
 				    _In_z_ const char *path, \
 				    u_long flags, int atflag); }
-541	AUE_ACCEPT	NOPROTO	{ @success_nneg int accept4(int s, \
+541	AUE_ACCEPT	NOPROTO	{ __Success__(return != -1) int accept4(int s, \
 				    _Out_writes_bytes_opt_(*anamelen) \
 				    struct sockaddr * __restrict name, \
 				    _Inout_opt_ \
@@ -1230,8 +1230,8 @@
 				    _In_ \
 				    const struct vm_domain_policy_entry *policy); }
 550	AUE_FSYNC	NOPROTO	{ int fdatasync(int fd); }
-551	AUE_FSTAT	NOPROTO	{ @success_zero int fstat(int fd, _Out_ struct stat *sb); }
-552	AUE_FSTATAT	NOPROTO	{ @success_zero int fstatat(int fd, _In_z_ const char *path, \
+551	AUE_FSTAT	NOPROTO	{ __Success__(return == 0) int fstat(int fd, _Out_ struct stat *sb); }
+552	AUE_FSTATAT	NOPROTO	{ __Success__(return == 0) int fstatat(int fd, _In_z_ const char *path, \
                                     _Out_ struct stat *buf, int flag); }
 553	AUE_FHSTAT	NOPROTO	{ int fhstat(_In_ const struct fhandle *u_fhp, \
                                     _Out_ struct stat *sb); }
@@ -1239,9 +1239,9 @@
 				    _Out_writes_bytes_(count) char *buf, \
                                     size_t count, _Out_ off_t *basep); }
 ;XXX non-standard declaration to match with library interface
-555	AUE_STATFS	NOPROTO	{ @success_zero int statfs(_In_z_ const char *path, \
+555	AUE_STATFS	NOPROTO	{ __Success__(return == 0) int statfs(_In_z_ const char *path, \
 				    _Out_ struct statfs *buf); }
-556	AUE_FSTATFS	NOPROTO	{ @success_zero int fstatfs(int fd, \
+556	AUE_FSTATFS	NOPROTO	{ __Success__(return == 0) int fstatfs(int fd, \
 				    _Out_ struct statfs *buf); }
 557	AUE_GETFSSTAT	NOPROTO	{ int getfsstat( \
 				    _Out_writes_bytes_opt_(bufsize) \
