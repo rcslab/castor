@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import os
 import re
 import subprocess
 
@@ -354,6 +355,8 @@ def read_autogenerate_list():
 
 def format_handlers():
     subprocess.call(["indent","-i4", HANDLER_PATH])
+    backup_path = HANDLER_PATH + ".BAK"
+    os.unlink(backup_path)
     print "...formatting complete..."
 
 if __name__ == '__main__':
