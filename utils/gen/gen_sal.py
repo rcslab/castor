@@ -37,23 +37,13 @@ def h_output(line):
     line = line + '\n'
     hout.write(line)
 
-def get_comparison(spec):
-    if 'success_cmp' not in spec.keys():
-        die("syscall `%s` is missing a __Success__() annotation." % spec['name'])
-    comp_str = spec['success_cmp']
-    comp_str = re.sub(' ', '', comp_str) #normalize
-    table = {'return==0': 'result == 0',
-             'return>0': 'result > 0',
-             'return!=-1': 'result != -1'}
-    return table[comp_str]
-
 def gen_log_data(spec):
     gen_log = False
     for arg in spec['args_spec']:
         if arg['log_spec'] != None:
             gen_log = True
     if gen_log:
-        c_output("\t\tif (%s) {" % get_comparison(spec))
+        c_output("\t\tif (result != -1) {")
         for arg in spec['args_spec']:
             if arg['log_spec'] != None:
                 #XXX formatting ugly
@@ -198,16 +188,9 @@ def parse_args(arg_string):
     debug("args_spec: " + str(args_spec))
     return args_spec
 
-def parse_proto(proto):
-    handler_spec = {}
+def parse_proto(proto, handler_spec):
     debug("parse_proto(%s)" % (proto))
     proto = proto.strip()
-    success_annotation = re.search('^__Success__\((?P<comp>([^)]*))\)', proto)
-    if success_annotation != None:
-        comp = success_annotation.group('comp')
-        debug("Success comparison:" + comp)
-        proto = re.sub("^__Success__\([^)]*\)", "", proto)
-        handler_spec['success_cmp'] = comp
     pivot = proto.index('(')
     prefix = proto[:pivot]
     suffix = proto[pivot:]
@@ -224,21 +207,19 @@ def parse_proto(proto):
 
 def parse_spec_line(line):
     debug("spec_line:" + line)
+    handler_spec = {}
     pivot = line.index('{')
     prefix = line[:pivot]
     proto = line[pivot:]
     debug("prefix:" + prefix)
     debug("proto:" + proto)
     number, name, type = prefix.split()
-    compat = re.search('COMPAT([0-9]*)', type)
-
-    if compat and compat.group(1) != '':
-        debug("===Unused line=== COMPAT with version unsupported...")
-    elif type in ['OBSOL', 'UNIMPL']:
+    handler_spec['decl_type'] = type
+    if not type in ['STD', 'COMPAT']:
         debug("===Unused line===")
     else:
         proto = proto.strip('{}')
-        return parse_proto(proto)
+        return parse_proto(proto, handler_spec)
 
 def parse_preprocessor(line):
     debug("preprocessor:", line)
@@ -256,6 +237,17 @@ def parse_unused(line):
     debug("unused:" + line)
     #XXX: add an assertion to check this
 
+#STD spec_lines take precendence over COMPAT lines
+def remove_duplicates(desc_list):
+    for desc_a in desc_list:
+        for desc_b in desc_list:
+            if desc_a['name'] == desc_b['name'] and desc_a != desc_b:
+                if desc_a['decl_type'] == 'STD' and desc_b['decl_type'] == 'COMPAT':
+                    desc_list.remove(desc_b)
+                elif desc_a['decl_type'] == 'COMPAT' and desc_b['decl_type'] == 'STD':
+                    desc_list.remove(desc_a)
+                else:
+                    die("unrecognized duplication for" + desc_a['name'])
 def parse_spec():
     line_number = 0
     partial_line = None
@@ -306,6 +298,7 @@ def parse_spec():
                 debug("Unknown parsing error on line %d" % line_number)
                 raise
 
+    remove_duplicates(handler_description_list)
     return handler_description_list
 
 def generate_preambles():
