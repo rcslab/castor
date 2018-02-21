@@ -63,10 +63,10 @@
 1	AUE_EXIT	STD	{ void sys_exit(int rval); } exit \
 				    sys_exit_args void
 2	AUE_FORK	STD	{ int fork(void); }
-3	AUE_READ	STD	{ __Success__(return != -1) ssize_t read(int fd, \
+3	AUE_READ	STD	{ ssize_t read(int fd, \
 				    _Out_writes_bytes_(nbyte) void *buf, \
 				    size_t nbyte); }
-4	AUE_WRITE	STD	{ __Success__(return != -1) ssize_t write(int fd, \
+4	AUE_WRITE	STD	{ ssize_t write(int fd, \
 				    _In_reads_bytes_(nbyte) const void *buf, \
 				    size_t nbyte); }
 5	AUE_OPEN_RWTC	STD	{ int open( \
@@ -76,7 +76,7 @@
 ; XXX should be		{ int open(const char *path, int flags, ...); }
 ; but we're not ready for `const' or varargs.
 ; XXX man page says `mode_t mode'.
-6	AUE_CLOSE	STD	{ __Success__(return == 0) int close(int fd); }
+6	AUE_CLOSE	STD	{ int close(int fd); }
 7	AUE_WAIT4	STD	{ int wait4(int pid, _Out_opt_ int *status, \
 				    int options, _Out_opt_ struct rusage *rusage); }
 8	AUE_CREAT	COMPAT	{ int creat(char *path, int mode); }
@@ -113,7 +113,7 @@
 				    _Out_writes_bytes_opt_(*fromlenaddr) \
 				    struct sockaddr * __restrict from, \
 				    _Inout_opt_ __socklen_t * __restrict fromlenaddr); }
-30	AUE_ACCEPT	STD	{ __Success__(return != -1) int accept(int s, \
+30	AUE_ACCEPT	STD	{ int accept(int s, \
 				    _Out_writes_bytes_opt_(*anamelen) \
 				    struct sockaddr * __restrict name, \
 				    _Inout_opt_ __socklen_t * __restrict anamelen); }
