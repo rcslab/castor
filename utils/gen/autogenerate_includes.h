@@ -5,6 +5,8 @@
 #include <sys/syscall.h>
 #include <sys/stat.h>
 
+#ifndef GEN_SAL
+
 #include <castor/debug.h>
 #include <castor/rrlog.h>
 #include <castor/rrplay.h>
@@ -13,3 +15,5 @@
 #include <castor/events.h>
 
 #include "util.h"
+
+#endif
