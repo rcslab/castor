@@ -7,6 +7,7 @@ import subprocess
 
 HANDLER_PATH = "./events_gen.c"
 HEADER_PATH = "./events_gen.h"
+INCLUDES_PATH = "./autogenerate_includes.h"
 
 cout = open(HANDLER_PATH, "w")
 hout = open(HEADER_PATH, "w")
@@ -325,7 +326,7 @@ def generate_header_file(generated):
     h_output("#endif")
 
 def generate_includes():
-    with open('autogenerate_includes.h') as f:
+    with open(INCLUDES_PATH) as f:
             includes_list = f.read().splitlines()
     for include in includes_list:
         c_output(include)
@@ -348,20 +349,42 @@ def read_autogenerate_list():
     return autogenerate_list
 
 def format_handlers():
-    subprocess.call(["indent","-i4", HANDLER_PATH])
+    subprocess.check_call(["indent","-i4", HANDLER_PATH])
     backup_path = HANDLER_PATH + ".BAK"
     os.unlink(backup_path)
     print "...formatting complete..."
+
+def generate_libc_type_signatures():
+    type_signatures = {}
+    output_path = INCLUDES_PATH[:-1] + "E"
+    subprocess.check_call(["cc","-E", "-DGEN_SAL", INCLUDES_PATH, "-o", output_path])
+    with open(output_path) as f:
+        src_exprs = f.read().split(';')
+    for expr in src_exprs:
+        match = re.search("(?P<return_type>(^[\w\s]+))\s"\
+                          "(?P<name>(\w+))\("\
+                          "(?P<args>([\w\s,\*^)]+))\)", expr)
+        if match != None:
+            return_type = match.group('return_type').strip()
+            name = match.group('name').strip()
+            args = re.sub('\n','',match.group('args').strip())
+            if name in type_signatures:
+                die("duplicate entry")
+            type_signatures[name] = {'name': name, 'return_type': return_type, 'args' : args}
+    os.unlink(output_path)
+    return type_signatures
 
 if __name__ == '__main__':
     generated = []
     parse_flags()
     generate_preambles()
     generate_includes()
+    type_signatures = generate_libc_type_signatures()
+    debug("type_signatures:", type_signatures)
     autogenerate_list = read_autogenerate_list()
     print "Generating event handlers: " + str(autogenerate_list)
     handler_description_list = parse_spec()
-    debug("desc:", handler_description_list)
+    debug("handler_description_list:", handler_description_list)
     for desc in handler_description_list:
         if desc['name'] in autogenerate_list:
             generate_handler(desc)
