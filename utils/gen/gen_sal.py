@@ -325,7 +325,7 @@ def generate_header_file(generated):
     h_output("#endif")
 
 def generate_includes():
-    with open('autogenerate_includes') as f:
+    with open('autogenerate_includes.h') as f:
             includes_list = f.read().splitlines()
     for include in includes_list:
         c_output(include)
