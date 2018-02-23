@@ -4,6 +4,7 @@ import sys
 import os
 import re
 import subprocess
+import copy
 
 HANDLER_PATH = "./events_gen.c"
 HEADER_PATH = "./events_gen.h"
@@ -59,7 +60,7 @@ def gen_log_data(spec):
 def generate_handler(spec):
     debug("handler_desc:", spec)
     name = spec['name']
-    result_type = spec['result_type']
+    return_type = spec['return_type']
     arg_list = [arg['type'] + ' ' + arg['name'] for arg in spec['args_spec']]
     arg_names = [arg['name'] for arg in spec['args_spec']]
     arg_types =  [arg['type'] for arg in spec['args_spec']]
@@ -71,10 +72,10 @@ def generate_handler(spec):
     syscall_str =  "syscall(%s)" % ", ".join(call_args)
 
     #handler opening
-    c_output("\n%s" % result_type)
+    c_output("\n%s" % return_type)
     c_output("__rr_%s(%s)" % (name, arg_string))
     c_output("{")
-    c_output("%s result;" % result_type)
+    c_output("%s result;" % return_type)
     c_output("RRLogEntry *e;\n")
 
     #c_output("DLOG(\"entering %s\");" % name)
@@ -105,7 +106,7 @@ def generate_handler(spec):
     c_output("AssertEvent(e, %s);" % event_number)
     if leading_object:
         c_output("AssertObject(e, (uint64_t)%s);" % arg_names[0])
-    c_output("result = (%s)e->value[0];" % result_type)
+    c_output("result = (%s)e->value[0];" % return_type)
     c_output("if (result == -1) {")
     c_output("errno = e->value[1];")
     c_output("}")
@@ -197,11 +198,11 @@ def parse_proto(proto, handler_spec):
     suffix = proto[pivot:]
     debug("prefix:" + prefix)
     debug("suffix:%s<eol>" % (suffix))
-    result_type, name = prefix.split()
+    return_type, name = prefix.split()
     debug("name:" + name)
-    debug("result_type:" + result_type)
+    debug("return_type:" + return_type)
     handler_spec['name'] = name
-    handler_spec['result_type'] = result_type
+    handler_spec['return_type'] = return_type
     arg_string = suffix.strip('(); ')
     handler_spec['args_spec'] = parse_args(arg_string)
     return handler_spec
@@ -357,22 +358,46 @@ def format_handlers():
 def generate_libc_type_signatures():
     type_signatures = {}
     output_path = INCLUDES_PATH[:-1] + "E"
-    subprocess.check_call(["cc","-E", "-DGEN_SAL", INCLUDES_PATH, "-o", output_path])
+    subprocess.check_call(["cc","-E","-P", "-DGEN_SAL", INCLUDES_PATH, "-o", output_path])
     with open(output_path) as f:
         src_exprs = f.read().split(';')
+    os.unlink(output_path)
     for expr in src_exprs:
-        match = re.search("(?P<return_type>(^[\w\s]+))\s"\
+        match = re.search("(?P<return_type>(^[\w\s\*]+))\s"\
                           "(?P<name>(\w+))\("\
                           "(?P<args>([\w\s,\*^)]+))\)", expr)
         if match != None:
             return_type = match.group('return_type').strip()
             name = match.group('name').strip()
-            args = re.sub('\n','',match.group('args').strip())
+            args = re.sub('\n','',match.group('args')).split(',')
+            args = map(lambda x:x.strip(), args)
             if name in type_signatures:
                 die("duplicate entry")
             type_signatures[name] = {'name': name, 'return_type': return_type, 'args' : args}
-    os.unlink(output_path)
+        else:
+            debug("no match:" + expr)
+
     return type_signatures
+
+def resolve_types(desc, type_signatures):
+    resolved_desc = copy.deepcopy(desc)
+    name = desc['name']
+    if not name in type_signatures:
+        die("Missing type signature for: " + desc['name'])
+    sig = type_signatures[name]
+    args_spec = desc['args_spec']
+    for i in range(0, len(args_spec)):
+        sig_arg_type = sig['args'][i]
+        spec_arg_type = args_spec[i]['type']
+        if sig_arg_type != spec_arg_type:
+            debug("type_mismatch in %s, in arg %s, %s != %s: resolving to %s" %
+                    (name, i, spec_arg_type, sig_arg_type, sig_arg_type))
+            resolved_desc['args_spec'][i]['type'] = sig_arg_type
+        if sig['return_type'] != desc['return_type']:
+            debug("type_mismatch in %s, return type %s != %s: resolving to %s" %
+                    (name, desc['return_type'], sig['return_type'], sig['return_type']))
+            resolved_desc['return_type'] = sig['return_type']
+    return resolved_desc
 
 if __name__ == '__main__':
     generated = []
@@ -387,8 +412,9 @@ if __name__ == '__main__':
     debug("handler_description_list:", handler_description_list)
     for desc in handler_description_list:
         if desc['name'] in autogenerate_list:
-            generate_handler(desc)
-            generated = generated + [desc['name']]
+            finished_desc = resolve_types(desc, type_signatures)
+            generate_handler(finished_desc)
+            generated = generated + [finished_desc['name']]
     generate_bindings(generated)
     generate_header_file(generated)
     missing = set(autogenerate_list) - set(generated)
