@@ -14,6 +14,8 @@ cout = open(HANDLER_PATH, "w")
 hout = open(HEADER_PATH, "w")
 
 verbose = False
+type_signatures = None
+autogenerate_list = None
 
 def die(message):
     raise ValueError(message)
@@ -149,15 +151,16 @@ def parse_logspec(sal, type):
     return log_spec
 
 
-def parse_args(arg_string):
+def parse_args(arg_string, handler_spec):
     args_spec = []
     args = arg_string.split(',')
     debug("args:", args)
-    for arg in args:
+    for i in range(0, len(args)):
         arg_spec = {}
+        arg = args[i]
+        arg = arg.strip()
         if arg == 'void':
             break
-        arg = arg.strip()
 
         #chop name
         so = re.search("(\w+$)", arg)
@@ -204,7 +207,7 @@ def parse_proto(proto, handler_spec):
     handler_spec['name'] = name
     handler_spec['return_type'] = return_type
     arg_string = suffix.strip('(); ')
-    handler_spec['args_spec'] = parse_args(arg_string)
+    handler_spec['args_spec'] = parse_args(arg_string, handler_spec)
     return handler_spec
 
 def parse_spec_line(line):
@@ -242,7 +245,8 @@ def parse_unused(line):
     #XXX: add an assertion to check this
 
 #STD spec_lines take precendence over COMPAT lines
-def remove_duplicates(desc_list):
+def remove_duplicates(handler_description_list):
+    desc_list = copy.deepcopy(handler_description_list)
     for desc_a in desc_list:
         for desc_b in desc_list:
             if desc_a['name'] == desc_b['name'] and desc_a != desc_b:
@@ -252,6 +256,8 @@ def remove_duplicates(desc_list):
                     desc_list.remove(desc_a)
                 else:
                     die("unrecognized duplication for" + desc_a['name'])
+    return desc_list
+
 def parse_spec():
     line_number = 0
     partial_line = None
@@ -302,7 +308,6 @@ def parse_spec():
                 debug("Unknown parsing error on line %d" % line_number)
                 raise
 
-    remove_duplicates(handler_description_list)
     return handler_description_list
 
 def generate_preambles():
@@ -343,11 +348,12 @@ def parse_flags():
         verbose = True
 
 def read_autogenerate_list():
+    global autogenerate_list
+    autogenerate_list = []
     with open('autogenerate_syscalls') as f:
                 autogenerate_list = f.read().splitlines()
     autogenerate_list = map(lambda x: x.strip(), autogenerate_list)
     autogenerate_list = filter(lambda x:not x.startswith(';') and len(x) > 0, autogenerate_list)
-    return autogenerate_list
 
 def format_handlers():
     subprocess.check_call(["indent","-i4", HANDLER_PATH])
@@ -355,7 +361,8 @@ def format_handlers():
     os.unlink(backup_path)
     print "...formatting complete..."
 
-def generate_libc_type_signatures():
+def read_libc_type_signatures():
+    global type_signatures
     type_signatures = {}
     output_path = INCLUDES_PATH[:-1] + "E"
     subprocess.check_call(["cc","-E","-P", "-DGEN_SAL", INCLUDES_PATH, "-o", output_path])
@@ -376,10 +383,9 @@ def generate_libc_type_signatures():
             type_signatures[name] = {'name': name, 'return_type': return_type, 'args' : args}
         else:
             debug("no match:" + expr)
+    debug("type_signatures:", type_signatures)
 
-    return type_signatures
-
-def resolve_types(desc, type_signatures):
+def resolve_types(desc):
     resolved_desc = copy.deepcopy(desc)
     name = desc['name']
     if not name in type_signatures:
@@ -402,17 +408,16 @@ def resolve_types(desc, type_signatures):
 if __name__ == '__main__':
     generated = []
     parse_flags()
+    read_autogenerate_list()
+    read_libc_type_signatures()
     generate_preambles()
     generate_includes()
-    type_signatures = generate_libc_type_signatures()
-    debug("type_signatures:", type_signatures)
-    autogenerate_list = read_autogenerate_list()
     print "Generating event handlers: " + str(autogenerate_list)
-    handler_description_list = parse_spec()
+    handler_description_list = remove_duplicates(parse_spec())
     debug("handler_description_list:", handler_description_list)
     for desc in handler_description_list:
         if desc['name'] in autogenerate_list:
-            finished_desc = resolve_types(desc, type_signatures)
+            finished_desc = resolve_types(desc)
             generate_handler(finished_desc)
             generated = generated + [finished_desc['name']]
     generate_bindings(generated)
