@@ -28,7 +28,6 @@ def incomplete(*args):
     if verbose:
         print "INCOMPLETE ".join(map(str,args))
 
-
 def c_output(line):
     if verbose:
         debug("cout", line)
@@ -176,20 +175,14 @@ def parse_args(arg_string, handler_spec):
             so = re.search(SAL_PATTERN, arg)
             sal = {'tag': so.group('tag'), 'arg' :so.group('arg')}
             arg = re.sub(SAL_PATTERN,"",arg)
-            arg_spec['sal'] = sal
             debug("arg_sal:", str(sal))
+        arg_spec['sal'] = sal
 
         #type is whats left
         arg_spec['type'] = arg.strip()
-
         debug("arg_type:" + arg_spec['type'])
-
-        if sal != None:
-            arg_spec['log_spec'] = parse_logspec(arg_spec['sal'], arg_spec['type'])
-        else:
-            arg_spec['log_spec'] = None
-
         args_spec = args_spec + [arg_spec]
+
     debug("args_spec: " + str(args_spec))
     return args_spec
 
@@ -385,6 +378,15 @@ def read_libc_type_signatures():
             debug("no match:" + expr)
     debug("type_signatures:", type_signatures)
 
+def add_logspec(desc):
+    logged_desc = copy.deepcopy(desc)
+    for arg_spec in logged_desc['args_spec']:
+        if arg_spec['sal'] != None:
+            arg_spec['log_spec'] = parse_logspec(arg_spec['sal'], arg_spec['type'])
+        else:
+            arg_spec['log_spec'] = None
+    return logged_desc
+
 def resolve_types(desc):
     resolved_desc = copy.deepcopy(desc)
     name = desc['name']
@@ -417,9 +419,10 @@ if __name__ == '__main__':
     debug("handler_description_list:", handler_description_list)
     for desc in handler_description_list:
         if desc['name'] in autogenerate_list:
-            finished_desc = resolve_types(desc)
-            generate_handler(finished_desc)
-            generated = generated + [finished_desc['name']]
+            desc = resolve_types(desc)
+            desc = add_logspec(desc)
+            generate_handler(desc)
+            generated = generated + [desc['name']]
     generate_bindings(generated)
     generate_header_file(generated)
     missing = set(autogenerate_list) - set(generated)

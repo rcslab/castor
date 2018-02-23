@@ -12,7 +12,7 @@
 ;getegid
 ;XXX
 kqueue
-cap_rights_limit
+;cap_rights_limit
 cap_enter
 setgroups
 setuid

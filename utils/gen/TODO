@@ -1,10 +1,12 @@
--move to using sycalls.master with SAL annotations from freebsd.
-    -add support for type translations (caddr_t, etc.)
-    -try to infer const'ness from SAL annotations.
-
+-fix cap_rights_limit bug.
 -finish pending stuff in syscall list
--finish parsing all SAL annotations.
--finish code gen for all SAL annotations.
+
+
+-figure out if these are still relavent
+    -finish parsing all SAL annotations.
+    -finish code gen for all SAL annotations.
+
+-rename to autogen.
 
 #just add comment about this..
 -fix errno handling, use success to only check/set errno when needed --- when this is,
