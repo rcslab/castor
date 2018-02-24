@@ -354,6 +354,20 @@ def format_handlers():
     os.unlink(backup_path)
     print "...formatting complete..."
 
+#XXX half ass heuristic to remove variable names if present
+def clean_types(arg):
+    parts = arg.split()
+    result = parts
+    if len(parts) == 1:
+        pass
+    elif '*' in arg:
+        result = arg.split('*')[:-1] + ['*']
+    elif len(parts) > 1:
+        if parts[-2] in ['char', 'short', 'int', 'long'] \
+                or parts[-2].endswith('_t'):
+                    result = parts[:-1]
+    return ' '.join(result)
+
 def read_libc_type_signatures():
     global type_signatures
     type_signatures = {}
@@ -371,6 +385,7 @@ def read_libc_type_signatures():
             name = match.group('name').strip()
             args = re.sub('\n','',match.group('args')).split(',')
             args = map(lambda x:x.strip(), args)
+            args = map(lambda x:clean_types(x), args)
             if name in type_signatures:
                 die("duplicate entry")
             type_signatures[name] = {'name': name, 'return_type': return_type, 'args' : args}

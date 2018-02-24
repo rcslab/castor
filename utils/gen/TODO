@@ -1,6 +1,10 @@
--fix cap_rights_limit bug.
--finish pending stuff in syscall list
+-rename handlers_* to syscalls_* to reflect seperation of parser.
+-autogenerate unsupported syscall list from handler spec.
+    -rename autogenerate_syscalls, to supported_syscalls
+    -add list of pass_through calls
+    -unsupported calls = all_calls - pass_through - supported
 
+-finish pending stuff in syscall list - merge into above stuff
 
 -figure out if these are still relavent
     -finish parsing all SAL annotations.
