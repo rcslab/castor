@@ -238,8 +238,8 @@ def parse_unused(line):
     #XXX: add an assertion to check this
 
 #STD spec_lines take precendence over COMPAT lines
-def remove_duplicates(handler_description_list):
-    desc_list = copy.deepcopy(handler_description_list)
+def remove_duplicate_syscalls(syscall_description_list):
+    desc_list = copy.deepcopy(syscall_description_list)
     for desc_a in desc_list:
         for desc_b in desc_list:
             if desc_a['name'] == desc_b['name'] and desc_a != desc_b:
@@ -255,7 +255,7 @@ def parse_spec():
     line_number = 0
     partial_line = None
     spec_line = None
-    handler_description_list = []
+    syscall_description_list = []
 
     for line in sys.stdin:
         if verbose:
@@ -294,14 +294,14 @@ def parse_spec():
             finished = spec_line
             spec_line = None
             try:
-                handler_desc = parse_spec_line(finished)
-                if handler_desc:
-                    handler_description_list.append(handler_desc)
+                syscall_desc = parse_spec_line(finished)
+                if syscall_desc:
+                    syscall_description_list.append(syscall_desc)
             except:
                 debug("Unknown parsing error on line %d" % line_number)
                 raise
 
-    return handler_description_list
+    return syscall_description_list
 
 def generate_preambles():
     preamble = """
@@ -430,9 +430,9 @@ if __name__ == '__main__':
     generate_preambles()
     generate_includes()
     print "Generating event handlers: " + str(autogenerate_list)
-    handler_description_list = remove_duplicates(parse_spec())
-    debug("handler_description_list:", handler_description_list)
-    for desc in handler_description_list:
+    syscall_description_list = remove_duplicate_syscalls(parse_spec())
+    debug("syscall_description_list:", syscall_description_list)
+    for desc in syscall_description_list:
         if desc['name'] in autogenerate_list:
             desc = resolve_types(desc)
             desc = add_logspec(desc)
