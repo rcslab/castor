@@ -20,5 +20,7 @@ can we assume that any function for whome result != -1 is success will set errno
 -go through SYSCALL_TODO, add more unsupported calls, write some unit tests.
 -change code to correctly reference events_gen.h in the variant build directory.
 
--optimize recording of socketlen_t parameters by storing them as values.
+-optimize recording of socketlen_t parameters by storing them as values, and other
+scalar types (e.g. getdirentries)
+
 -consider what to do with unsupported calls.

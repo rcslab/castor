@@ -11,6 +11,7 @@
 ;getgid
 ;getegid
 ;XXX
+getdirentries
 kqueue
 cap_rights_limit
 cap_enter

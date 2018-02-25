@@ -3,7 +3,12 @@
 
 
 #include <stdio.h>
+#include <errno.h>
+
 #include <unistd.h>
+#include <fcntl.h>
+#include <dirent.h>
+
 #include <sys/types.h>
 #include <sys/event.h>
 #include <sys/socket.h>
@@ -11,8 +16,6 @@
 #include <sys/param.h>
 #include <sys/cpuset.h>
 #include <sys/mount.h>
-#include <errno.h>
-#include <fcntl.h>
 #include <sys/syscall.h>
 #include <sys/stat.h>
 #include <sys/capsicum.h>
@@ -69,7 +72,7 @@ __rr_read(int fd, void *buf, size_t nbyte)
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, nbyte);
+	    logData((uint8_t *) buf, (unsigned long)nbyte);
 	}
 	break;
     case RRMODE_REPLAY:
@@ -82,7 +85,7 @@ __rr_read(int fd, void *buf, size_t nbyte)
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, nbyte);
+	    logData((uint8_t *) buf, (unsigned long)nbyte);
 	}
 	break;
     }
@@ -338,10 +341,10 @@ __rr_accept(int s, struct sockaddr *name, socklen_t * anamelen)
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
 	    if (name != NULL) {
-		logData((uint8_t *) name, *anamelen);
+		logData((uint8_t *) name, (unsigned long)*anamelen);
 	    }
 	    if (anamelen != NULL) {
-		logData((uint8_t *) anamelen, sizeof(socklen_t));
+		logData((uint8_t *) anamelen, (unsigned long)sizeof(socklen_t));
 	    }
 	}
 	break;
@@ -356,10 +359,10 @@ __rr_accept(int s, struct sockaddr *name, socklen_t * anamelen)
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
 	    if (name != NULL) {
-		logData((uint8_t *) name, *anamelen);
+		logData((uint8_t *) name, (unsigned long)*anamelen);
 	    }
 	    if (anamelen != NULL) {
-		logData((uint8_t *) anamelen, sizeof(socklen_t));
+		logData((uint8_t *) anamelen, (unsigned long)sizeof(socklen_t));
 	    }
 	}
 	break;
@@ -387,9 +390,9 @@ __rr_getpeername(int fdes, struct sockaddr *asa, socklen_t * alen)
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) asa, *alen);
+	    logData((uint8_t *) asa, (unsigned long)*alen);
 	    if (alen != NULL) {
-		logData((uint8_t *) alen, sizeof(socklen_t));
+		logData((uint8_t *) alen, (unsigned long)sizeof(socklen_t));
 	    }
 	}
 	break;
@@ -403,9 +406,9 @@ __rr_getpeername(int fdes, struct sockaddr *asa, socklen_t * alen)
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) asa, *alen);
+	    logData((uint8_t *) asa, (unsigned long)*alen);
 	    if (alen != NULL) {
-		logData((uint8_t *) alen, sizeof(socklen_t));
+		logData((uint8_t *) alen, (unsigned long)sizeof(socklen_t));
 	    }
 	}
 	break;
@@ -433,8 +436,8 @@ __rr_getsockname(int fdes, struct sockaddr *asa, socklen_t * alen)
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) asa, *alen);
-	    logData((uint8_t *) alen, sizeof(socklen_t));
+	    logData((uint8_t *) asa, (unsigned long)*alen);
+	    logData((uint8_t *) alen, (unsigned long)sizeof(socklen_t));
 	}
 	break;
     case RRMODE_REPLAY:
@@ -447,8 +450,8 @@ __rr_getsockname(int fdes, struct sockaddr *asa, socklen_t * alen)
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) asa, *alen);
-	    logData((uint8_t *) alen, sizeof(socklen_t));
+	    logData((uint8_t *) asa, (unsigned long)*alen);
+	    logData((uint8_t *) alen, (unsigned long)sizeof(socklen_t));
 	}
 	break;
     }
@@ -506,7 +509,7 @@ __rr_stat(const char *path, struct stat *ub)
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) ub, sizeof(struct stat));
+	    logData((uint8_t *) ub, (unsigned long)sizeof(struct stat));
 	}
 	break;
     case RRMODE_REPLAY:
@@ -518,7 +521,7 @@ __rr_stat(const char *path, struct stat *ub)
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) ub, sizeof(struct stat));
+	    logData((uint8_t *) ub, (unsigned long)sizeof(struct stat));
 	}
 	break;
     }
@@ -544,7 +547,7 @@ __rr_lstat(const char *path, struct stat *ub)
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) ub, sizeof(struct stat));
+	    logData((uint8_t *) ub, (unsigned long)sizeof(struct stat));
 	}
 	break;
     case RRMODE_REPLAY:
@@ -556,7 +559,7 @@ __rr_lstat(const char *path, struct stat *ub)
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) ub, sizeof(struct stat));
+	    logData((uint8_t *) ub, (unsigned long)sizeof(struct stat));
 	}
 	break;
     }
@@ -614,7 +617,7 @@ __rr_readlink(const char *path, char *buf, size_t count)
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, count * sizeof(char));
+	    logData((uint8_t *) buf, (unsigned long)count * sizeof(char));
 	}
 	break;
     case RRMODE_REPLAY:
@@ -626,7 +629,7 @@ __rr_readlink(const char *path, char *buf, size_t count)
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, count * sizeof(char));
+	    logData((uint8_t *) buf, (unsigned long)count * sizeof(char));
 	}
 	break;
     }
@@ -891,7 +894,7 @@ __rr_getrusage(int who, struct rusage *rusage)
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) rusage, sizeof(struct rusage));
+	    logData((uint8_t *) rusage, (unsigned long)sizeof(struct rusage));
 	}
 	break;
     case RRMODE_REPLAY:
@@ -904,7 +907,7 @@ __rr_getrusage(int who, struct rusage *rusage)
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) rusage, sizeof(struct rusage));
+	    logData((uint8_t *) rusage, (unsigned long)sizeof(struct rusage));
 	}
 	break;
     }
@@ -1259,7 +1262,7 @@ __rr_getrlimit(int which, struct rlimit *rlp)
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) rlp, sizeof(struct rlimit));
+	    logData((uint8_t *) rlp, (unsigned long)sizeof(struct rlimit));
 	}
 	break;
     case RRMODE_REPLAY:
@@ -1272,7 +1275,7 @@ __rr_getrlimit(int which, struct rlimit *rlp)
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) rlp, sizeof(struct rlimit));
+	    logData((uint8_t *) rlp, (unsigned long)sizeof(struct rlimit));
 	}
 	break;
     }
@@ -1429,7 +1432,7 @@ __rr_pread(int fd, void *buf, size_t nbyte, off_t offset)
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, nbyte);
+	    logData((uint8_t *) buf, (unsigned long)nbyte);
 	}
 	break;
     case RRMODE_REPLAY:
@@ -1442,7 +1445,7 @@ __rr_pread(int fd, void *buf, size_t nbyte, off_t offset)
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, nbyte);
+	    logData((uint8_t *) buf, (unsigned long)nbyte);
 	}
 	break;
     }
@@ -1568,7 +1571,7 @@ __rr_cpuset(cpusetid_t * setid)
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) setid, sizeof(cpusetid_t));
+	    logData((uint8_t *) setid, (unsigned long)sizeof(cpusetid_t));
 	}
 	break;
     case RRMODE_REPLAY:
@@ -1580,7 +1583,7 @@ __rr_cpuset(cpusetid_t * setid)
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) setid, sizeof(cpusetid_t));
+	    logData((uint8_t *) setid, (unsigned long)sizeof(cpusetid_t));
 	}
 	break;
     }
@@ -1638,7 +1641,7 @@ __rr_cpuset_getid(cpulevel_t level, cpuwhich_t which, id_t id, cpusetid_t * seti
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) setid, sizeof(cpusetid_t));
+	    logData((uint8_t *) setid, (unsigned long)sizeof(cpusetid_t));
 	}
 	break;
     case RRMODE_REPLAY:
@@ -1650,7 +1653,7 @@ __rr_cpuset_getid(cpulevel_t level, cpuwhich_t which, id_t id, cpusetid_t * seti
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) setid, sizeof(cpusetid_t));
+	    logData((uint8_t *) setid, (unsigned long)sizeof(cpusetid_t));
 	}
 	break;
     }
@@ -1676,7 +1679,7 @@ __rr_cpuset_getaffinity(cpulevel_t level, cpuwhich_t which, id_t id, size_t cpus
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) mask, sizeof(cpuset_t));
+	    logData((uint8_t *) mask, (unsigned long)sizeof(cpuset_t));
 	}
 	break;
     case RRMODE_REPLAY:
@@ -1688,7 +1691,7 @@ __rr_cpuset_getaffinity(cpulevel_t level, cpuwhich_t which, id_t id, size_t cpus
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) mask, sizeof(cpuset_t));
+	    logData((uint8_t *) mask, (unsigned long)sizeof(cpuset_t));
 	}
 	break;
     }
@@ -1714,7 +1717,7 @@ __rr_cpuset_setaffinity(cpulevel_t level, cpuwhich_t which, id_t id, size_t cpus
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) mask, sizeof(const cpuset_t));
+	    logData((uint8_t *) mask, (unsigned long)sizeof(const cpuset_t));
 	}
 	break;
     case RRMODE_REPLAY:
@@ -1726,7 +1729,7 @@ __rr_cpuset_setaffinity(cpulevel_t level, cpuwhich_t which, id_t id, size_t cpus
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) mask, sizeof(const cpuset_t));
+	    logData((uint8_t *) mask, (unsigned long)sizeof(const cpuset_t));
 	}
 	break;
     }
@@ -1855,7 +1858,7 @@ __rr_readlinkat(int fd, const char *path, char *buf, size_t bufsize)
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, bufsize);
+	    logData((uint8_t *) buf, (unsigned long)bufsize);
 	}
 	break;
     case RRMODE_REPLAY:
@@ -1868,7 +1871,7 @@ __rr_readlinkat(int fd, const char *path, char *buf, size_t bufsize)
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, bufsize);
+	    logData((uint8_t *) buf, (unsigned long)bufsize);
 	}
 	break;
     }
@@ -1996,10 +1999,10 @@ __rr_accept4(int s, struct sockaddr *name, socklen_t * anamelen, int flags)
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
 	    if (name != NULL) {
-		logData((uint8_t *) name, *anamelen);
+		logData((uint8_t *) name, (unsigned long)*anamelen);
 	    }
 	    if (anamelen != NULL) {
-		logData((uint8_t *) anamelen, sizeof(socklen_t));
+		logData((uint8_t *) anamelen, (unsigned long)sizeof(socklen_t));
 	    }
 	}
 	break;
@@ -2014,10 +2017,10 @@ __rr_accept4(int s, struct sockaddr *name, socklen_t * anamelen, int flags)
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
 	    if (name != NULL) {
-		logData((uint8_t *) name, *anamelen);
+		logData((uint8_t *) name, (unsigned long)*anamelen);
 	    }
 	    if (anamelen != NULL) {
-		logData((uint8_t *) anamelen, sizeof(socklen_t));
+		logData((uint8_t *) anamelen, (unsigned long)sizeof(socklen_t));
 	    }
 	}
 	break;
@@ -2045,7 +2048,7 @@ __rr_fstat(int fd, struct stat *sb)
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) sb, sizeof(struct stat));
+	    logData((uint8_t *) sb, (unsigned long)sizeof(struct stat));
 	}
 	break;
     case RRMODE_REPLAY:
@@ -2058,7 +2061,7 @@ __rr_fstat(int fd, struct stat *sb)
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) sb, sizeof(struct stat));
+	    logData((uint8_t *) sb, (unsigned long)sizeof(struct stat));
 	}
 	break;
     }
@@ -2085,7 +2088,7 @@ __rr_fstatat(int fd, const char *path, struct stat *buf, int flag)
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, sizeof(struct stat));
+	    logData((uint8_t *) buf, (unsigned long)sizeof(struct stat));
 	}
 	break;
     case RRMODE_REPLAY:
@@ -2098,7 +2101,49 @@ __rr_fstatat(int fd, const char *path, struct stat *buf, int flag)
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, sizeof(struct stat));
+	    logData((uint8_t *) buf, (unsigned long)sizeof(struct stat));
+	}
+	break;
+    }
+    return result;
+}
+
+int
+__rr_getdirentries(int fd, char *buf, int count, long *basep)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_getdirentries, fd, buf, count, basep);
+    case RRMODE_RECORD:
+	result = syscall(SYS_getdirentries, fd, buf, count, basep);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_GETDIRENTRIES;
+	e->objectId = (uint64_t) fd;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) buf, (unsigned long)count);
+	    logData((uint8_t *) basep, (unsigned long)sizeof(long));
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_GETDIRENTRIES);
+	AssertObject(e, (uint64_t) fd);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) buf, (unsigned long)count);
+	    logData((uint8_t *) basep, (unsigned long)sizeof(long));
 	}
 	break;
     }
@@ -2124,7 +2169,7 @@ __rr_statfs(const char *path, struct statfs *buf)
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, sizeof(struct statfs));
+	    logData((uint8_t *) buf, (unsigned long)sizeof(struct statfs));
 	}
 	break;
     case RRMODE_REPLAY:
@@ -2136,7 +2181,7 @@ __rr_statfs(const char *path, struct statfs *buf)
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, sizeof(struct statfs));
+	    logData((uint8_t *) buf, (unsigned long)sizeof(struct statfs));
 	}
 	break;
     }
@@ -2163,7 +2208,7 @@ __rr_fstatfs(int fd, struct statfs *buf)
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, sizeof(struct statfs));
+	    logData((uint8_t *) buf, (unsigned long)sizeof(struct statfs));
 	}
 	break;
     case RRMODE_REPLAY:
@@ -2176,7 +2221,7 @@ __rr_fstatfs(int fd, struct statfs *buf)
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, sizeof(struct statfs));
+	    logData((uint8_t *) buf, (unsigned long)sizeof(struct statfs));
 	}
 	break;
     }
@@ -2241,5 +2286,6 @@ BIND_REF(cap_rights_limit);
 BIND_REF(accept4);
 BIND_REF(fstat);
 BIND_REF(fstatat);
+BIND_REF(getdirentries);
 BIND_REF(statfs);
 BIND_REF(fstatfs);

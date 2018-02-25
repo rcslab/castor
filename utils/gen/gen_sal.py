@@ -52,7 +52,7 @@ def gen_log_data(spec):
                 #XXX formatting ugly
                 if arg['log_spec']['null_check']:
                     c_output("\t\t\t if (%s != NULL) {" % (arg['name']))
-                c_output("\t\t\tlogData((uint8_t *)%s, %s);" %
+                c_output("\t\t\tlogData((uint8_t *)%s, (unsigned long)%s);" %
                             (arg['name'], arg['log_spec']['size']))
                 if arg['log_spec']['null_check']:
                     c_output("\t\t\t }")
@@ -406,7 +406,8 @@ def resolve_types(desc):
     resolved_desc = copy.deepcopy(desc)
     name = desc['name']
     if not name in type_signatures:
-        die("Missing type signature for: " + desc['name'])
+        die("Missing type signature for: \'%s\', you might be"\
+                "missing an entry in autogenerate_includes.h" %  desc['name'])
     sig = type_signatures[name]
     args_spec = desc['args_spec']
     for i in range(0, len(args_spec)):

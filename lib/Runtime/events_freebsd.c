@@ -26,10 +26,6 @@
 #include <sys/event.h>
 #include <sys/time.h>
 
-// getdirentries
-#include <sys/types.h>
-#include <dirent.h>
-
 // statfs/fstatfs
 #include <sys/param.h>
 #include <sys/mount.h>
@@ -44,48 +40,6 @@
 #include <castor/events.h>
 
 #include "util.h"
-
-int
-__rr_getdirentries(int fd, char *buf, int nbytes, long *basep)
-{
-    int result;
-    RRLogEntry *e;
-
-    if (rrMode == RRMODE_NORMAL) {
-	return syscall(SYS_getdirentries, fd, buf, nbytes, basep);
-    }
-
-    if (rrMode == RRMODE_RECORD) {
-	result = syscall(SYS_getdirentries, fd, buf, nbytes, basep);
-	e = RRLog_Alloc(rrlog, threadId);
-	e->event = RREVENT_GETDIRENTRIES;
-	e->objectId = (uint64_t)fd;
-	e->value[0] = (uint64_t)result;
-	e->value[1] = (uint64_t)*basep;
-	if (result == -1){
-	    e->value[2] = (uint64_t)errno;
-	}
-	RRLog_Append(rrlog, e);
-	if (result >= 0) {
-	    logData((uint8_t*)buf, (size_t)result);
-	}
-    } else {
-	e = RRPlay_Dequeue(rrlog, threadId);
-	AssertEvent(e, RREVENT_GETDIRENTRIES);
-	result = (int)e->value[0];
-	*basep = (long)e->value[1];
-	if (result == -1) {
-	    errno = (int)e->value[2];
-	}
-	RRPlay_Free(rrlog, e);
-
-	if (result >= 0) {
-	    logData((uint8_t*)buf, (size_t)result);
-	}
-    }
-
-    return result;
-}
 
 int __rr_sysctl(const int *name, u_int namelen, void *oldp,
 	     size_t *oldlenp, const void *newp, size_t newlen)
@@ -187,8 +141,6 @@ __rr_kevent(int kq, const struct kevent *changelist, int nchanges,
     return result;
 }
 
-
-BIND_REF(getdirentries);
 BIND_REF(kevent);
 __strong_reference(__rr_sysctl, __sysctl);
 
