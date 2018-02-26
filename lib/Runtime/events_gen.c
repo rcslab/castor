@@ -4,6 +4,8 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <time.h>
+
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -513,6 +515,72 @@ __rr_access(const char *path, int amode)
     case RRMODE_REPLAY:
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_ACCESS);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
+__rr_chflags(const char *path, unsigned long flags)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_chflags, path, flags);
+    case RRMODE_RECORD:
+	result = syscall(SYS_chflags, path, flags);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_CHFLAGS;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_CHFLAGS);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
+__rr_fchflags(int fd, unsigned long flags)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_fchflags, fd, flags);
+    case RRMODE_RECORD:
+	result = syscall(SYS_fchflags, fd, flags);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_FCHFLAGS;
+	e->objectId = (uint64_t) fd;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_FCHFLAGS);
+	AssertObject(e, (uint64_t) fd);
 	result = (int)e->value[0];
 	if (result == -1) {
 	    errno = e->value[1];
@@ -1416,6 +1484,76 @@ __rr_setrlimit(int which, const struct rlimit *rlp)
 }
 
 int
+__rr_clock_settime(clockid_t clock_id, const struct timespec *tp)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_clock_settime, clock_id, tp);
+    case RRMODE_RECORD:
+	result = syscall(SYS_clock_settime, clock_id, tp);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_CLOCK_SETTIME;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_CLOCK_SETTIME);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
+__rr_clock_getres(clockid_t clock_id, struct timespec *tp)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_clock_getres, clock_id, tp);
+    case RRMODE_RECORD:
+	result = syscall(SYS_clock_getres, clock_id, tp);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_CLOCK_GETRES;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) tp, (unsigned long)sizeof(struct timespec));
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_CLOCK_GETRES);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) tp, (unsigned long)sizeof(struct timespec));
+	}
+	break;
+    }
+    return result;
+}
+
+int
 __rr_lchown(const char *path, uid_t uid, gid_t gid)
 {
     int		    result;
@@ -1775,6 +1913,38 @@ __rr_eaccess(const char *path, int amode)
     case RRMODE_REPLAY:
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_EACCESS);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
+__rr_lchflags(const char *path, unsigned long flags)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_lchflags, path, flags);
+    case RRMODE_RECORD:
+	result = syscall(SYS_lchflags, path, flags);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_LCHFLAGS;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_LCHFLAGS);
 	result = (int)e->value[0];
 	if (result == -1) {
 	    errno = e->value[1];
@@ -2616,6 +2786,40 @@ __rr_cap_rights_limit(int fd, const cap_rights_t * rightsp)
 }
 
 int
+__rr_chflagsat(int fd, const char *path, unsigned long flags, int atflag)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_chflagsat, fd, path, flags, atflag);
+    case RRMODE_RECORD:
+	result = syscall(SYS_chflagsat, fd, path, flags, atflag);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_CHFLAGSAT;
+	e->objectId = (uint64_t) fd;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_CHFLAGSAT);
+	AssertObject(e, (uint64_t) fd);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
 __rr_accept4(int s, struct sockaddr *name, socklen_t * anamelen, int flags)
 {
     int		    result;
@@ -2912,6 +3116,8 @@ BIND_REF(accept);
 BIND_REF(getpeername);
 BIND_REF(getsockname);
 BIND_REF(access);
+BIND_REF(chflags);
+BIND_REF(fchflags);
 BIND_REF(stat);
 BIND_REF(lstat);
 BIND_REF(symlink);
@@ -2938,6 +3144,8 @@ BIND_REF(setegid);
 BIND_REF(seteuid);
 BIND_REF(getrlimit);
 BIND_REF(setrlimit);
+BIND_REF(clock_settime);
+BIND_REF(clock_getres);
 BIND_REF(lchown);
 BIND_REF(lchmod);
 BIND_REF(extattrctl);
@@ -2949,6 +3157,7 @@ BIND_REF(extattr_set_fd);
 BIND_REF(extattr_get_fd);
 BIND_REF(extattr_delete_fd);
 BIND_REF(eaccess);
+BIND_REF(lchflags);
 BIND_REF(extattr_set_link);
 BIND_REF(extattr_get_link);
 BIND_REF(extattr_delete_link);
@@ -2972,6 +3181,7 @@ BIND_REF(readlinkat);
 BIND_REF(unlinkat);
 BIND_REF(cap_enter);
 BIND_REF(cap_rights_limit);
+BIND_REF(chflagsat);
 BIND_REF(accept4);
 BIND_REF(fstat);
 BIND_REF(fstatat);

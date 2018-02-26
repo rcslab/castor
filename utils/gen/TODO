@@ -4,7 +4,6 @@
 
 -finish pending stuff in syscall list - merge into above stuff
 
-
 -push kevent annotation change for nevents/eventlist to syscalls.master.
 
 -autogenerate unsupported syscall list from handler spec.
@@ -34,3 +33,5 @@ entries for a given pointer _Out_ parameter.
 scalar types (e.g. getdirentries)
 
 -consider what to do with unsupported calls.
+
+-improve testing.

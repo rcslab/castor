@@ -91,3 +91,9 @@ extattr_set_fd
 extattr_set_file
 extattr_set_link
 extattrctl
+clock_getres
+clock_settime
+chflags
+lchflags
+chflagsat
+fchflags

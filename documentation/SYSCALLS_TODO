@@ -22,9 +22,6 @@ aio_waitcomplete
 aio_write
 lio_listio
 
-
-A:XXX: chroot -- elide on replay
-
 A:XXX: need to discuss unix domain socket support for IPC.
 connectat -- need to explicitly specify our model for IPC using unix domain sockets, seems
 	     like we should allow this to work on replay for socket pairs.
@@ -32,15 +29,9 @@ connectat -- need to explicitly specify our model for IPC using unix domain sock
 bindat
 socketpair
 
-A:XXX: clock_getres -- elide
-A:XXX: clock_settime -- elide
 
 A:XXX: closefrom -- need to explicitly specify what invariant we are maintaing
 for descriptor space -- potentially elide on replay
-
-A:XXX: chflags -- elide
-A:XXX: chflagsat -- elide
-XXX: fchflags -- elide
 
 XXX: Need to do something in recording agent to support this?
 	execve
