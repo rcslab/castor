@@ -42,6 +42,10 @@ eaccess
 faccessat
 truncate
 ftruncate
+chown
+fchown
+fchownat
+lchown
 chmod
 lchmod
 fchmod

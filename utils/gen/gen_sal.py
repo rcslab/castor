@@ -430,7 +430,8 @@ if __name__ == '__main__':
     read_libc_type_signatures()
     generate_preambles()
     generate_includes()
-    print "Generating event handlers: " + str(autogenerate_list)
+    print "Generating syscall handlers (%s):%s" %\
+            (len(autogenerate_list), str(autogenerate_list))
     syscall_description_list = remove_duplicate_syscalls(parse_spec())
     debug("syscall_description_list:", syscall_description_list)
     for desc in syscall_description_list:

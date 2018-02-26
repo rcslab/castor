@@ -38,13 +38,6 @@ A:XXX: clock_settime -- elide
 A:XXX: closefrom -- need to explicitly specify what invariant we are maintaing
 for descriptor space -- potentially elide on replay
 
-A: XXX: -- elide to support different numbers of cores on replay
-cpuset
-cpuset_getaffinity
-cpuset_getid
-cpuset_setaffinity
-cpuset_setid
-
 A: XXX: -- eliding for these
 extattr_delete_fd
 extattr_delete_file
@@ -63,12 +56,6 @@ extattrctl
 A:XXX: chflags -- elide
 A:XXX: chflagsat -- elide
 XXX: fchflags -- elide
-
-A:XXX: chown  -- elide
-XXX: fchown -- elide
-XXX: fchownat -- elide
-XXX: lchown -- elide
-
 
 XXX: Need to do something in recording agent to support this?
 	execve

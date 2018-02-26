@@ -1,5 +1,6 @@
--add flags to support quirky calls
-    - SYS___
+-add flags to support parameters in autogenerate_syscalls.
+    -e.g. quirky named calls  SYS___.
+    -use return value as logging size.
 
 -finish pending stuff in syscall list - merge into above stuff
 
