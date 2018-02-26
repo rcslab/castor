@@ -46,7 +46,6 @@ XXX: posix_fadvise
 XXX: posix_fallocate
 XXX: posix_openpt
 XXX: ppoll -- elide similar to select
-XXX: preadv -- elide
 
 XXX: this is currently fucked as we elide getpid, we should be keeping around
 a mapping of record pid -> replay pid mappings so these calls work correctly.

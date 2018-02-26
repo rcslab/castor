@@ -26,12 +26,12 @@ can we assume that any function for whome result != -1 is success will set errno
 -go through SYSCALL_TODO, add more unsupported calls, write some unit tests.
 -change code to correctly reference events_gen.h in the variant build directory.
 
--optimize recording of calls e.g. (read, kevent, ...) where we should only log (result) number of
-entries for a given pointer _Out_ parameter.
+-optimize recording of calls e.g. (read, kevent, ...) where we should only log (result) number of entries for a given pointer _Out_ parameter.
 
--optimize recording of socketlen_t parameters by storing them as values, and other
-scalar types (e.g. getdirentries)
+-optimize recording of socketlen_t parameters by storing them as values, and other scalar types (e.g. getdirentries), anything that is an _Out_parameter and scalar type.
 
 -consider what to do with unsupported calls.
 
 -improve testing.
+
+-teach gen_sal to log iovec's so we can support preadv/readv.

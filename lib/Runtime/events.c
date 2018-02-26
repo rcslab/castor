@@ -341,6 +341,36 @@ __rr_readv(int fd, const struct iovec *iov, int iovcnt)
     return result;
 }
 
+ssize_t
+__rr_preadv(int fd, const struct iovec *iov, int iovcnt, off_t offset)
+{
+    ssize_t result;
+    switch (rrMode) {
+        case RRMODE_NORMAL:
+            return syscall(SYS_preadv, fd, iov, iovcnt, offset);
+        case RRMODE_RECORD:
+            result = syscall(SYS_preadv, fd, iov, iovcnt, offset);
+            RRRecordOS(RREVENT_PREADV, fd, result);
+            if (result != -1) {
+              logData((uint8_t*)iov, (size_t) iovcnt * sizeof(struct iovec)); 
+                for (int i = 0; i < iovcnt; i++) {
+                    logData((uint8_t*)iov[i].iov_base, iov[i].iov_len);
+	        }
+	    }
+            break;
+        case RRMODE_REPLAY:
+            RRReplayOS(RREVENT_PREADV, fd, &result);
+            if (result != -1) {
+              logData((uint8_t*)iov, (size_t) iovcnt * sizeof(struct iovec)); 
+                for (int i = 0; i < iovcnt; i++) {
+                    logData((uint8_t*)iov[i].iov_base, iov[i].iov_len);
+	        }
+            }
+            break;
+    }
+
+    return result;
+}
 
 int
 __rr_getcwd(char * buf, size_t size)
@@ -859,6 +889,7 @@ BIND_REF(pipe);
 BIND_REF(pipe2);
 BIND_REF(pwrite);
 BIND_REF(readv);
+BIND_REF(preadv);
 BIND_REF(writev);
 
 //XXX: This is ugly, for some reason things sometimes break strangely when this lives in
