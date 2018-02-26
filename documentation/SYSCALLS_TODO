@@ -34,13 +34,8 @@ XXX: fexecve -- support using fdinfo table.
 
 XXX: fdatasync -- elide on replay
 
-XXX: getdtablesize -- elide
-
 XXX: getpgid -- elide
 XXX: getpgrp -- elide
-
-XXX: getresgid -- elide
-XXX: getresuid -- elide
 
 XXX: posix_fadvise
 XXX: posix_fallocate
@@ -183,14 +178,6 @@ sched_yield
 sctp_peeloff
 
 XXX: SysV IPC -- need to record synchronization for these/support these
-sem_close
-sem_getvalue
-sem_open
-sem_post
-sem_timedwait
-sem_trywait
-sem_unlink
-sem_wait
 semctl
 semget
 semop
@@ -207,7 +194,6 @@ msgget
 msgrcv
 msgsnd
 msgsys
-
 
 
 

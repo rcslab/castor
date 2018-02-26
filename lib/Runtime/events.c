@@ -289,6 +289,9 @@ __rr_openat(int fd, const char *path, int flags, ...)
     return result;
 }
 
+//XXX we need to document what invariants we maintain on
+//XXX replay for the descriptor space and make sure our model is
+//XXX completely implement.
 int
 __rr_close(int fd)
 {

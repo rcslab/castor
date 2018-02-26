@@ -8,10 +8,12 @@
 ;getgroups
 ;XXX
 ;XXX -- need to support uid_t/gid_t result types
-;getuid 
+;getuid
 ;geteuid
 ;getgid
 ;getegid
+;getresgid -- elide
+;getresuid -- elide
 ;XXX
 kevent
 getdirentries
@@ -117,8 +119,9 @@ futimes
 utimes
 lutimes
 uuidgen
+getdtablesize
+closefrom
 ;XXX  -- fixme
 ;futimesat
 ;futimens
 ;utimensat
-
