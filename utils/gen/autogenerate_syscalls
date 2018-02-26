@@ -56,8 +56,14 @@ rename
 chroot
 chdir
 fchdir
+;mknod XXX -- do we need to support COMPAT11 calls?
+mknodat
 mkdir
+mkdirat
 rmdir
+mkfifo
+mkfifoat
+symlinkat
 symlink
 unlink
 unlinkat
@@ -96,6 +102,8 @@ extattrctl
 clock_getres
 clock_settime
 chflags
+getfh
+lgetfh
 lchflags
 chflagsat
 fchflags
@@ -108,7 +116,9 @@ fhstatfs
 futimes
 utimes
 lutimes
+uuidgen
 ;XXX  -- fixme
 ;futimesat
 ;futimens
 ;utimensat
+

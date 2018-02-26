@@ -13,7 +13,7 @@
 
 -rename handlers_* to syscalls_* to reflect seperation of parser.
 
--figure out if these are still relavent
+-check completeness/correctness of SAL handling
     -finish parsing all SAL annotations.
     -finish code gen for all SAL annotations.
 

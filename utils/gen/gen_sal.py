@@ -134,7 +134,7 @@ def parse_logspec(sal, type):
        pass
     elif sal_tag == "_Out_writes_bytes_":
         log_spec = { 'size': sal_arg}
-    elif sal_tag == "_Out_writes_z_":
+    elif sal_tag in ["_Out_writes_z_", "_Out_writes_"]:
         count = sal_arg
         base_type = type.split('*')[0].strip()
         log_spec = { 'size': "%s * sizeof(%s)" % (count, base_type) }
@@ -340,6 +340,17 @@ def parse_flags():
     if len(sys.argv) == 2 and sys.argv[1] == '-v':
         verbose = True
 
+def find_duplicates(list):
+    seen = set()
+    duplicates = set()
+    for i in list:
+        if i in seen:
+            duplicates.add(i)
+        else:
+            seen.add(i)
+    return duplicates
+
+
 def read_autogenerate_list():
     global autogenerate_list
     autogenerate_list = []
@@ -347,6 +358,9 @@ def read_autogenerate_list():
                 autogenerate_list = f.read().splitlines()
     autogenerate_list = map(lambda x: x.strip(), autogenerate_list)
     autogenerate_list = filter(lambda x:not x.startswith(';') and len(x) > 0, autogenerate_list)
+    duplicates = find_duplicates(autogenerate_list)
+    if len(duplicates) > 0:
+        die("autogenerate_list contains duplicate entries:" + str(duplicates))
 
 def format_handlers():
     subprocess.check_call(["indent","-i4", HANDLER_PATH])

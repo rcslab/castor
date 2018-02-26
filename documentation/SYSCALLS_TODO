@@ -2,11 +2,7 @@ Overall:
 *ignore anything that requires root privilege for now.
 
 
-
-
 A:XXX: abort2 -- propose that we log abort just like exit before we call it.
-
-
 
 A:XXX: need to discuss this, seems like its related to signal handling support.
 XXX: support with kqueue and polling.
@@ -48,23 +44,13 @@ XXX: getpgrp -- elide
 XXX: getresgid -- elide
 XXX: getresuid -- elide
 
-XXX: lchflags -- elide
 lgetfh
-lpathconf
-lutimes
-
-XXX: mkdirat -- elide
-XXX: mkfifo -- elide
-XXX: mkfifoat -- elide
 
 XXX: posix_fadvise
 XXX: posix_fallocate
 XXX: posix_openpt
 XXX: ppoll -- elide similar to select
 XXX: preadv -- elide
-
-
-XXX: uuidgen -- elide
 
 XXX: this is currently fucked as we elide getpid, we should be keeping around
 a mapping of record pid -> replay pid mappings so these calls work correctly.
@@ -73,12 +59,6 @@ getpid
 kill
 wait4
 wait6
-
-XXX: utimensat -- elide
-XXX: utimes -- elide
-
-XXX: symlinkat -- elide
-
 
 Lower priority:
 
@@ -170,10 +150,6 @@ ffclock_setestimate
 
 
 
-XXX: mknod -- elide
-XXX: mknodat -- elide
-
-
 netbsd_lchown
 netbsd_msync
 nfssvc
@@ -182,7 +158,6 @@ nlm_syscall
 nlstat
 nmount
 nstat
-pathconf
 pdfork
 pdgetpid
 pdkill
@@ -305,5 +280,3 @@ __mac_set_link
 __mac_set_proc
 __setugid
 __syscall
-
-

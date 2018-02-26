@@ -23,6 +23,7 @@
 #include <sys/capsicum.h>
 #include <sys/extattr.h>
 #include <sys/time.h>
+#include <sys/uuid.h>
 
 #ifndef GEN_SAL
 
@@ -1182,6 +1183,38 @@ __rr_flock(int fd, int how)
     return result;
 }
 
+int
+__rr_mkfifo(const char *path, mode_t mode)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_mkfifo, path, mode);
+    case RRMODE_RECORD:
+	result = syscall(SYS_mkfifo, path, mode);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_MKFIFO;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_MKFIFO);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
 ssize_t
 __rr_sendto(int s, const void *buf, size_t len, int flags, const struct sockaddr *to, socklen_t tolen)
 {
@@ -1341,6 +1374,82 @@ __rr_utimes(const char *path, const struct timeval *tptr)
 	    errno = e->value[1];
 	}
 	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
+__rr_lgetfh(const char *fname, fhandle_t * fhp)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_lgetfh, fname, fhp);
+    case RRMODE_RECORD:
+	result = syscall(SYS_lgetfh, fname, fhp);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_LGETFH;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) fhp, (unsigned long)sizeof(fhandle_t));
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_LGETFH);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) fhp, (unsigned long)sizeof(fhandle_t));
+	}
+	break;
+    }
+    return result;
+}
+
+int
+__rr_getfh(const char *fname, fhandle_t * fhp)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_getfh, fname, fhp);
+    case RRMODE_RECORD:
+	result = syscall(SYS_getfh, fname, fhp);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_GETFH;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) fhp, (unsigned long)sizeof(fhandle_t));
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_GETFH);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) fhp, (unsigned long)sizeof(fhandle_t));
+	}
 	break;
     }
     return result;
@@ -2152,6 +2261,44 @@ __rr_lchflags(const char *path, unsigned long flags)
     return result;
 }
 
+int
+__rr_uuidgen(struct uuid *store, int count)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_uuidgen, store, count);
+    case RRMODE_RECORD:
+	result = syscall(SYS_uuidgen, store, count);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_UUIDGEN;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) store, (unsigned long)count * sizeof(struct uuid));
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_UUIDGEN);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) store, (unsigned long)count * sizeof(struct uuid));
+	}
+	break;
+    }
+    return result;
+}
+
 ssize_t
 __rr_extattr_set_link(const char *path, int attrnamespace, const char *attrname, const void *data, size_t nbytes)
 {
@@ -2842,6 +2989,74 @@ __rr_linkat(int fd1, const char *path1, int fd2, const char *path2, int flag)
     return result;
 }
 
+int
+__rr_mkdirat(int fd, const char *path, mode_t mode)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_mkdirat, fd, path, mode);
+    case RRMODE_RECORD:
+	result = syscall(SYS_mkdirat, fd, path, mode);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_MKDIRAT;
+	e->objectId = (uint64_t) fd;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_MKDIRAT);
+	AssertObject(e, (uint64_t) fd);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
+__rr_mkfifoat(int fd, const char *path, mode_t mode)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_mkfifoat, fd, path, mode);
+    case RRMODE_RECORD:
+	result = syscall(SYS_mkfifoat, fd, path, mode);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_MKFIFOAT;
+	e->objectId = (uint64_t) fd;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_MKFIFOAT);
+	AssertObject(e, (uint64_t) fd);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
 ssize_t
 __rr_readlinkat(int fd, const char *path, char *buf, size_t bufsize)
 {
@@ -2877,6 +3092,38 @@ __rr_readlinkat(int fd, const char *path, char *buf, size_t bufsize)
 	if (result != -1) {
 	    logData((uint8_t *) buf, (unsigned long)bufsize);
 	}
+	break;
+    }
+    return result;
+}
+
+int
+__rr_symlinkat(const char *path1, int fd, const char *path2)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_symlinkat, path1, fd, path2);
+    case RRMODE_RECORD:
+	result = syscall(SYS_symlinkat, path1, fd, path2);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_SYMLINKAT;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_SYMLINKAT);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
 	break;
     }
     return result;
@@ -3375,6 +3622,40 @@ __rr_fhstatfs(const struct fhandle *u_fhp, struct statfs *buf)
 }
 
 int
+__rr_mknodat(int fd, const char *path, mode_t mode, dev_t dev)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_mknodat, fd, path, mode, dev);
+    case RRMODE_RECORD:
+	result = syscall(SYS_mknodat, fd, path, mode, dev);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_MKNODAT;
+	e->objectId = (uint64_t) fd;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_MKNODAT);
+	AssertObject(e, (uint64_t) fd);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
 __rr_kevent(int fd, const struct kevent *changelist, int nchanges, struct kevent *eventlist, int nevents, const struct timespec *timeout)
 {
     int		    result;
@@ -3393,6 +3674,11 @@ __rr_kevent(int fd, const struct kevent *changelist, int nchanges, struct kevent
 	    e->value[1] = (uint64_t) errno;
 	}
 	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    if (eventlist != NULL) {
+		logData((uint8_t *) eventlist, (unsigned long)nevents * sizeof(struct kevent));
+	    }
+	}
 	break;
     case RRMODE_REPLAY:
 	e = RRPlay_Dequeue(rrlog, threadId);
@@ -3403,6 +3689,11 @@ __rr_kevent(int fd, const struct kevent *changelist, int nchanges, struct kevent
 	    errno = e->value[1];
 	}
 	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    if (eventlist != NULL) {
+		logData((uint8_t *) eventlist, (unsigned long)nevents * sizeof(struct kevent));
+	    }
+	}
 	break;
     }
     return result;
@@ -3440,11 +3731,14 @@ BIND_REF(fchown);
 BIND_REF(fchmod);
 BIND_REF(rename);
 BIND_REF(flock);
+BIND_REF(mkfifo);
 BIND_REF(sendto);
 BIND_REF(shutdown);
 BIND_REF(mkdir);
 BIND_REF(rmdir);
 BIND_REF(utimes);
+BIND_REF(lgetfh);
+BIND_REF(getfh);
 BIND_REF(setgid);
 BIND_REF(setegid);
 BIND_REF(seteuid);
@@ -3469,6 +3763,7 @@ BIND_REF(extattr_get_fd);
 BIND_REF(extattr_delete_fd);
 BIND_REF(eaccess);
 BIND_REF(lchflags);
+BIND_REF(uuidgen);
 BIND_REF(extattr_set_link);
 BIND_REF(extattr_get_link);
 BIND_REF(extattr_delete_link);
@@ -3488,7 +3783,10 @@ BIND_REF(faccessat);
 BIND_REF(fchmodat);
 BIND_REF(fchownat);
 BIND_REF(linkat);
+BIND_REF(mkdirat);
+BIND_REF(mkfifoat);
 BIND_REF(readlinkat);
+BIND_REF(symlinkat);
 BIND_REF(unlinkat);
 BIND_REF(lpathconf);
 BIND_REF(cap_enter);
@@ -3502,4 +3800,5 @@ BIND_REF(getdirentries);
 BIND_REF(statfs);
 BIND_REF(fstatfs);
 BIND_REF(fhstatfs);
+BIND_REF(mknodat);
 BIND_REF(kevent);

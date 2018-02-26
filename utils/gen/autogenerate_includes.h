@@ -19,6 +19,7 @@
 #include <sys/capsicum.h>
 #include <sys/extattr.h>
 #include <sys/time.h>
+#include <sys/uuid.h>
 
 #ifndef GEN_SAL
 
