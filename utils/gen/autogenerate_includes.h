@@ -15,6 +15,7 @@
 #include <sys/syscall.h>
 #include <sys/stat.h>
 #include <sys/capsicum.h>
+#include <sys/extattr.h>
 
 #ifndef GEN_SAL
 

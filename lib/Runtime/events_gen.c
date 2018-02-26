@@ -19,6 +19,7 @@
 #include <sys/syscall.h>
 #include <sys/stat.h>
 #include <sys/capsicum.h>
+#include <sys/extattr.h>
 
 #ifndef GEN_SAL
 
@@ -663,6 +664,38 @@ __rr_readlink(const char *path, char *buf, size_t count)
 	if (result != -1) {
 	    logData((uint8_t *) buf, (unsigned long)count * sizeof(char));
 	}
+	break;
+    }
+    return result;
+}
+
+int
+__rr_chroot(const char *path)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_chroot, path);
+    case RRMODE_RECORD:
+	result = syscall(SYS_chroot, path);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_CHROOT;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_CHROOT);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
 	break;
     }
     return result;
@@ -1447,6 +1480,140 @@ __rr_lchmod(const char *path, mode_t mode)
 }
 
 int
+__rr_extattrctl(const char *path, int cmd, const char *filename, int attrnamespace, const char *attrname)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_extattrctl, path, cmd, filename, attrnamespace, attrname);
+    case RRMODE_RECORD:
+	result = syscall(SYS_extattrctl, path, cmd, filename, attrnamespace, attrname);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_EXTATTRCTL;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_EXTATTRCTL);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+ssize_t
+__rr_extattr_set_file(const char *path, int attrnamespace, const char *attrname, const void *data, size_t nbytes)
+{
+    ssize_t	    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_extattr_set_file, path, attrnamespace, attrname, data, nbytes);
+    case RRMODE_RECORD:
+	result = syscall(SYS_extattr_set_file, path, attrnamespace, attrname, data, nbytes);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_EXTATTR_SET_FILE;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_EXTATTR_SET_FILE);
+	result = (ssize_t) e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+ssize_t
+__rr_extattr_get_file(const char *path, int attrnamespace, const char *attrname, void *data, size_t nbytes)
+{
+    ssize_t	    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_extattr_get_file, path, attrnamespace, attrname, data, nbytes);
+    case RRMODE_RECORD:
+	result = syscall(SYS_extattr_get_file, path, attrnamespace, attrname, data, nbytes);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_EXTATTR_GET_FILE;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) data, (unsigned long)nbytes);
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_EXTATTR_GET_FILE);
+	result = (ssize_t) e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) data, (unsigned long)nbytes);
+	}
+	break;
+    }
+    return result;
+}
+
+int
+__rr_extattr_delete_file(const char *path, int attrnamespace, const char *attrname)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_extattr_delete_file, path, attrnamespace, attrname);
+    case RRMODE_RECORD:
+	result = syscall(SYS_extattr_delete_file, path, attrnamespace, attrname);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_EXTATTR_DELETE_FILE;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_EXTATTR_DELETE_FILE);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
 __rr_kqueue()
 {
     int		    result;
@@ -1468,6 +1635,114 @@ __rr_kqueue()
     case RRMODE_REPLAY:
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_KQUEUE);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+ssize_t
+__rr_extattr_set_fd(int fd, int attrnamespace, const char *attrname, const void *data, size_t nbytes)
+{
+    ssize_t	    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_extattr_set_fd, fd, attrnamespace, attrname, data, nbytes);
+    case RRMODE_RECORD:
+	result = syscall(SYS_extattr_set_fd, fd, attrnamespace, attrname, data, nbytes);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_EXTATTR_SET_FD;
+	e->objectId = (uint64_t) fd;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_EXTATTR_SET_FD);
+	AssertObject(e, (uint64_t) fd);
+	result = (ssize_t) e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+ssize_t
+__rr_extattr_get_fd(int fd, int attrnamespace, const char *attrname, void *data, size_t nbytes)
+{
+    ssize_t	    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_extattr_get_fd, fd, attrnamespace, attrname, data, nbytes);
+    case RRMODE_RECORD:
+	result = syscall(SYS_extattr_get_fd, fd, attrnamespace, attrname, data, nbytes);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_EXTATTR_GET_FD;
+	e->objectId = (uint64_t) fd;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) data, (unsigned long)nbytes);
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_EXTATTR_GET_FD);
+	AssertObject(e, (uint64_t) fd);
+	result = (ssize_t) e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) data, (unsigned long)nbytes);
+	}
+	break;
+    }
+    return result;
+}
+
+int
+__rr_extattr_delete_fd(int fd, int attrnamespace, const char *attrname)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_extattr_delete_fd, fd, attrnamespace, attrname);
+    case RRMODE_RECORD:
+	result = syscall(SYS_extattr_delete_fd, fd, attrnamespace, attrname);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_EXTATTR_DELETE_FD;
+	e->objectId = (uint64_t) fd;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_EXTATTR_DELETE_FD);
+	AssertObject(e, (uint64_t) fd);
 	result = (int)e->value[0];
 	if (result == -1) {
 	    errno = e->value[1];
@@ -1505,6 +1780,236 @@ __rr_eaccess(const char *path, int amode)
 	    errno = e->value[1];
 	}
 	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+ssize_t
+__rr_extattr_set_link(const char *path, int attrnamespace, const char *attrname, const void *data, size_t nbytes)
+{
+    ssize_t	    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_extattr_set_link, path, attrnamespace, attrname, data, nbytes);
+    case RRMODE_RECORD:
+	result = syscall(SYS_extattr_set_link, path, attrnamespace, attrname, data, nbytes);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_EXTATTR_SET_LINK;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_EXTATTR_SET_LINK);
+	result = (ssize_t) e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+ssize_t
+__rr_extattr_get_link(const char *path, int attrnamespace, const char *attrname, void *data, size_t nbytes)
+{
+    ssize_t	    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_extattr_get_link, path, attrnamespace, attrname, data, nbytes);
+    case RRMODE_RECORD:
+	result = syscall(SYS_extattr_get_link, path, attrnamespace, attrname, data, nbytes);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_EXTATTR_GET_LINK;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) data, (unsigned long)nbytes);
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_EXTATTR_GET_LINK);
+	result = (ssize_t) e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) data, (unsigned long)nbytes);
+	}
+	break;
+    }
+    return result;
+}
+
+int
+__rr_extattr_delete_link(const char *path, int attrnamespace, const char *attrname)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_extattr_delete_link, path, attrnamespace, attrname);
+    case RRMODE_RECORD:
+	result = syscall(SYS_extattr_delete_link, path, attrnamespace, attrname);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_EXTATTR_DELETE_LINK;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_EXTATTR_DELETE_LINK);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+ssize_t
+__rr_extattr_list_fd(int fd, int attrnamespace, void *data, size_t nbytes)
+{
+    ssize_t	    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_extattr_list_fd, fd, attrnamespace, data, nbytes);
+    case RRMODE_RECORD:
+	result = syscall(SYS_extattr_list_fd, fd, attrnamespace, data, nbytes);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_EXTATTR_LIST_FD;
+	e->objectId = (uint64_t) fd;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    if (data != NULL) {
+		logData((uint8_t *) data, (unsigned long)nbytes);
+	    }
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_EXTATTR_LIST_FD);
+	AssertObject(e, (uint64_t) fd);
+	result = (ssize_t) e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    if (data != NULL) {
+		logData((uint8_t *) data, (unsigned long)nbytes);
+	    }
+	}
+	break;
+    }
+    return result;
+}
+
+ssize_t
+__rr_extattr_list_file(const char *path, int attrnamespace, void *data, size_t nbytes)
+{
+    ssize_t	    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_extattr_list_file, path, attrnamespace, data, nbytes);
+    case RRMODE_RECORD:
+	result = syscall(SYS_extattr_list_file, path, attrnamespace, data, nbytes);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_EXTATTR_LIST_FILE;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    if (data != NULL) {
+		logData((uint8_t *) data, (unsigned long)nbytes);
+	    }
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_EXTATTR_LIST_FILE);
+	result = (ssize_t) e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    if (data != NULL) {
+		logData((uint8_t *) data, (unsigned long)nbytes);
+	    }
+	}
+	break;
+    }
+    return result;
+}
+
+ssize_t
+__rr_extattr_list_link(const char *path, int attrnamespace, void *data, size_t nbytes)
+{
+    ssize_t	    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_extattr_list_link, path, attrnamespace, data, nbytes);
+    case RRMODE_RECORD:
+	result = syscall(SYS_extattr_list_link, path, attrnamespace, data, nbytes);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_EXTATTR_LIST_LINK;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    if (data != NULL) {
+		logData((uint8_t *) data, (unsigned long)nbytes);
+	    }
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_EXTATTR_LIST_LINK);
+	result = (ssize_t) e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    if (data != NULL) {
+		logData((uint8_t *) data, (unsigned long)nbytes);
+	    }
+	}
 	break;
     }
     return result;
@@ -2411,6 +2916,7 @@ BIND_REF(stat);
 BIND_REF(lstat);
 BIND_REF(symlink);
 BIND_REF(readlink);
+BIND_REF(chroot);
 BIND_REF(setgroups);
 BIND_REF(fsync);
 BIND_REF(socket);
@@ -2434,8 +2940,21 @@ BIND_REF(getrlimit);
 BIND_REF(setrlimit);
 BIND_REF(lchown);
 BIND_REF(lchmod);
+BIND_REF(extattrctl);
+BIND_REF(extattr_set_file);
+BIND_REF(extattr_get_file);
+BIND_REF(extattr_delete_file);
 BIND_REF(kqueue);
+BIND_REF(extattr_set_fd);
+BIND_REF(extattr_get_fd);
+BIND_REF(extattr_delete_fd);
 BIND_REF(eaccess);
+BIND_REF(extattr_set_link);
+BIND_REF(extattr_get_link);
+BIND_REF(extattr_delete_link);
+BIND_REF(extattr_list_fd);
+BIND_REF(extattr_list_file);
+BIND_REF(extattr_list_link);
 BIND_REF(pread);
 BIND_REF(lseek);
 BIND_REF(truncate);
