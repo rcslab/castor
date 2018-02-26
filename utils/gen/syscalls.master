@@ -1210,7 +1210,7 @@
 				    _In_reads_opt_(nchanges) \
 				    struct kevent *changelist, \
 				    int nchanges, \
-				    _In_reads_opt_(nevents) \
+				    _Out_writes_opt_(nevents) \
 				    struct kevent *eventlist, int nevents, \
 				    _In_opt_ const struct timespec *timeout); }
 ;XXX -- add annotations

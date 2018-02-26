@@ -21,15 +21,6 @@
 // sysctl
 #include <sys/sysctl.h>
 
-// poll/kqueue
-#include <poll.h>
-#include <sys/event.h>
-#include <sys/time.h>
-
-// statfs/fstatfs
-#include <sys/param.h>
-#include <sys/mount.h>
-
 #include <libc_private.h>
 
 #include <castor/debug.h>
@@ -88,59 +79,5 @@ int __rr_sysctl(const int *name, u_int namelen, void *oldp,
     return result;
 }
 
-int
-__rr_kevent(int kq, const struct kevent *changelist, int nchanges,
-	struct kevent *eventlist, int nevents,
-	const struct timespec *timeout)
-{
-    int result;
-    RRLogEntry *e;
-
-    if (rrMode == RRMODE_NORMAL) {
-	return syscall(SYS_kevent, kq, changelist, nchanges,
-		       eventlist, nevents, timeout);
-    }
-
-    if (rrMode == RRMODE_RECORD) {
-	result = syscall(SYS_kevent, kq, changelist, nchanges,
-			 eventlist, nevents, timeout);
-	e = RRLog_Alloc(rrlog, threadId);
-	e->event = RREVENT_KEVENT;
-	e->objectId = (uint64_t)kq;
-	e->value[0] = (uint64_t)result;
-	e->value[1] = (uint64_t)nchanges;
-	e->value[2] = (uint64_t)nevents;
-	if (result == -1) {
-	    e->value[3] = (uint64_t)errno;
-	}
-	RRLog_Append(rrlog, e);
-
-	if (result != -1) {
-	    if (eventlist != NULL) {
-		logData((uint8_t *)eventlist, sizeof(struct kevent) * 
-			(uint64_t)result);
-	    }
-	}
-    } else {
-	e = RRPlay_Dequeue(rrlog, threadId);
-	AssertEvent(e, RREVENT_KEVENT);
-	result = (int)e->value[0];
-	if (result == -1) {
-	    errno = (int)e->value[3];
-	}
-	RRPlay_Free(rrlog, e);
-
-	if (result != -1) {
-	    if (eventlist != NULL) {
-		logData((uint8_t *)eventlist, sizeof(struct kevent) * 
-			(uint64_t)result);
-	    }
-	}
-    }
-
-    return result;
-}
-
-BIND_REF(kevent);
 __strong_reference(__rr_sysctl, __sysctl);
 

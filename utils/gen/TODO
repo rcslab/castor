@@ -1,4 +1,10 @@
+-add flags to support quirky calls
+    - SYS___
+
 -finish pending stuff in syscall list - merge into above stuff
+
+
+-push kevent annotation change for nevents/eventlist to syscalls.master.
 
 -autogenerate unsupported syscall list from handler spec.
     -rename autogenerate_syscalls, to supported_syscalls
@@ -19,6 +25,9 @@ can we assume that any function for whome result != -1 is success will set errno
 
 -go through SYSCALL_TODO, add more unsupported calls, write some unit tests.
 -change code to correctly reference events_gen.h in the variant build directory.
+
+-optimize recording of calls e.g. (read, kevent, ...) where we should only log (result) number of
+entries for a given pointer _Out_ parameter.
 
 -optimize recording of socketlen_t parameters by storing them as values, and other
 scalar types (e.g. getdirentries)

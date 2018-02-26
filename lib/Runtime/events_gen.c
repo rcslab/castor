@@ -2228,6 +2228,40 @@ __rr_fstatfs(int fd, struct statfs *buf)
     return result;
 }
 
+int
+__rr_kevent(int fd, const struct kevent *changelist, int nchanges, struct kevent *eventlist, int nevents, const struct timespec *timeout)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_kevent, fd, changelist, nchanges, eventlist, nevents, timeout);
+    case RRMODE_RECORD:
+	result = syscall(SYS_kevent, fd, changelist, nchanges, eventlist, nevents, timeout);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_KEVENT;
+	e->objectId = (uint64_t) fd;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_KEVENT);
+	AssertObject(e, (uint64_t) fd);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
 BIND_REF(read);
 BIND_REF(link);
 BIND_REF(unlink);
@@ -2289,3 +2323,4 @@ BIND_REF(fstatat);
 BIND_REF(getdirentries);
 BIND_REF(statfs);
 BIND_REF(fstatfs);
+BIND_REF(kevent);
