@@ -25,7 +25,6 @@ connectat -- need to explicitly specify our model for IPC using unix domain sock
 bindat
 socketpair
 
-
 A:XXX: closefrom -- need to explicitly specify what invariant we are maintaing
 for descriptor space -- potentially elide on replay
 
@@ -35,7 +34,6 @@ XXX: fexecve -- support using fdinfo table.
 
 XXX: fdatasync -- elide on replay
 
-
 XXX: getdtablesize -- elide
 
 XXX: getpgid -- elide
@@ -43,8 +41,6 @@ XXX: getpgrp -- elide
 
 XXX: getresgid -- elide
 XXX: getresuid -- elide
-
-lgetfh
 
 XXX: posix_fadvise
 XXX: posix_fallocate
