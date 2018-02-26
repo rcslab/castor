@@ -22,6 +22,7 @@
 #include <sys/stat.h>
 #include <sys/capsicum.h>
 #include <sys/extattr.h>
+#include <sys/time.h>
 
 #ifndef GEN_SAL
 
@@ -1314,6 +1315,38 @@ __rr_rmdir(const char *path)
 }
 
 int
+__rr_utimes(const char *path, const struct timeval *tptr)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_utimes, path, tptr);
+    case RRMODE_RECORD:
+	result = syscall(SYS_utimes, path, tptr);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_UTIMES;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_UTIMES);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
 __rr_setgid(gid_t gid)
 {
     int		    result;
@@ -1409,6 +1442,72 @@ __rr_seteuid(uid_t euid)
     return result;
 }
 
+long
+__rr_pathconf(const char *path, int name)
+{
+    long	    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_pathconf, path, name);
+    case RRMODE_RECORD:
+	result = syscall(SYS_pathconf, path, name);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_PATHCONF;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_PATHCONF);
+	result = (long)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+long
+__rr_fpathconf(int fd, int name)
+{
+    long	    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_fpathconf, fd, name);
+    case RRMODE_RECORD:
+	result = syscall(SYS_fpathconf, fd, name);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_FPATHCONF;
+	e->objectId = (uint64_t) fd;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_FPATHCONF);
+	AssertObject(e, (uint64_t) fd);
+	result = (long)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
 int
 __rr_getrlimit(int which, struct rlimit *rlp)
 {
@@ -1473,6 +1572,40 @@ __rr_setrlimit(int which, const struct rlimit *rlp)
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_SETRLIMIT);
 	AssertObject(e, (uint64_t) which);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
+__rr_futimes(int fd, const struct timeval *tptr)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_futimes, fd, tptr);
+    case RRMODE_RECORD:
+	result = syscall(SYS_futimes, fd, tptr);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_FUTIMES;
+	e->objectId = (uint64_t) fd;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_FUTIMES);
+	AssertObject(e, (uint64_t) fd);
 	result = (int)e->value[0];
 	if (result == -1) {
 	    errno = e->value[1];
@@ -1607,6 +1740,70 @@ __rr_lchmod(const char *path, mode_t mode)
     case RRMODE_REPLAY:
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_LCHMOD);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
+__rr_lutimes(const char *path, const struct timeval *tptr)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_lutimes, path, tptr);
+    case RRMODE_RECORD:
+	result = syscall(SYS_lutimes, path, tptr);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_LUTIMES;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_LUTIMES);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
+__rr_fhopen(const struct fhandle *u_fhp, int flags)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_fhopen, u_fhp, flags);
+    case RRMODE_RECORD:
+	result = syscall(SYS_fhopen, u_fhp, flags);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_FHOPEN;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_FHOPEN);
 	result = (int)e->value[0];
 	if (result == -1) {
 	    errno = e->value[1];
@@ -2719,6 +2916,38 @@ __rr_unlinkat(int fd, const char *path, int flag)
     return result;
 }
 
+long
+__rr_lpathconf(const char *path, int name)
+{
+    long	    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_lpathconf, path, name);
+    case RRMODE_RECORD:
+	result = syscall(SYS_lpathconf, path, name);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_LPATHCONF;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_LPATHCONF);
+	result = (long)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
 int
 __rr_cap_enter()
 {
@@ -2950,6 +3179,44 @@ __rr_fstatat(int fd, const char *path, struct stat *buf, int flag)
 }
 
 int
+__rr_fhstat(const struct fhandle *u_fhp, struct stat *sb)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_fhstat, u_fhp, sb);
+    case RRMODE_RECORD:
+	result = syscall(SYS_fhstat, u_fhp, sb);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_FHSTAT;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) sb, (unsigned long)sizeof(struct stat));
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_FHSTAT);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) sb, (unsigned long)sizeof(struct stat));
+	}
+	break;
+    }
+    return result;
+}
+
+int
 __rr_getdirentries(int fd, char *buf, int count, long *basep)
 {
     int		    result;
@@ -3070,6 +3337,44 @@ __rr_fstatfs(int fd, struct statfs *buf)
 }
 
 int
+__rr_fhstatfs(const struct fhandle *u_fhp, struct statfs *buf)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_fhstatfs, u_fhp, buf);
+    case RRMODE_RECORD:
+	result = syscall(SYS_fhstatfs, u_fhp, buf);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_FHSTATFS;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) buf, (unsigned long)sizeof(struct statfs));
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_FHSTATFS);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) buf, (unsigned long)sizeof(struct statfs));
+	}
+	break;
+    }
+    return result;
+}
+
+int
 __rr_kevent(int fd, const struct kevent *changelist, int nchanges, struct kevent *eventlist, int nevents, const struct timespec *timeout)
 {
     int		    result;
@@ -3139,15 +3444,21 @@ BIND_REF(sendto);
 BIND_REF(shutdown);
 BIND_REF(mkdir);
 BIND_REF(rmdir);
+BIND_REF(utimes);
 BIND_REF(setgid);
 BIND_REF(setegid);
 BIND_REF(seteuid);
+BIND_REF(pathconf);
+BIND_REF(fpathconf);
 BIND_REF(getrlimit);
 BIND_REF(setrlimit);
+BIND_REF(futimes);
 BIND_REF(clock_settime);
 BIND_REF(clock_getres);
 BIND_REF(lchown);
 BIND_REF(lchmod);
+BIND_REF(lutimes);
+BIND_REF(fhopen);
 BIND_REF(extattrctl);
 BIND_REF(extattr_set_file);
 BIND_REF(extattr_get_file);
@@ -3179,13 +3490,16 @@ BIND_REF(fchownat);
 BIND_REF(linkat);
 BIND_REF(readlinkat);
 BIND_REF(unlinkat);
+BIND_REF(lpathconf);
 BIND_REF(cap_enter);
 BIND_REF(cap_rights_limit);
 BIND_REF(chflagsat);
 BIND_REF(accept4);
 BIND_REF(fstat);
 BIND_REF(fstatat);
+BIND_REF(fhstat);
 BIND_REF(getdirentries);
 BIND_REF(statfs);
 BIND_REF(fstatfs);
+BIND_REF(fhstatfs);
 BIND_REF(kevent);

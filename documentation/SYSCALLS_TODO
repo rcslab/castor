@@ -40,14 +40,6 @@ XXX: fexecve -- support using fdinfo table.
 XXX: fdatasync -- elide on replay
 
 
-XXX: fhopen -- elide
-XXX: fhstat -- elide
-XXX: fhstatfs -- elide
-XXX: fpathconf -- elide
-XXX: futimens -- elide
-XXX: futimes -- elide
-XXX: futimesat -- elide
-
 XXX: getdtablesize -- elide
 
 XXX: getpgid -- elide

@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include <sys/capsicum.h>
 #include <sys/extattr.h>
+#include <sys/time.h>
 
 #ifndef GEN_SAL
 

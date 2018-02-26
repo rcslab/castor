@@ -1,4 +1,6 @@
+;calls to remove from core runtime.
 ;getcwd -- XXX weird naming convention thing not supported yet.
+;sysctl
 ;umask -- XXX will require adding new type to generator
 ;sendfile --- XXX get unit test working first
 ;XXX uses result of call for logData size, not supported yet.
@@ -97,3 +99,16 @@ chflags
 lchflags
 chflagsat
 fchflags
+fpathconf
+lpathconf
+pathconf
+fhopen
+fhstat
+fhstatfs
+futimes
+utimes
+lutimes
+;XXX  -- fixme
+;futimesat
+;futimens
+;utimensat
