@@ -12,9 +12,14 @@
 ;geteuid
 ;getgid
 ;getegid
-;getresgid -- elide
-;getresuid -- elide
+;getresgid
+;getresuid
 ;XXX
+;closefrom -- return's void, icky, maybe just put this in events.c.
+;XXX  -- fixme
+;futimesat
+;futimens
+;utimensat
 kevent
 getdirentries
 kqueue
@@ -120,8 +125,3 @@ utimes
 lutimes
 uuidgen
 getdtablesize
-closefrom
-;XXX  -- fixme
-;futimesat
-;futimens
-;utimensat

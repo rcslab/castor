@@ -806,6 +806,38 @@ __rr_setgroups(int gidsetsize, const gid_t * gidset)
 }
 
 int
+__rr_getdtablesize()
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_getdtablesize);
+    case RRMODE_RECORD:
+	result = syscall(SYS_getdtablesize);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_GETDTABLESIZE;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_GETDTABLESIZE);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
 __rr_fsync(int fd)
 {
     int		    result;
@@ -3720,6 +3752,7 @@ BIND_REF(symlink);
 BIND_REF(readlink);
 BIND_REF(chroot);
 BIND_REF(setgroups);
+BIND_REF(getdtablesize);
 BIND_REF(fsync);
 BIND_REF(socket);
 BIND_REF(connect);
