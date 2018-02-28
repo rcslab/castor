@@ -105,7 +105,7 @@
 				    _Inout_opt_ caddr_t addr, int data); }
 27	AUE_RECVMSG	STD	{ int recvmsg(int s, _Inout_ struct msghdr *msg, \
 				    int flags); }
-28	AUE_SENDMSG	STD	{ int sendmsg(int s, _In_ struct msghdr *msg, \
+28	AUE_ENDMSG	STD	{ int sendmsg(int s, _In_ struct msghdr *msg, \
 				    int flags); }
 29	AUE_RECVFROM	STD	{ int recvfrom(int s, \
 				    _Out_writes_bytes_(len) caddr_t buf, \
@@ -246,10 +246,13 @@
 99	AUE_ACCEPT	COMPAT|NOARGS { int accept(int s, caddr_t name, \
 				    int *anamelen); } accept accept_args int
 100	AUE_GETPRIORITY	STD	{ int getpriority(int which, int who); }
-101	AUE_SEND	COMPAT	{ int send(int s, caddr_t buf, int len, \
-				    int flags); }
-102	AUE_RECV	COMPAT	{ int recv(int s, caddr_t buf, int len, \
-				    int flags); }
+101	AUE_SEND	COMPAT	{ int send(int s, \
+					_In_reads_bytes_(len) caddr_t buf, \
+					int len, \
+					int flags); }
+102	AUE_RECV	COMPAT	{ int recv(int s, \
+					_Out_writes_bytes_(len) caddr_t buf,\
+					int len, int flags); }
 103	AUE_SIGRETURN	COMPAT	{ int sigreturn( \
 				    struct osigcontext *sigcntxp); }
 104	AUE_BIND	STD	{ int bind(int s, \

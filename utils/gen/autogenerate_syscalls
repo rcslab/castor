@@ -43,6 +43,8 @@ listen
 connect
 setsockopt
 sendmsg
+send
+recv
 sendto
 fsync
 lseek

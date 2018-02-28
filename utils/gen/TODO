@@ -1,3 +1,5 @@
+-commit changes to syscalls.master back to freebsd head patch.
+
 -finish pending stuff in syscall list - merge into above stuff
 -add flags to support parameters in autogenerate_syscalls.
     -e.g. quirky named calls  SYS___.
