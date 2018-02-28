@@ -45,6 +45,7 @@ extern int _pthread_mutex_trylock(pthread_mutex_t *mutex);
 extern int __pthread_mutex_lock(pthread_mutex_t *mutex);
 extern int _pthread_mutex_unlock(pthread_mutex_t *mutex);
 extern int _pthread_mutex_destroy(pthread_mutex_t *mutex);
+extern int _pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct timespec *abs_timeout);
 
 extern int _pthread_spin_init(pthread_spinlock_t *lock, int pshared);
 extern int _pthread_spin_destroy(pthread_spinlock_t *lock);
@@ -57,8 +58,10 @@ extern int _pthread_rwlock_destroy(pthread_rwlock_t *lock);
 extern int _pthread_rwlock_unlock(pthread_rwlock_t *lock);
 extern int _pthread_rwlock_tryrdlock(pthread_rwlock_t *lock);
 extern int _pthread_rwlock_rdlock(pthread_rwlock_t *lock);
+extern int _pthread_rwlock_timedrdlock(pthread_rwlock_t *lock, const struct timespec *abs_timeout);
 extern int _pthread_rwlock_trywrlock(pthread_rwlock_t *lock);
 extern int _pthread_rwlock_wrlock(pthread_rwlock_t *lock);
+extern int _pthread_rwlock_timedwrlock(pthread_rwlock_t *lock, const struct timespec *abs_timeout);
 
 extern int _pthread_cond_init(pthread_cond_t *cond, const pthread_condattr_t *attr);
 extern int _pthread_cond_destroy(pthread_cond_t *cond);
@@ -565,6 +568,50 @@ pthread_mutex_unlock(pthread_mutex_t *mtx)
     return result;
 }
 
+int 
+pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct timespec *abs_timeout)
+{
+    int result = -1;
+    RRLogEntry *e;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL: {
+	    result = _pthread_mutex_timedlock(mutex, abs_timeout);
+	    break;
+	}
+	case RRMODE_RECORD: {
+	    RRLog_LEnter(threadId, (uint64_t)mutex);
+
+	    result = _pthread_mutex_timedlock(mutex, abs_timeout);
+
+	    e = RRLog_LAlloc(threadId);
+	    e->event = RREVENT_MUTEX_TIMEDLOCK;
+	    e->objectId = (uint64_t)mutex;
+	    e->value[0] = (uint64_t)result;
+	    e->value[4] = __builtin_readcyclecounter();
+	    RRLog_LAppend(e);
+	    break;
+	}
+	case RRMODE_REPLAY: {
+	    RRPlay_LEnter(threadId, (uint64_t)mutex);
+	    e = RRPlay_LDequeue(threadId);
+	    AssertEvent(e, RREVENT_MUTEX_TIMEDLOCK);
+      
+      /* Record call was successful, wait until replay call matches */
+      if (e->value[0] == 0)
+        while (result != 0)
+          result = _pthread_mutex_timedlock(mutex, abs_timeout);
+      else 
+        result = e->value[0];
+      
+	    RRPlay_LFree(e);
+	    break;
+	}
+    }
+
+    return result;
+}
+
 int
 pthread_spin_init(pthread_spinlock_t *lock, int pshared)
 {
@@ -805,6 +852,50 @@ pthread_rwlock_rdlock(pthread_rwlock_t *lock)
 }
 
 int
+pthread_rwlock_timedrdlock(pthread_rwlock_t *lock, const struct timespec *abs_timeout)
+{
+    int result = -1;
+    RRLogEntry *e;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL: {
+	    result = _pthread_rwlock_timedrdlock(lock, abs_timeout);
+	    break;
+	}
+	case RRMODE_RECORD: {
+	    RRLog_LEnter(threadId, (uint64_t)lock);
+
+	    result = _pthread_rwlock_timedrdlock(lock, abs_timeout);
+
+	    e = RRLog_LAlloc(threadId);
+	    e->event = RREVENT_RWLOCK_TIMEDRDLOCK;
+	    e->objectId = (uint64_t)lock;
+	    e->value[0] = (uint64_t)result;
+	    e->value[4] = __builtin_readcyclecounter();
+	    RRLog_LAppend(e);
+	    break;
+	}
+	case RRMODE_REPLAY: {
+	    RRPlay_LEnter(threadId, (uint64_t)lock);
+	    e = RRPlay_LDequeue(threadId);
+	    AssertEvent(e, RREVENT_RWLOCK_TIMEDRDLOCK);
+
+      /* Record call was successful, wait until replay call matches */
+      if (e->value[0] == 0)
+        while (result != 0)
+          result = _pthread_rwlock_timedrdlock(lock, abs_timeout);
+      else 
+        result = e->value[0];
+	    
+	    RRPlay_LFree(e);
+	    break;
+	}
+    }
+
+    return result;
+}
+
+int
 pthread_rwlock_tryrdlock(pthread_rwlock_t *lock)
 {
     int result = 0;
@@ -867,6 +958,50 @@ pthread_rwlock_wrlock(pthread_rwlock_t *lock)
 	    e = RRPlay_LDequeue(threadId);
 	    AssertEvent(e, RREVENT_RWLOCK_WRLOCK);
 	    // ASSERT result = e->value[0];
+	    RRPlay_LFree(e);
+	    break;
+	}
+    }
+
+    return result;
+}
+
+int
+pthread_rwlock_timedwrlock(pthread_rwlock_t *lock, const struct timespec *abs_timeout)
+{
+    int result = -1;
+    RRLogEntry *e;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL: {
+	    result = _pthread_rwlock_timedwrlock(lock, abs_timeout);
+	    break;
+	}
+	case RRMODE_RECORD: {
+	    RRLog_LEnter(threadId, (uint64_t)lock);
+
+	    result = _pthread_rwlock_timedwrlock(lock, abs_timeout);
+
+	    e = RRLog_LAlloc(threadId);
+	    e->event = RREVENT_RWLOCK_TIMEDWRLOCK;
+	    e->objectId = (uint64_t)lock;
+	    e->value[0] = (uint64_t)result;
+	    e->value[4] = __builtin_readcyclecounter();
+	    RRLog_LAppend(e);
+	    break;
+	}
+	case RRMODE_REPLAY: {
+	    RRPlay_LEnter(threadId, (uint64_t)lock);
+	    e = RRPlay_LDequeue(threadId);
+	    AssertEvent(e, RREVENT_RWLOCK_TIMEDWRLOCK);
+
+      /* Record call was successful, wait until replay call matches */
+      if (e->value[0] == 0)
+        while (result != 0)
+          result = _pthread_rwlock_timedwrlock(lock, abs_timeout);
+      else 
+        result = e->value[0];
+	    
 	    RRPlay_LFree(e);
 	    break;
 	}
