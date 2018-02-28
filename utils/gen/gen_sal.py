@@ -1,16 +1,21 @@
 #!/usr/bin/env python
 
 import sys
+import os
 import re
 import subprocess
+import copy
 
 HANDLER_PATH = "./events_gen.c"
 HEADER_PATH = "./events_gen.h"
+INCLUDES_PATH = "./autogenerate_includes.h"
 
 cout = open(HANDLER_PATH, "w")
 hout = open(HEADER_PATH, "w")
 
 verbose = False
+type_signatures = None
+autogenerate_list = None
 
 def die(message):
     raise ValueError(message)
@@ -22,7 +27,6 @@ def debug(*args):
 def incomplete(*args):
     if verbose:
         print "INCOMPLETE ".join(map(str,args))
-
 
 def c_output(line):
     if verbose:
@@ -36,21 +40,13 @@ def h_output(line):
     line = line + '\n'
     hout.write(line)
 
-def get_comparison(spec):
-    table = {'@success_zero': 'result == 0',
-             '@success_pos': 'result > 0',
-             '@success_nneg': 'result != -1'}
-    if spec['success'] == None:
-        die("syscall `%s` is missing an  @success annotation" % spec['name'])
-    return table[spec['success']]
-
 def gen_log_data(spec):
     gen_log = False
     for arg in spec['args_spec']:
         if arg['log_spec'] != None:
             gen_log = True
     if gen_log:
-        c_output("\t\tif (%s) {" % get_comparison(spec))
+        c_output("\t\tif (result != -1) {")
         for arg in spec['args_spec']:
             if arg['log_spec'] != None:
                 #XXX formatting ugly
@@ -65,7 +61,7 @@ def gen_log_data(spec):
 def generate_handler(spec):
     debug("handler_desc:", spec)
     name = spec['name']
-    result_type = spec['result_type']
+    return_type = spec['return_type']
     arg_list = [arg['type'] + ' ' + arg['name'] for arg in spec['args_spec']]
     arg_names = [arg['name'] for arg in spec['args_spec']]
     arg_types =  [arg['type'] for arg in spec['args_spec']]
@@ -77,10 +73,10 @@ def generate_handler(spec):
     syscall_str =  "syscall(%s)" % ", ".join(call_args)
 
     #handler opening
-    c_output("\n%s" % result_type)
+    c_output("\n%s" % return_type)
     c_output("__rr_%s(%s)" % (name, arg_string))
     c_output("{")
-    c_output("%s result;" % result_type)
+    c_output("%s result;" % return_type)
     c_output("RRLogEntry *e;\n")
 
     #c_output("DLOG(\"entering %s\");" % name)
@@ -111,7 +107,7 @@ def generate_handler(spec):
     c_output("AssertEvent(e, %s);" % event_number)
     if leading_object:
         c_output("AssertObject(e, (uint64_t)%s);" % arg_names[0])
-    c_output("result = (%s)e->value[0];" % result_type)
+    c_output("result = (%s)e->value[0];" % return_type)
     c_output("if (result == -1) {")
     c_output("errno = e->value[1];")
     c_output("}")
@@ -154,15 +150,16 @@ def parse_logspec(sal, type):
     return log_spec
 
 
-def parse_args(arg_string):
+def parse_args(arg_string, handler_spec):
     args_spec = []
     args = arg_string.split(',')
     debug("args:", args)
-    for arg in args:
+    for i in range(0, len(args)):
         arg_spec = {}
+        arg = args[i]
+        arg = arg.strip()
         if arg == 'void':
             break
-        arg = arg.strip()
 
         #chop name
         so = re.search("(\w+$)", arg)
@@ -178,62 +175,51 @@ def parse_args(arg_string):
             so = re.search(SAL_PATTERN, arg)
             sal = {'tag': so.group('tag'), 'arg' :so.group('arg')}
             arg = re.sub(SAL_PATTERN,"",arg)
-            arg_spec['sal'] = sal
             debug("arg_sal:", str(sal))
+        arg_spec['sal'] = sal
 
         #type is whats left
         arg_spec['type'] = arg.strip()
-
         debug("arg_type:" + arg_spec['type'])
-
-        if sal != None:
-            arg_spec['log_spec'] = parse_logspec(arg_spec['sal'], arg_spec['type'])
-        else:
-            arg_spec['log_spec'] = None
-
         args_spec = args_spec + [arg_spec]
+
     debug("args_spec: " + str(args_spec))
     return args_spec
 
-def parse_proto(line):
-    handler_spec = {}
-    debug("parse_proto(%s)" % (line))
-    pivot = line.index('(')
-    prefix = line[:pivot]
-    suffix = line[pivot:]
+def parse_proto(proto, handler_spec):
+    debug("parse_proto(%s)" % (proto))
+    proto = proto.strip()
+    pivot = proto.index('(')
+    prefix = proto[:pivot]
+    suffix = proto[pivot:]
     debug("prefix:" + prefix)
     debug("suffix:%s<eol>" % (suffix))
-    prefix_list = prefix.split()
-    success = None
-    if len(prefix_list) == 3:
-        success = prefix_list[0]
-        result_type = prefix_list[1]
-        name = prefix_list[2]
-    else:
-        result_type = prefix_list[0]
-        name = prefix_list[1]
+    return_type, name = prefix.split()
     debug("name:" + name)
-    debug("result_type:" + result_type)
+    debug("return_type:" + return_type)
     handler_spec['name'] = name
-    handler_spec['result_type'] = result_type
-    handler_spec['success'] = success
+    handler_spec['return_type'] = return_type
     arg_string = suffix.strip('(); ')
-    handler_spec['args_spec'] = parse_args(arg_string)
+    handler_spec['args_spec'] = parse_args(arg_string, handler_spec)
     return handler_spec
 
 def parse_spec_line(line):
     debug("spec_line:" + line)
+    handler_spec = {}
     pivot = line.index('{')
     prefix = line[:pivot]
     proto = line[pivot:]
     debug("prefix:" + prefix)
     debug("proto:" + proto)
     number, name, type = prefix.split()
-    if type in ['OBSOL', 'UNIMPL']:
-        debug("Obsolete or unused line")
+    handler_spec['decl_type'] = type
+    if not type in ['STD', 'COMPAT']:
+        debug("===Unused line===")
     else:
-        proto = proto.strip('{}')
-        return parse_proto(proto)
+        tail = proto.rfind('}')
+        proto = proto[:tail]
+        proto = proto.strip('{')
+        return parse_proto(proto, handler_spec)
 
 def parse_preprocessor(line):
     debug("preprocessor:", line)
@@ -251,11 +237,25 @@ def parse_unused(line):
     debug("unused:" + line)
     #XXX: add an assertion to check this
 
+#STD spec_lines take precendence over COMPAT lines
+def remove_duplicate_syscalls(syscall_description_list):
+    desc_list = copy.deepcopy(syscall_description_list)
+    for desc_a in desc_list:
+        for desc_b in desc_list:
+            if desc_a['name'] == desc_b['name'] and desc_a != desc_b:
+                if desc_a['decl_type'] == 'STD' and desc_b['decl_type'] == 'COMPAT':
+                    desc_list.remove(desc_b)
+                elif desc_a['decl_type'] == 'COMPAT' and desc_b['decl_type'] == 'STD':
+                    desc_list.remove(desc_a)
+                else:
+                    die("unrecognized duplication for" + desc_a['name'])
+    return desc_list
+
 def parse_spec():
     line_number = 0
     partial_line = None
     spec_line = None
-    handler_description_list = []
+    syscall_description_list = []
 
     for line in sys.stdin:
         if verbose:
@@ -271,10 +271,11 @@ def parse_spec():
             elif line.startswith(";") or line.startswith("$"):
                 parse_spec_comment(line)
             elif line[0].isdigit():
-                if '{' in line and '}' in line:
-                    spec_line = line
-                elif '{' in line:
+                if line.endswith("\\"):
                     partial_line = line
+                    debug("partial line:", line)
+                elif '{' in line and '}' in line:
+                    spec_line = line
                 else:
                     parse_unused(line)
             else:
@@ -283,26 +284,24 @@ def parse_spec():
             if line.endswith("\\"):
                 partial_line = partial_line + line
                 debug("partial line:", partial_line)
-            elif line.endswith('}'):
+            else:
                 partial_line = partial_line + line
                 debug("partial line:", partial_line)
                 spec_line = partial_line.replace("\\","")
                 partial_line = None
-            else:
-                die("parse error")
 
         if spec_line:
             finished = spec_line
             spec_line = None
             try:
-                handler_desc = parse_spec_line(finished)
-                if handler_desc:
-                    handler_description_list.append(handler_desc)
+                syscall_desc = parse_spec_line(finished)
+                if syscall_desc:
+                    syscall_description_list.append(syscall_desc)
             except:
                 debug("Unknown parsing error on line %d" % line_number)
                 raise
 
-    return handler_description_list
+    return syscall_description_list
 
 def generate_preambles():
     preamble = """
@@ -326,7 +325,7 @@ def generate_header_file(generated):
     h_output("#endif")
 
 def generate_includes():
-    with open('autogenerate_includes') as f:
+    with open(INCLUDES_PATH) as f:
             includes_list = f.read().splitlines()
     for include in includes_list:
         c_output(include)
@@ -342,27 +341,101 @@ def parse_flags():
         verbose = True
 
 def read_autogenerate_list():
+    global autogenerate_list
+    autogenerate_list = []
     with open('autogenerate_syscalls') as f:
                 autogenerate_list = f.read().splitlines()
     autogenerate_list = map(lambda x: x.strip(), autogenerate_list)
     autogenerate_list = filter(lambda x:not x.startswith(';') and len(x) > 0, autogenerate_list)
-    return autogenerate_list
 
 def format_handlers():
-    subprocess.call(["indent","-i4", HANDLER_PATH])
+    subprocess.check_call(["indent","-i4", HANDLER_PATH])
+    backup_path = HANDLER_PATH + ".BAK"
+    os.unlink(backup_path)
     print "...formatting complete..."
+
+#XXX half ass heuristic to remove variable names if present
+def clean_types(arg):
+    parts = arg.split()
+    result = parts
+    if len(parts) == 1:
+        pass
+    elif '*' in arg:
+        result = arg.split('*')[:-1] + ['*']
+    elif len(parts) > 1:
+        if parts[-2] in ['char', 'short', 'int', 'long'] \
+                or parts[-2].endswith('_t'):
+                    result = parts[:-1]
+    return ' '.join(result)
+
+def read_libc_type_signatures():
+    global type_signatures
+    type_signatures = {}
+    output_path = INCLUDES_PATH[:-1] + "E"
+    subprocess.check_call(["cc","-E","-P", "-DGEN_SAL", INCLUDES_PATH, "-o", output_path])
+    with open(output_path) as f:
+        src_exprs = f.read().split(';')
+    os.unlink(output_path)
+    for expr in src_exprs:
+        match = re.search("(?P<return_type>(^[\w\s\*]+))\s"\
+                          "(?P<name>(\w+))\("\
+                          "(?P<args>([\w\s,\*^)]+))\)", expr)
+        if match != None:
+            return_type = match.group('return_type').strip()
+            name = match.group('name').strip()
+            args = re.sub('\n','',match.group('args')).split(',')
+            args = map(lambda x:x.strip(), args)
+            args = map(lambda x:clean_types(x), args)
+            if name in type_signatures:
+                die("duplicate entry")
+            type_signatures[name] = {'name': name, 'return_type': return_type, 'args' : args}
+        else:
+            debug("no match:" + expr)
+    debug("type_signatures:", type_signatures)
+
+def add_logspec(desc):
+    logged_desc = copy.deepcopy(desc)
+    for arg_spec in logged_desc['args_spec']:
+        if arg_spec['sal'] != None:
+            arg_spec['log_spec'] = parse_logspec(arg_spec['sal'], arg_spec['type'])
+        else:
+            arg_spec['log_spec'] = None
+    return logged_desc
+
+def resolve_types(desc):
+    resolved_desc = copy.deepcopy(desc)
+    name = desc['name']
+    if not name in type_signatures:
+        die("Missing type signature for: " + desc['name'])
+    sig = type_signatures[name]
+    args_spec = desc['args_spec']
+    for i in range(0, len(args_spec)):
+        sig_arg_type = sig['args'][i]
+        spec_arg_type = args_spec[i]['type']
+        if sig_arg_type != spec_arg_type:
+            debug("type_mismatch in %s, in arg %s, %s != %s: resolving to %s" %
+                    (name, i, spec_arg_type, sig_arg_type, sig_arg_type))
+            resolved_desc['args_spec'][i]['type'] = sig_arg_type
+        if sig['return_type'] != desc['return_type']:
+            debug("type_mismatch in %s, return type %s != %s: resolving to %s" %
+                    (name, desc['return_type'], sig['return_type'], sig['return_type']))
+            resolved_desc['return_type'] = sig['return_type']
+    return resolved_desc
 
 if __name__ == '__main__':
     generated = []
     parse_flags()
+    read_autogenerate_list()
+    read_libc_type_signatures()
     generate_preambles()
     generate_includes()
-    autogenerate_list = read_autogenerate_list()
     print "Generating event handlers: " + str(autogenerate_list)
-    handler_description_list = parse_spec()
-    debug("desc:", handler_description_list)
-    for desc in handler_description_list:
+    syscall_description_list = remove_duplicate_syscalls(parse_spec())
+    debug("syscall_description_list:", syscall_description_list)
+    for desc in syscall_description_list:
         if desc['name'] in autogenerate_list:
+            desc = resolve_types(desc)
+            desc = add_logspec(desc)
             generate_handler(desc)
             generated = generated + [desc['name']]
     generate_bindings(generated)
