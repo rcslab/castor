@@ -1,17 +1,13 @@
+-finish pending stuff in syscall list - merge into above stuff
 -add flags to support parameters in autogenerate_syscalls.
     -e.g. quirky named calls  SYS___.
     -use return value as logging size.
 
--finish pending stuff in syscall list - merge into above stuff
-
--push kevent annotation change for nevents/eventlist to syscalls.master.
 
 -autogenerate unsupported syscall list from handler spec.
     -rename autogenerate_syscalls, to supported_syscalls
     -add list of pass_through calls
     -unsupported calls = all_calls - pass_through - supported
-
--rename handlers_* to syscalls_* to reflect seperation of parser.
 
 -check completeness/correctness of SAL handling
     -finish parsing all SAL annotations.
