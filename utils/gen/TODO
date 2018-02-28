@@ -3,12 +3,6 @@
     -e.g. quirky named calls  SYS___.
     -use return value as logging size.
 
-
--autogenerate unsupported syscall list from handler spec.
-    -rename autogenerate_syscalls, to supported_syscalls
-    -add list of pass_through calls
-    -unsupported calls = all_calls - pass_through - supported
-
 -check completeness/correctness of SAL handling
     -finish parsing all SAL annotations.
     -finish code gen for all SAL annotations.
