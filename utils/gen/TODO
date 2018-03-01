@@ -27,3 +27,6 @@ can we assume that any function for whome result != -1 is success will set errno
 -improve testing.
 
 -teach gen_sal to log iovec's so we can support preadv/readv.
+
+-come up with a theory of passthrough, document it, make sure all calls in passthrough
+conform to this theory -- same thing with unsupported.
