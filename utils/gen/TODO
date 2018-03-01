@@ -9,6 +9,9 @@
     -finish parsing all SAL annotations.
     -finish code gen for all SAL annotations.
 
+-write pass to sanity check SAL annotations, ensure that pointers have an associated
+annotation.
+
 -rename to autogen.
 
 #just add comment about this..
