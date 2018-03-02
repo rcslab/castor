@@ -1,0 +1,63 @@
+;no signals
+sigaction
+sigaltstack
+sigblock
+sigpending
+sigprocmask
+sigqueue
+sigreturn
+sigsetmask
+sigstack
+sigsuspend
+sigtimedwait
+sigvec
+sigwait
+sigwaitinfo
+
+;no jails
+jail
+jail_attach
+jail_get
+jail_remove
+jail_set
+
+
+;XXX no loading kernel modules (no great reason for this one -- should move to another class
+kldfind
+kldfirstmod
+kldload
+kldnext
+kldstat
+kldsym
+kldunload
+kldunloadf
+modfind
+modfnext
+modnext
+modstat
+
+;no process tracing support -- again maybe revist this if demand
+ptrace
+utrace
+ktrace
+procctl
+profil
+
+;we only know about codes that calls through pthreads, can't deal with stuff that uses this directly
+_umtx_op
+
+;undocumented
+
+ktimer_create
+ktimer_delete
+ktimer_getoverrun
+ktimer_gettime
+ktimer_settime
+yield
+__setugid
+obreak
+ovadvise
+getkerninfo
+clock_getcpuclockid2
+mac_syscall
+sstk

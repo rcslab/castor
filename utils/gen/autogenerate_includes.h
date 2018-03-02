@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
+#include <kenv.h>
 
 #include <sys/types.h>
 #include <sys/event.h>
@@ -20,6 +21,13 @@
 #include <sys/extattr.h>
 #include <sys/time.h>
 #include <sys/uuid.h>
+#include <sys/reboot.h>
+#include <ufs/ufs/quota.h>
+#include <sys/timex.h>
+#include <sys/timeffc.h>
+#include <sys/rctl.h>
+#include <bsm/audit.h>
+#include <sys/ucred.h>
 
 #ifndef GEN_SAL
 

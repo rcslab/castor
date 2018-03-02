@@ -16,28 +16,28 @@ SUPPORT_CALL_TYPES = ['STD', 'COMPAT']
 cout = open(HANDLER_PATH, "w")
 hout = open(HEADER_PATH, "w")
 
-verbose = False
+debug_flag = False
 type_signatures = None
 
 def die(message):
     raise ValueError(message)
 
 def debug(*args):
-    if verbose:
+    if debug_flag:
         print "DEBUG>>  ".join(map(str,args))
 
 def incomplete(*args):
-    if verbose:
+    if debug_flag:
         print "INCOMPLETE ".join(map(str,args))
 
 def c_output(line):
-    if verbose:
+    if debug_flag:
         debug("cout", line)
     line = line + '\n'
     cout.write(line)
 
 def h_output(line):
-    if verbose:
+    if debug_flag:
         debug("hout", line)
     line = line + '\n'
     hout.write(line)
@@ -152,16 +152,17 @@ def parse_logspec(sal, type):
     return log_spec
 
 
-def parse_args(arg_string, handler_spec):
+def parse_args(args_string, handler_spec):
     args_spec = []
-    args = arg_string.split(',')
+    if args_string == 'void':
+        return args_spec
+
+    args = args_string.split(',')
     debug("args:", args)
     for i in range(0, len(args)):
         arg_spec = {}
         arg = args[i]
         arg = arg.strip()
-        if arg == 'void':
-            break
 
         #chop name
         so = re.search("(\w+$)", arg)
@@ -260,7 +261,7 @@ def parse_spec():
     syscall_description_list = []
 
     for line in sys.stdin:
-        if verbose:
+        if debug_flag:
             sys.stdout.write("\n" + str(line_number) + " >> " +  line)
         line_number += 1
         line = line.strip()
@@ -338,9 +339,9 @@ def generate_bindings(generated):
         c_output("BIND_REF(%s);" % name)
 
 def parse_flags():
-    global verbose
-    if len(sys.argv) == 2 and sys.argv[1] == '-v':
-        verbose = True
+    global debug_flag
+    if len(sys.argv) == 2 and sys.argv[1] == '-d':
+        debug_flag = True
 
 def find_duplicates(list):
     seen = set()
@@ -388,13 +389,20 @@ def read_libc_type_signatures():
     type_signatures = {}
     output_path = INCLUDES_PATH[:-1] + "E"
     subprocess.check_call(["cc","-E","-P", "-DGEN_SAL", INCLUDES_PATH, "-o", output_path])
+    src_lines = []
     with open(output_path) as f:
-        src_exprs = f.read().split(';')
-    os.unlink(output_path)
-    for expr in src_exprs:
+        line = f.readline()
+        while line != '':
+            while re.search(',$',line) != None:
+                line = line.strip() + f.readline().lstrip()
+            debug("src_line:" + line)
+            src_lines.append(line)
+            line = f.readline()
+
+    for line in src_lines:
         match = re.search("(?P<return_type>(^[\w\s\*]+))\s"\
                           "(?P<name>(\w+))\("\
-                          "(?P<args>([\w\s,\*^)]+))\)", expr)
+                          "(?P<args>([\w\s,\*^)]+))\)", line)
         if match != None:
             return_type = match.group('return_type').strip()
             name = match.group('name').strip()
@@ -402,10 +410,14 @@ def read_libc_type_signatures():
             args = map(lambda x:x.strip(), args)
             args = map(lambda x:clean_types(x), args)
             if name in type_signatures:
-                die("duplicate entry")
+                current = type_signatures[name]
+                if (return_type != current['return_type'] or args != current['args']):
+                    die("conficting type signatures for :" + name )
             type_signatures[name] = {'name': name, 'return_type': return_type, 'args' : args}
         else:
-            debug("no match:" + expr)
+            debug("no match:" + line)
+    if not debug_flag:
+        os.unlink(output_path)
     debug("type_signatures:", type_signatures)
     return type_signatures
 
@@ -421,22 +433,34 @@ def add_logspec(desc):
 def resolve_types(desc, type_signatures):
     resolved_desc = copy.deepcopy(desc)
     name = desc['name']
-    if not name in type_signatures:
+    libc_name = re.sub("^__", "", name)
+    if libc_name in type_signatures:
+        sig = type_signatures[libc_name]
+    else:
         die("Missing type signature for: \'%s\', you might be"\
                 "missing an entry in autogenerate_includes.h" %  desc['name'])
-    sig = type_signatures[name]
     args_spec = desc['args_spec']
-    for i in range(0, len(args_spec)):
-        sig_arg_type = sig['args'][i]
-        spec_arg_type = args_spec[i]['type']
-        if sig_arg_type != spec_arg_type:
-            debug("type_mismatch in %s, in arg %s, %s != %s: resolving to %s" %
-                    (name, i, spec_arg_type, sig_arg_type, sig_arg_type))
-            resolved_desc['args_spec'][i]['type'] = sig_arg_type
-        if sig['return_type'] != desc['return_type']:
-            debug("type_mismatch in %s, return type %s != %s: resolving to %s" %
-                    (name, desc['return_type'], sig['return_type'], sig['return_type']))
-            resolved_desc['return_type'] = sig['return_type']
+
+    if args_spec == [] and sig['args'] == ['void']:
+        pass
+    elif len(args_spec) != len(sig['args']):
+        print "number of args mismatch for " + name
+        print "args_spec:", args_spec
+        print "sig['args']", sig['args']
+        die("can't resolve types")
+    else:
+        for i in range(0, len(args_spec)):
+            sig_arg_type = sig['args'][i]
+            spec_arg_type = args_spec[i]['type']
+            if sig_arg_type != spec_arg_type:
+                debug("type_mismatch in %s, in arg %s, %s != %s: resolving to %s" %
+                        (name, i, spec_arg_type, sig_arg_type, sig_arg_type))
+                resolved_desc['args_spec'][i]['type'] = sig_arg_type
+
+    if sig['return_type'] != desc['return_type']:
+        debug("type_mismatch in %s, return type %s != %s: resolving to %s" %
+                (name, desc['return_type'], sig['return_type'], sig['return_type']))
+        resolved_desc['return_type'] = sig['return_type']
     return resolved_desc
 
 def output_missing_calls(missing_list):
@@ -458,11 +482,12 @@ if __name__ == '__main__':
     all_syscalls_list = map(lambda x:x['name'], syscall_description_list)
     autogenerate_list = read_syscall_list('autogenerate_syscalls')
     passthrough_list = read_syscall_list('passthrough_syscalls')
+    unimplemented_list = read_syscall_list('unimplemented_syscalls')
     unsupported_list = read_syscall_list('unsupported_syscalls')
     core_runtime_list = subprocess.check_output('./core_runtime_syscalls.sh').split()
     missing_list = list(set(all_syscalls_list) - set(autogenerate_list) - \
                         set(passthrough_list) - set(unsupported_list) - \
-                        set(core_runtime_list))
+                        set(core_runtime_list) - set(unimplemented_list))
 
     generate_preambles()
     generate_includes()
@@ -491,8 +516,11 @@ if __name__ == '__main__':
         print "Core Runtime calls:(%s)" % len(core_runtime_list)
         print "Autogenerated calls:(%s)" % len(autogenerate_list)
         print "Passthrough calls:(%s)" % len(passthrough_list)
+        print "Unimplemented calls:(%s)" % len(unimplemented_list)
         print "Unsupported calls:(%s)" % len(unsupported_list)
         print "Missing calls:(%s)" % len(missing_list)
-        output_missing_calls(missing_list)
+
+        if len(missing_list) > 0:
+            output_missing_calls(missing_list)
 
 

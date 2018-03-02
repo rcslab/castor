@@ -1,16 +1,34 @@
+;XXX add rationale for these, really need to have working theory of process control
+;XXX some of these should probably be moved to unsupported.
 clock_nanosleep
+execve
+fexecve
+getpgid
+getpgrp
+setpgid
+pdfork
+pdgetpid
+pdkill
+kill
+killpg
+vfork
+rfork
+wait4
+wait6
+wait
 nanosleep
 setsid
 getsid
+posix_openpt
 msync
 munlock
 munlockall
 munmap
-wait
 madvise
 mincore
 minherit
 swapcontext
+setcontext
 getcontext
 mlock
 mlockall
@@ -25,3 +43,8 @@ thr_self
 thr_set_name
 thr_suspend
 thr_wake
+abort2
+nosys
+rtprio
+rtprio_thread
+sys_exit

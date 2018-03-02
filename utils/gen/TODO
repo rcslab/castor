@@ -23,7 +23,8 @@ can we assume that any function for whome result != -1 is success will set errno
 
 -optimize recording of calls e.g. (read, kevent, ...) where we should only log (result) number of entries for a given pointer _Out_ parameter.
 
--optimize recording of socketlen_t parameters by storing them as values, and other scalar types (e.g. getdirentries), anything that is an _Out_parameter and scalar type.
+-optimize recording of socketlen_t parameters by storing them as values, and other scalar types (e.g. getdirentries), anything that is an _Out_parameter and scalar type, if it
+is an aggregate type, check the size and if small enough, shove it into values.
 
 -consider what to do with unsupported calls.
 
