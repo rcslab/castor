@@ -34,3 +34,5 @@ is an aggregate type, check the size and if small enough, shove it into values.
 
 -come up with a theory of passthrough, document it, make sure all calls in passthrough
 conform to this theory -- same thing with unsupported.
+
+-update README.md
