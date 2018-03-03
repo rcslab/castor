@@ -1,1 +1,1 @@
-../../clean.sh
+../../common/clean.sh

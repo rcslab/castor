@@ -1,1 +1,1 @@
-../../test-validate.sh
+../../common/test-validate.sh
