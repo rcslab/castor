@@ -14,8 +14,8 @@ FORMAT = "%-32s [ %s%-9s"+ NORMAL + " ]"
 RRFORMAT = "%-32s [ %s%-9s"+ NORMAL + " ] %-10.6f %-10.6f %-10.6f %-10.6f"
 TFORMAT = "%-32s [ %s%-9s"+ NORMAL + " ] %-10.6f %-10s %-10s"
 
-TESTDIR = 'tests'
-TESTS = sorted(os.listdir(TESTDIR))
+TESTDIR = None
+TESTS = []
 failed = [ ]
 disabled = [ ]
 
@@ -136,6 +136,14 @@ def Cleanup():
     subprocess.getoutput('killall -9 -m record replay')
 
 def RunTests():
+    global TESTDIR
+    global TESTS
+    home = os.path.dirname(__file__)
+    os.chdir(home)
+    home = os.getcwd()
+    TESTDIR = 'tests'
+    TESTS = sorted(os.listdir(TESTDIR))
+
     disabled_list = read_disabled_list()
     for t in TESTS:
         if t in disabled_list:
@@ -143,7 +151,6 @@ def RunTests():
             continue
         if os.path.isfile(t):
             continue
-        home = os.getcwd()
         tdir = os.path.join(TESTDIR, t)
         os.chdir(tdir)
         CleanTest(t)

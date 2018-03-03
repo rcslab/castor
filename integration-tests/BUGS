@@ -1,2 +1,4 @@
 -IO buffer flushing is inconsistent, RECORD/REPLAY/TXGQ unreliable hence the use
 of grep in test-validate.sh instead of sed to remove these lines.
+
+-We are not propogating application failures back to script to check for failures.

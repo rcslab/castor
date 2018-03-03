@@ -1,0 +1,6 @@
+logs/
+*.normal
+*.record
+*.replay
+__*
+
