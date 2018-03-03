@@ -105,7 +105,7 @@
 				    _Inout_opt_ caddr_t addr, int data); }
 27	AUE_RECVMSG	STD	{ int recvmsg(int s, _Inout_ struct msghdr *msg, \
 				    int flags); }
-28	AUE_ENDMSG	STD	{ int sendmsg(int s, _In_ struct msghdr *msg, \
+28	AUE_SENDMSG	STD	{ int sendmsg(int s, _In_ struct msghdr *msg, \
 				    int flags); }
 29	AUE_RECVFROM	STD	{ int recvfrom(int s, \
 				    _Out_writes_bytes_(len) caddr_t buf, \
