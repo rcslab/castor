@@ -2,3 +2,5 @@
 of grep in test-validate.sh instead of sed to remove these lines.
 
 -We are not propogating application failures back to script to check for failures.
+
+-Currently we are keeping copies of the test binaries instead of symlinking to them.
