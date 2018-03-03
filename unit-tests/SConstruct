@@ -30,5 +30,5 @@ for t in tests:
     t = test_env.Program(t, [t+".c"])
     testbench_deps.append(t)
 
-AlwaysBuild(Alias('testbench', testbench_deps, "test/testbench.py"))
+AlwaysBuild(Alias('testbench', testbench_deps, "unit-tests/testbench.py"))
 

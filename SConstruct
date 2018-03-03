@@ -170,8 +170,8 @@ cp = env.Command("#lib/Pass/libCastorPass.so",
             "cd lib/Pass && cmake . && cmake --build .")
 env.Alias("CastorPass", "#lib/Pass/libCastorPass.so")
 
-VariantDir("build/test", "test")
-SConscript("#build/test/SConstruct")
+VariantDir("build/unit-tests", "unit-tests")
+SConscript("#build/unit-tests/SConstruct")
 
 VariantDir("build/perf", "perf")
 SConscript("#build/perf/SConstruct")

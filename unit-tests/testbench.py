@@ -20,7 +20,7 @@ recordtool = "../build/tools/record/record"
 replaytool = "../build/tools/replay/replay"
 
 all_tests = []
-for f in sorted(os.listdir('test/')):
+for f in sorted(os.listdir('unit-tests/')):
     if f.endswith(".c"):
         all_tests.append(os.path.basename(f[0:-2]))
 
@@ -104,7 +104,7 @@ def read_disabled_list():
 def RunTest(name):
     write(FORMAT % (name, NORMAL, "Running"))
 
-    pname = "../build/test/" + name
+    pname = "../build/unit-tests/" + name
 
     # Normal
     norm_time = Run([], pname, name + ".normal")
@@ -127,8 +127,8 @@ def RunTest(name):
     write("\n")
 
 basedir = os.getcwd()
-if (basedir.split('/')[-1] != 'test'):
-    os.chdir('test')
+if (basedir.split('/')[-1] != 'unit-tests'):
+    os.chdir('unit-tests')
 
 if len(sys.argv) > 1:
     for t in sys.argv[1:]:
