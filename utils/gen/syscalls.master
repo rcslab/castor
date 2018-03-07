@@ -22,7 +22,7 @@
 ;	altrtyp	return type if not int (bogus - syscalls always return int)
 ;		for UNIMPL/OBSOL, name continues with comments
 
-; types:
+; Types:
 ;	STD	always included
 ;	COMPAT	included on COMPAT #ifdef
 ;	COMPAT4	included on COMPAT_FREEBSD4 #ifdef (FreeBSD 4 compat)
@@ -43,7 +43,31 @@
 ;		function prototype in sys/sysproto.h.  Does add a
 ;		definition to syscall.h besides adding a sysent.
 ;	NOTSTATIC syscall is loadable
+
+; Annotations:
+;	SAL 2.0 annotations are used to specify how system calls treat
+;	arguments that are passed using pointers. There are three basic annotations.
 ;
+;	_In_    Object pointed to will be read and not modified.
+;	_Out_   Object pointed to will be written and not read.
+;	_Inout_ Object pointed to will be written and read.
+;
+;	These annotations are used alone when the pointer refers to a single
+;	object i.e. scalar types, structs, and pointers, and not NULL. Adding
+;	the _opt_ suffix, e.g. _In_opt_, implies that the pointer may also
+;	refer to NULL.
+;
+;	For pointers to arrays, additional suffixes are added:
+;
+;	_In_z_, _Out_z_, _Inout_z_:
+;	    for a NUL terminated array e.g. a string.
+;	_In_reads_z_(n),_Out_writes_z_(n), _Inout_updates_z_(n):
+;	    for a NUL terminated array e.g. a string, of known length n bytes.
+;	_In_reads_(n),_Out_writes_(n),_Inout_updates_(n):
+;	    for an array of n elements.
+;	_In_reads_bytes_(n), _Out_writes_bytes_(n), _Inout_updates_bytes(n):
+;	    for a buffer of n-bytes.
+
 ; Please copy any additions and changes to the following compatability tables:
 ; sys/compat/freebsd32/syscalls.master
 
@@ -79,7 +103,7 @@
 6	AUE_CLOSE	STD	{ int close(int fd); }
 7	AUE_WAIT4	STD	{ int wait4(int pid, _Out_opt_ int *status, \
 				    int options, _Out_opt_ struct rusage *rusage); }
-8	AUE_CREAT	COMPAT	{ int creat(char *path, int mode); }
+8	AUE_CREAT	COMPAT	{ int creat(_In_z_ char *path, int mode); }
 9	AUE_LINK	STD	{ int link(_In_z_ char *path, _In_z_ char *link); }
 10	AUE_UNLINK	STD	{ int unlink(_In_z_ char *path); }
 11	AUE_NULL	OBSOL	execv
@@ -88,7 +112,7 @@
 14	AUE_MKNOD	COMPAT11 { int mknod(_In_z_ char *path, int mode, int dev); }
 15	AUE_CHMOD	STD	{ int chmod(_In_z_ char *path, int mode); }
 16	AUE_CHOWN	STD	{ int chown(_In_z_ char *path, int uid, int gid); }
-17	AUE_NULL	STD	{ int obreak(char *nsize); } break \
+17	AUE_NULL	STD	{ int obreak(_In_ char *nsize); } break \
 				    obreak_args int
 18	AUE_GETFSSTAT	COMPAT4	{ int getfsstat(struct ostatfs *buf, \
 				    long bufsize, int mode); }
@@ -142,8 +166,8 @@
 45	AUE_KTRACE	STD	{ int ktrace(_In_z_ const char *fname,\
 				    int ops, int facs, int pid); }
 46	AUE_SIGACTION	COMPAT	{ int sigaction(int signum, \
-				    struct osigaction *nsa, \
-				    struct osigaction *osa); }
+				    _In_opt_ struct osigaction *nsa, \
+				    _Out_opt_ struct osigaction *osa); }
 47	AUE_GETGID	STD	{ gid_t getgid(void); }
 48	AUE_SIGPROCMASK	COMPAT	{ int sigprocmask(int how, osigset_t mask); }
 ; XXX note nonstandard (bogus) calling convention - the libc stub passes
@@ -159,13 +183,13 @@
 54	AUE_IOCTL	STD	{ int ioctl(int fd, u_long com, \
 				    _Inout_opt_ caddr_t data); }
 55	AUE_REBOOT	STD	{ int reboot(int opt); }
-56	AUE_REVOKE	STD	{ int revoke(char *path); }
+56	AUE_REVOKE	STD	{ int revoke(_In_z_ char *path); }
 57	AUE_SYMLINK	STD	{ int symlink(_In_z_ char *path, _In_z_ char *link); }
 58	AUE_READLINK	STD	{ ssize_t readlink(_In_z_ char *path, \
 				    _Out_writes_z_(count) char *buf, \
 				    size_t count); }
 ; XXX-BD: Arguably argv and envv are _In_z_, but the SAL documentation is
-; inconsistant about NUL terminated string, vs NULL terminted array so
+; inconsistent about NUL terminated string, vs NULL terminted array so
 ; _In_ for now.
 59	AUE_EXECVE	STD	{ int execve( \
 				    _In_z_ char *fname, \
@@ -174,27 +198,28 @@
 60	AUE_UMASK	STD	{ int umask(int newmask); } umask umask_args \
 				    int
 61	AUE_CHROOT	STD	{ int chroot(_In_z_ char *path); }
-62	AUE_FSTAT	COMPAT	{ int fstat(int fd, struct ostat *sb); }
-63	AUE_NULL	COMPAT	{ int getkerninfo(int op, char *where, \
-				    size_t *size, int arg); } getkerninfo \
+62	AUE_FSTAT	COMPAT	{ int fstat(int fd, _Out_ struct ostat *sb); }
+63	AUE_NULL	COMPAT	{ int getkerninfo(int op,\
+				    _Out_writes_bytes_opt(*size) char *where, \
+				    _Inout_opt_ size_t *size, int arg); } getkerninfo \
 				    getkerninfo_args int
 64	AUE_NULL	COMPAT	{ int getpagesize(void); } getpagesize \
 				    getpagesize_args int
-65	AUE_MSYNC	STD	{ int msync(void *addr, size_t len, \
+65	AUE_MSYNC	STD	{ int msync(_In_ void *addr, size_t len, \
 				    int flags); }
 66	AUE_VFORK	STD	{ int vfork(void); }
 67	AUE_NULL	OBSOL	vread
 68	AUE_NULL	OBSOL	vwrite
 69	AUE_SBRK	STD	{ int sbrk(int incr); }
 70	AUE_SSTK	STD	{ int sstk(int incr); }
-71	AUE_MMAP	COMPAT	{ int mmap(void *addr, int len, int prot, \
+71	AUE_MMAP	COMPAT	{ int mmap(_In_ void *addr, int len, int prot, \
 				    int flags, int fd, long pos); }
 72	AUE_O_VADVISE	STD	{ int ovadvise(int anom); } vadvise \
 				    ovadvise_args int
-73	AUE_MUNMAP	STD	{ int munmap(void *addr, size_t len); }
-74	AUE_MPROTECT	STD	{ int mprotect(void *addr, \
+73	AUE_MUNMAP	STD	{ int munmap(_In_ void *addr, size_t len); }
+74	AUE_MPROTECT	STD	{ int mprotect(_In_ void *addr, \
 				    size_t len, int prot); }
-75	AUE_MADVISE	STD	{ int madvise(void *addr, \
+75	AUE_MADVISE	STD	{ int madvise(_In_ void *addr, \
 				    size_t len, int behav); }
 76	AUE_NULL	OBSOL	vhangup
 77	AUE_NULL	OBSOL	vlimit
@@ -217,10 +242,10 @@
 85	AUE_SWAPON	STD	{ int swapon(_In_z_ char *name); }
 86	AUE_GETITIMER	STD	{ int getitimer(u_int which, \
 				    _Out_ struct itimerval *itv); }
-87	AUE_SYSCTL	COMPAT	{ int gethostname(char *hostname, \
+87	AUE_SYSCTL	COMPAT	{ int gethostname(_Out_writes_z_(len) char *hostname, \
 				    u_int len); } gethostname \
 				    gethostname_args int
-88	AUE_SYSCTL	COMPAT	{ int sethostname(char *hostname, \
+88	AUE_SYSCTL	COMPAT	{ int sethostname(_In_reads_z_(len) char *hostname, \
 				    u_int len); } sethostname \
 				    sethostname_args int
 89	AUE_GETDTABLESIZE	STD	{ int getdtablesize(void); }
@@ -254,7 +279,7 @@
 					_Out_writes_bytes_(len) caddr_t buf,\
 					int len, int flags); }
 103	AUE_SIGRETURN	COMPAT	{ int sigreturn( \
-				    struct osigcontext *sigcntxp); }
+				    _In_ struct osigcontext *sigcntxp); }
 104	AUE_BIND	STD	{ int bind(int s, \
 				    _In_reads_bytes_(namelen) caddr_t name, \
 				    int namelen); }
@@ -263,16 +288,16 @@
 				    int valsize); }
 106	AUE_LISTEN	STD	{ int listen(int s, int backlog); }
 107	AUE_NULL	OBSOL	vtimes
-108	AUE_NULL	COMPAT	{ int sigvec(int signum, struct sigvec *nsv, \
-				    struct sigvec *osv); }
+108	AUE_NULL	COMPAT	{ int sigvec(int signum, _In_opt_ struct sigvec *nsv, \
+				    _Out_opt_ struct sigvec *osv); }
 109	AUE_NULL	COMPAT	{ int sigblock(int mask); }
 110	AUE_NULL	COMPAT	{ int sigsetmask(int mask); }
 111	AUE_NULL	COMPAT	{ int sigsuspend(osigset_t mask); }
 ; XXX note nonstandard (bogus) calling convention - the libc stub passes
 ; us the mask, not a pointer to it.
-112	AUE_NULL	COMPAT	{ int sigstack(struct sigstack *nss, \
-				    struct sigstack *oss); }
-113	AUE_RECVMSG	COMPAT	{ int recvmsg(int s, struct omsghdr *msg, \
+112	AUE_NULL	COMPAT	{ int sigstack(_In_opt_ struct sigstack *nss, \
+				    _Out_opt_ struct sigstack *oss); }
+113	AUE_RECVMSG	COMPAT	{ int recvmsg(int s, _Inout_ struct omsghdr *msg, \
 				    int flags); }
 114	AUE_SENDMSG	COMPAT	{ int sendmsg(int s, caddr_t msg, \
 				    int flags); }
@@ -300,7 +325,7 @@
 126	AUE_SETREUID	STD	{ int setreuid(int ruid, int euid); }
 127	AUE_SETREGID	STD	{ int setregid(int rgid, int egid); }
 128	AUE_RENAME	STD	{ int rename(_In_z_ char *from, _In_z_ char *to); }
-129	AUE_TRUNCATE	COMPAT	{ int truncate(char *path, long length); }
+129	AUE_TRUNCATE	COMPAT	{ int truncate(_In_z_ char *path, long length); }
 130	AUE_FTRUNCATE	COMPAT	{ int ftruncate(int fd, long length); }
 131	AUE_FLOCK	STD	{ int flock(int fd, int how); }
 132	AUE_MKFIFO	STD	{ int mkfifo(_In_z_ char *path, int mode); }
@@ -319,14 +344,16 @@
 139	AUE_NULL	OBSOL	4.2 sigreturn
 140	AUE_ADJTIME	STD	{ int adjtime(_In_ struct timeval *delta, \
 				    _Out_opt_ struct timeval *olddelta); }
-141	AUE_GETPEERNAME	COMPAT	{ int getpeername(int fdes, caddr_t asa, \
-				    int *alen); }
+141	AUE_GETPEERNAME	COMPAT	{ int getpeername(int fdes, \
+				    _Out_writes_bytes_(*alen) \
+				    caddr_t asa, \
+				    _Inout_opt_ int *alen); }
 142	AUE_SYSCTL	COMPAT	{ long gethostid(void); }
 143	AUE_SYSCTL	COMPAT	{ int sethostid(long hostid); }
-144	AUE_GETRLIMIT	COMPAT	{ int getrlimit(u_int which, struct \
+144	AUE_GETRLIMIT	COMPAT	{ int getrlimit(u_int which, _Out_ struct \
 				    orlimit *rlp); }
 145	AUE_SETRLIMIT	COMPAT	{ int setrlimit(u_int which, \
-				    struct orlimit *rlp); }
+				    _Out_ struct orlimit *rlp); }
 146	AUE_KILLPG	COMPAT	{ int killpg(int pgid, int signum); }
 147	AUE_SETSID	STD	{ int setsid(void); }
 148	AUE_QUOTACTL	STD	{ int quotactl( \
@@ -351,8 +378,9 @@
 				    char **addrs); }
 ; 155 is initialized by the NFS code, if present.
 155	AUE_NFS_SVC	NOSTD	{ int nfssvc(int flag, caddr_t argp); }
-156	AUE_GETDIRENTRIES	COMPAT	{ int getdirentries(int fd, char *buf, \
-				    u_int count, long *basep); }
+156	AUE_GETDIRENTRIES	COMPAT	{ int getdirentries(int fd, \
+					_Out_writes_bytes_(count) char *buf, \
+					u_int count, _Out_ long *basep); }
 157	AUE_STATFS	COMPAT4	{ int statfs(char *path, \
 				    struct ostatfs *buf); }
 158	AUE_FSTATFS	COMPAT4	{ int fstatfs(int fd, \
@@ -408,7 +436,7 @@
 				    struct freebsd11_stat *sb); }
 190	AUE_LSTAT	COMPAT11 { int lstat(char *path, \
 				    struct freebsd11_stat *ub); }
-191	AUE_PATHCONF	STD	{ int pathconf(char *path, int name); }
+191	AUE_PATHCONF	STD	{ int pathconf(_In_z_ char *path, int name); }
 192	AUE_FPATHCONF	STD	{ int fpathconf(int fd, int name); }
 193	AUE_NULL	UNIMPL	nosys
 194	AUE_GETRLIMIT	STD	{ int getrlimit(u_int which, \
@@ -437,8 +465,8 @@
 				    _Inout_opt_ size_t *oldlenp, \
 				    _In_reads_bytes_opt_(newlen) void *new, \
 				    size_t newlen); } __sysctl sysctl_args int
-203	AUE_MLOCK	STD	{ int mlock(const void *addr, size_t len); }
-204	AUE_MUNLOCK	STD	{ int munlock(const void *addr, size_t len); }
+203	AUE_MLOCK	STD	{ int mlock(_In_ const void *addr, size_t len); }
+204	AUE_MUNLOCK	STD	{ int munlock(_In_ const void *addr, size_t len); }
 205	AUE_UNDELETE	STD	{ int undelete(_In_z_ char *path); }
 206	AUE_FUTIMES	STD	{ int futimes(int fd, _In_reads_(2)  struct timeval *tptr); }
 207	AUE_GETPGID	STD	{ int getpgid(pid_t pid); }
@@ -527,14 +555,13 @@
 249	AUE_NULL	UNIMPL	nosys
 ; syscall numbers initially used in OpenBSD
 250	AUE_MINHERIT	STD	{ int minherit( \
-				    void *addr, \
+				    _In_ void *addr, \
 				    size_t len, int inherit); }
 251	AUE_RFORK	STD	{ int rfork(int flags); }
 252	AUE_POLL	OBSOL	openbsd_poll
 253	AUE_ISSETUGID	STD	{ int issetugid(void); }
 254	AUE_LCHOWN	STD	{ int lchown(_In_z_ char *path, int uid, \
 				    int gid); }
-; XXX-BD: aio functions impractical to check
 255	AUE_AIO_READ	STD	{ int aio_read( \
 				    _Inout_ struct aiocb *aiocbp); }
 256	AUE_AIO_WRITE	STD	{ int aio_write( \
@@ -641,17 +668,14 @@
 325	AUE_MUNLOCKALL	STD	{ int munlockall(void); }
 326	AUE_GETCWD	STD	{ int __getcwd(_Out_writes_z_(buflen) char *buf, \
 				    size_t buflen); }
-
 327	AUE_NULL	STD	{ int sched_setparam (pid_t pid, \
-				    const struct sched_param *param); }
-328	AUE_NULL	STD	{ int sched_getparam (pid_t pid, struct \
-				    sched_param *param); }
-
+				    _In_ const struct sched_param *param); }
+328	AUE_NULL	STD	{ int sched_getparam (pid_t pid,\
+				    _Out_ struct sched_param *param); }
 329	AUE_NULL	STD	{ int sched_setscheduler (pid_t pid, int \
-				    policy, const struct sched_param \
+				    policy, _In_ const struct sched_param \
 				    *param); }
 330	AUE_NULL	STD	{ int sched_getscheduler (pid_t pid); }
-
 331	AUE_NULL	STD	{ int sched_yield (void); }
 332	AUE_NULL	STD	{ int sched_get_priority_max (int policy); }
 333	AUE_NULL	STD	{ int sched_get_priority_min (int policy); }
@@ -929,11 +953,11 @@
 				    struct auditinfo_addr *auditinfo_addr, \
 				    u_int length); }
 453	AUE_AUDITCTL	STD	{ int auditctl(_In_z_ char *path); }
-454	AUE_NULL	STD	{ int _umtx_op(void *obj, int op, \
-				    u_long val, void *uaddr1, void *uaddr2); }
+454	AUE_NULL	STD	{ int _umtx_op(_Inout_ void *obj, int op, \
+				    u_long val, _In_ void *uaddr1, _In_ void *uaddr2); }
 455	AUE_THR_NEW	STD	{ int thr_new(_In_ struct thr_param *param, \
 				    int param_size); }
-456	AUE_NULL	STD	{ int sigqueue(pid_t pid, int signum, void *value); }
+456	AUE_NULL	STD	{ int sigqueue(pid_t pid, int signum, _In_ void *value); }
 
 457	AUE_MQ_OPEN	NOSTD	{ int kmq_open( _In_z_ const char *path, int flags, \
 				    mode_t mode, _In_opt_ const struct mq_attr *attr); }
@@ -946,7 +970,7 @@
 				    size_t msg_len,\
 				    _Out_opt_ unsigned *msg_prio, \
 				    _In_opt_ const struct timespec *abs_timeout); }
-460	AUE_MQ_TIMEDSEND	NOSTD|STD	{ int kmq_timedsend(int mqd, \
+460	AUE_MQ_TIMEDSEND	NOSTD	{ int kmq_timedsend(int mqd, \
 				    _In_reads_bytes_(msg_len) \
 				    const char *msg_ptr, size_t msg_len, \
 				    unsigned msg_prio, \
@@ -1000,7 +1024,7 @@
 				    _Out_writes_bytes_(nbyte) \
 				    const void *buf, \
 				    size_t nbyte, off_t offset); }
-477	AUE_MMAP	STD	{ caddr_t mmap(caddr_t addr, size_t len, \
+477	AUE_MMAP	STD	{ caddr_t mmap(_In_ caddr_t addr, size_t len, \
 				    int prot, int flags, int fd, off_t pos); }
 478	AUE_LSEEK	STD	{ off_t lseek(int fd, off_t offset, \
 				    int whence); }
@@ -1216,14 +1240,14 @@
 				    _Out_writes_opt_(nevents) \
 				    struct kevent *eventlist, int nevents, \
 				    _In_opt_ const struct timespec *timeout); }
-;XXX -- add annotations
 561	AUE_NULL	STD	{ int cpuset_getdomain(cpulevel_t level, \
 				    cpuwhich_t which, id_t id, \
-				    size_t domainsetsize, domainset_t *mask, \
-				    int *policy); }
+				    size_t domainsetsize, \
+				    _Out_writes_bytes_(domainsetsize) domainset_t *mask, \
+				    _Out_ int *policy); }
 562	AUE_NULL	STD	{ int cpuset_setdomain(cpulevel_t level, \
 				    cpuwhich_t which, id_t id, \
-				    size_t domainsetsize, domainset_t *mask, \
+				    size_t domainsetsize, _In_ domainset_t *mask, \
 				    int policy); }
 
 ; Please copy any additions and changes to the following compatability tables:
