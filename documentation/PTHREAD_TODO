@@ -1,14 +1,7 @@
-Three possibilities: autogen, passthrough, custom handler.
-pthread_exit
-pthread_detach
-pthread_kill
-pthread_join
-pthread_timedjoin_np
-pthread_yield
-pthread_resume_all_np
-pthread_resume_np
-pthread_suspend_all_np
-pthread_suspend_np
+/* TODO: explain why the things in PASSTHROUGH are there */
 
+Three possibilities: autogen, passthrough, custom handler.
 XXX: record/replay
+
+pthread_timedjoin_np
 pthread_cond_timedwait

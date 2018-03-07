@@ -1,3 +1,4 @@
+
 pthread_attr_init
 pthread_attr_destroy
 pthread_attr_get_np
@@ -94,3 +95,9 @@ pthread_single_np
 pthread_switch_add_np
 pthread_switch_delete_np
 pthread_testcancel
+
+pthread_yield
+pthread_resume_all_np
+pthread_resume_np
+pthread_suspend_all_np
+pthread_suspend_np
