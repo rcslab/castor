@@ -74,8 +74,9 @@ extern int _pthread_barrier_init(pthread_barrier_t *barrier, const pthread_barri
 extern int _pthread_barrier_wait(pthread_barrier_t *barrier);
 
 extern int _pthread_detach(pthread_t thread);
-extern void _pthread_exit(void *value_ptr);
 extern int _pthread_join(pthread_t thread, void **value_ptr);
+extern int _pthread_timedjoin_np(pthread_t thread, void **value_ptr,
+         const struct timespec *abstime);
 extern int _pthread_kill(pthread_t thread, int sig);
 
 typedef struct ThreadState {
@@ -1121,39 +1122,6 @@ pthread_once(pthread_once_t *once_control, void (*init_routine)(void))
 }
 
 int
-pthread_exit(void *value_ptr)
-{
-    int result = 0;
-    RRLogEntry *e;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL: {
-	    result = _pthread_exit(value_ptr);
-	    break;
-	}
-	case RRMODE_RECORD: {
-	    result = _pthread_exit(value_ptr);
-	    e = RRLog_Alloc(rrlog, threadId);
-	    e->event = RREVENT_THREAD_EXIT;
-	    e->value[0] = (uint64_t)result;
-	    e->value[4] = __builtin_readcyclecounter();
-	    RRLog_Append(rrlog, e);
-	    break;
-	}
-	case RRMODE_REPLAY: {
-	    result = _pthread_exit(value_ptr);
-	    e = RRPlay_Dequeue(rrlog, threadId);
-	    AssertEvent(e, RREVENT_THREAD_EXIT);
-	    RRPlay_Free(rrlog, e);
-	    break;
-	}
-    }
-
-    return result;
-}
-}
-
-int
 pthread_detach(pthread_t thread)
 {
     int result = 0;
@@ -1183,7 +1151,6 @@ pthread_detach(pthread_t thread)
     }
 
     return result;
-}
 }
 
 int
@@ -1217,6 +1184,45 @@ pthread_join(pthread_t thread, void **value_ptr)
 
     return result;
 }
+
+int
+_pthread_timedjoin_np(pthread_t thread, void **value_ptr,
+         const struct timespec *abstime)
+{
+    int result = 0;
+    RRLogEntry *e;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL: {
+	    result = _pthread_join(thread, value_ptr);
+	    break;
+	}
+	case RRMODE_RECORD: {
+	    result = _pthread_join(thread, value_ptr);
+	    e = RRLog_Alloc(rrlog, threadId);
+	    e->event = RREVENT_THREAD_TIMEDJOIN;
+	    e->value[0] = (uint64_t)result;
+	    e->value[4] = __builtin_readcyclecounter();
+	    RRLog_Append(rrlog, e);
+	    break;
+	}
+	case RRMODE_REPLAY: {
+	    e = RRPlay_Dequeue(rrlog, threadId);
+	    AssertEvent(e, RREVENT_THREAD_TIMEDJOIN);
+
+      /* Record call was successful, wait until replay call matches */
+      if (e->value[0] == 0)
+        while (result != 0)
+          result = _pthread_join(thread, value_ptr);
+      else 
+        result = e->value[0];
+    
+	    RRPlay_Free(rrlog, e);
+	    break;
+	}
+    }
+
+    return result;
 }
 
 /* Does not ensure that signals are received 
@@ -1251,7 +1257,6 @@ pthread_kill(pthread_t thread, int sig)
     }
 
     return result;
-}
 }
 
 __strong_reference(_pthread_mutex_lock, pthread_mutex_lock);

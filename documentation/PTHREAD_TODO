@@ -1,7 +1,7 @@
-/* TODO: explain why the things in PASSTHROUGH are there */
+TODO: explain why the things in PASSTHROUGH are there
 
 Three possibilities: autogen, passthrough, custom handler.
 XXX: record/replay
 
-pthread_timedjoin_np
+pthread_exit
 pthread_cond_timedwait
