@@ -1,0 +1,4 @@
+tests/*/*.out
+tests/*/*.normalized
+tests/*/logs
+tests/*/logs/*
