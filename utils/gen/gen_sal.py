@@ -7,6 +7,9 @@ import re
 import subprocess
 import copy
 
+ALWAYS_SUCCESSFUL_SYSCALLS = [ 'getegid', 'geteuid', 'getgid', 'getpgid', 'getpgrp', 'getpid',\
+'getppid', 'getuid', 'issetugid', 'umask']
+
 HANDLER_PATH = "./events_gen.c"
 HEADER_PATH = "./events_gen.h"
 INCLUDES_PATH = "./autogenerate_includes.h"
@@ -64,6 +67,7 @@ def gen_log_data(spec):
                     c_output("\t\t\t }")
         c_output("\t\t}")
 
+
 def generate_handler(spec):
     debug("handler_desc:", spec)
     name = spec['name']
@@ -100,9 +104,11 @@ def generate_handler(spec):
     if leading_object:
         c_output("e->objectId = (uint64_t)%s;" % arg_names[0])
     c_output("e->value[0] = (uint64_t)result;")
-    c_output("if (result == -1) {")
-    c_output("e->value[1] = (uint64_t)errno;")
-    c_output("}")
+    if not name in ALWAYS_SUCCESSFUL_SYSCALLS:
+        c_output("if (result == -1) {")
+        c_output("e->value[1] = (uint64_t)errno;")
+        c_output("}")
+
     c_output("RRLog_Append(rrlog, e);")
     gen_log_data(spec)
     c_output("break;")
@@ -114,9 +120,12 @@ def generate_handler(spec):
     if leading_object:
         c_output("AssertObject(e, (uint64_t)%s);" % arg_names[0])
     c_output("result = (%s)e->value[0];" % return_type)
-    c_output("if (result == -1) {")
-    c_output("errno = e->value[1];")
-    c_output("}")
+
+    if not name in ALWAYS_SUCCESSFUL_SYSCALLS:
+        c_output("if (result == -1) {")
+        c_output("errno = e->value[1];")
+        c_output("}")
+
     c_output("RRPlay_Free(rrlog, e);")
     gen_log_data(spec)
     c_output("\t    break;")
