@@ -21,7 +21,9 @@ cout = open(HANDLER_PATH, "w")
 hout = open(HEADER_PATH, "w")
 
 debug_flag = False
-error_flag = False
+
+error_count = 0
+warning_count = 0
 
 type_signatures = None
 
@@ -33,9 +35,15 @@ def debug(*args, **kwargs):
 	print("DEBUG >>", *args, file=sys.stdout, **kwargs)
 
 def error(*args, **kwargs):
-    global error_flag
-    error_flag = True
+    global error_count
+    error_count += 1
     print("ERROR >>", *args, file=sys.stderr, **kwargs)
+
+def warning(*args, **kwargs):
+    global warning_count
+    warning_count += 1
+    print("WARNING >>", *args, file=sys.stderr, **kwargs)
+
 
 def c_output(line):
     if debug_flag:
@@ -120,7 +128,6 @@ def generate_handler(spec):
     if leading_object:
         c_output("AssertObject(e, (uint64_t)%s);" % arg_names[0])
     c_output("result = (%s)e->value[0];" % return_type)
-
     if not name in ALWAYS_SUCCESSFUL_SYSCALLS:
         c_output("if (result == -1) {")
         c_output("errno = e->value[1];")
@@ -496,19 +503,24 @@ if __name__ == '__main__':
     syscall_description_list = remove_duplicate_syscalls(parse_spec())
 
     all_syscalls_list = map(lambda x:x['name'], syscall_description_list)
+
     autogenerate_list = read_syscall_list('autogenerate_syscalls')
     passthrough_list = read_syscall_list('passthrough_syscalls')
     unimplemented_list = read_syscall_list('unimplemented_syscalls')
     unsupported_list = read_syscall_list('unsupported_syscalls')
     core_runtime_list = subprocess.check_output('./core_runtime_syscalls.sh').split()
+    duplicates = find_duplicates(autogenerate_list + passthrough_list +\
+            unimplemented_list + unsupported_list + core_runtime_list)
+    if len(duplicates) > 0:
+        warning("syscall lists contain duplicates:" + str(duplicates))
+
     missing_list = list(set(all_syscalls_list) - set(autogenerate_list) - \
                         set(passthrough_list) - set(unsupported_list) - \
                         set(core_runtime_list) - set(unimplemented_list))
 
     generate_preambles()
     generate_includes()
-    print("Generating syscall handlers (%s):%s" %\
-        (len(autogenerate_list), str(autogenerate_list)))
+    print("Generating syscall handlers...")
     debug("syscall_description_list:", syscall_description_list)
     for desc in syscall_description_list:
         if desc['name'] in autogenerate_list:
@@ -524,7 +536,8 @@ if __name__ == '__main__':
     missing = set(autogenerate_list) - set(generated)
     if len(missing) != 0:
         sys.exit("Failed to generate: %s " % str(list(missing)))
-    if (error_flag):
+
+    if (error_count > 0):
         sys.exit("\n... Generation failed due to errors...\n")
 
     format_handlers()
