@@ -15,7 +15,8 @@ that don't return -1 on error.
 
 -change code to correctly reference events_gen.h in the variant build directory.
 
--optimize recording of calls e.g. (read, kevent, ...) where we should only log (result) number of entries for a given pointer _Out_ parameter.
+-optimize recording of calls e.g. (read, kevent, ...) where we should only log
+(result) number of entries for a given pointer _Out_ parameter.
 
 -optimize recording of socketlen_t parameters by storing them as values, and other scalar types (e.g. getdirentries), anything that is an _Out_parameter and scalar type, if it
 is an aggregate type, check the size and if small enough, shove it into values.

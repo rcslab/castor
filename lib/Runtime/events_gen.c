@@ -394,6 +394,58 @@ __rr_setuid(uid_t uid)
     return result;
 }
 
+uid_t
+__rr_getuid()
+{
+    uid_t	    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return (uid_t) syscall(SYS_getuid);
+    case RRMODE_RECORD:
+	result = (uid_t) syscall(SYS_getuid);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_GETUID;
+	e->value[0] = (uint64_t) result;
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_GETUID);
+	result = (uid_t) e->value[0];
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+uid_t
+__rr_geteuid()
+{
+    uid_t	    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return (uid_t) syscall(SYS_geteuid);
+    case RRMODE_RECORD:
+	result = (uid_t) syscall(SYS_geteuid);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_GETEUID;
+	e->value[0] = (uint64_t) result;
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_GETEUID);
+	result = (uid_t) e->value[0];
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
 ssize_t
 __rr_sendmsg(int s, const struct msghdr *msg, int flags)
 {
@@ -735,6 +787,58 @@ __rr_lstat(const char *path, struct stat *ub)
 	if (result != -1) {
 	    logData((uint8_t *) ub, (unsigned long)sizeof(struct stat));
 	}
+	break;
+    }
+    return result;
+}
+
+gid_t
+__rr_getegid()
+{
+    gid_t	    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return (gid_t) syscall(SYS_getegid);
+    case RRMODE_RECORD:
+	result = (gid_t) syscall(SYS_getegid);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_GETEGID;
+	e->value[0] = (uint64_t) result;
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_GETEGID);
+	result = (gid_t) e->value[0];
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+gid_t
+__rr_getgid()
+{
+    gid_t	    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return (gid_t) syscall(SYS_getgid);
+    case RRMODE_RECORD:
+	result = (gid_t) syscall(SYS_getgid);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_GETGID;
+	e->value[0] = (uint64_t) result;
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_GETGID);
+	result = (gid_t) e->value[0];
+	RRPlay_Free(rrlog, e);
 	break;
     }
     return result;
@@ -1518,6 +1622,70 @@ __rr_fchmod(int fd, mode_t mode)
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_FCHMOD);
 	AssertObject(e, (uint64_t) fd);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
+__rr_setreuid(uid_t ruid, uid_t euid)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_setreuid, ruid, euid);
+    case RRMODE_RECORD:
+	result = syscall(SYS_setreuid, ruid, euid);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_SETREUID;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_SETREUID);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
+__rr_setregid(gid_t rgid, gid_t egid)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_setregid, rgid, egid);
+    case RRMODE_RECORD:
+	result = syscall(SYS_setregid, rgid, egid);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_SETREGID;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_SETREGID);
 	result = (int)e->value[0];
 	if (result == -1) {
 	    errno = e->value[1];
@@ -2685,6 +2853,70 @@ __rr_fhopen(const struct fhandle *u_fhp, int flags)
 }
 
 int
+__rr_setresuid(uid_t ruid, uid_t euid, uid_t suid)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_setresuid, ruid, euid, suid);
+    case RRMODE_RECORD:
+	result = syscall(SYS_setresuid, ruid, euid, suid);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_SETRESUID;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_SETRESUID);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
+__rr_setresgid(gid_t rgid, gid_t egid, gid_t sgid)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_setresgid, rgid, egid, sgid);
+    case RRMODE_RECORD:
+	result = syscall(SYS_setresgid, rgid, egid, sgid);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_SETRESGID;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_SETRESGID);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
 __rr_extattrctl(const char *path, int cmd, const char *filename, int attrnamespace, const char *attrname)
 {
     int		    result;
@@ -2813,6 +3045,114 @@ __rr_extattr_delete_file(const char *path, int attrnamespace, const char *attrna
 	    errno = e->value[1];
 	}
 	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
+__rr_getresuid(uid_t * ruid, uid_t * euid, uid_t * suid)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_getresuid, ruid, euid, suid);
+    case RRMODE_RECORD:
+	result = syscall(SYS_getresuid, ruid, euid, suid);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_GETRESUID;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    if (ruid != NULL) {
+		logData((uint8_t *) ruid, (unsigned long)sizeof(uid_t));
+	    }
+	    if (euid != NULL) {
+		logData((uint8_t *) euid, (unsigned long)sizeof(uid_t));
+	    }
+	    if (suid != NULL) {
+		logData((uint8_t *) suid, (unsigned long)sizeof(uid_t));
+	    }
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_GETRESUID);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    if (ruid != NULL) {
+		logData((uint8_t *) ruid, (unsigned long)sizeof(uid_t));
+	    }
+	    if (euid != NULL) {
+		logData((uint8_t *) euid, (unsigned long)sizeof(uid_t));
+	    }
+	    if (suid != NULL) {
+		logData((uint8_t *) suid, (unsigned long)sizeof(uid_t));
+	    }
+	}
+	break;
+    }
+    return result;
+}
+
+int
+__rr_getresgid(gid_t * rgid, gid_t * egid, gid_t * sgid)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_getresgid, rgid, egid, sgid);
+    case RRMODE_RECORD:
+	result = syscall(SYS_getresgid, rgid, egid, sgid);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_GETRESGID;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    if (rgid != NULL) {
+		logData((uint8_t *) rgid, (unsigned long)sizeof(gid_t));
+	    }
+	    if (egid != NULL) {
+		logData((uint8_t *) egid, (unsigned long)sizeof(gid_t));
+	    }
+	    if (sgid != NULL) {
+		logData((uint8_t *) sgid, (unsigned long)sizeof(gid_t));
+	    }
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_GETRESGID);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    if (rgid != NULL) {
+		logData((uint8_t *) rgid, (unsigned long)sizeof(gid_t));
+	    }
+	    if (egid != NULL) {
+		logData((uint8_t *) egid, (unsigned long)sizeof(gid_t));
+	    }
+	    if (sgid != NULL) {
+		logData((uint8_t *) sgid, (unsigned long)sizeof(gid_t));
+	    }
+	}
 	break;
     }
     return result;
@@ -5568,6 +5908,8 @@ BIND_REF(chown);
 BIND_REF(mount);
 BIND_REF(unmount);
 BIND_REF(setuid);
+BIND_REF(getuid);
+BIND_REF(geteuid);
 BIND_REF(sendmsg);
 BIND_REF(accept);
 BIND_REF(getpeername);
@@ -5577,6 +5919,8 @@ BIND_REF(chflags);
 BIND_REF(fchflags);
 BIND_REF(stat);
 BIND_REF(lstat);
+BIND_REF(getegid);
+BIND_REF(getgid);
 BIND_REF(acct);
 BIND_REF(reboot);
 BIND_REF(symlink);
@@ -5600,6 +5944,8 @@ BIND_REF(getrusage);
 BIND_REF(settimeofday);
 BIND_REF(fchown);
 BIND_REF(fchmod);
+BIND_REF(setreuid);
+BIND_REF(setregid);
 BIND_REF(rename);
 BIND_REF(flock);
 BIND_REF(mkfifo);
@@ -5634,10 +5980,14 @@ BIND_REF(lchown);
 BIND_REF(lchmod);
 BIND_REF(lutimes);
 BIND_REF(fhopen);
+BIND_REF(setresuid);
+BIND_REF(setresgid);
 BIND_REF(extattrctl);
 BIND_REF(extattr_set_file);
 BIND_REF(extattr_get_file);
 BIND_REF(extattr_delete_file);
+BIND_REF(getresuid);
+BIND_REF(getresgid);
 BIND_REF(kqueue);
 BIND_REF(extattr_set_fd);
 BIND_REF(extattr_get_fd);

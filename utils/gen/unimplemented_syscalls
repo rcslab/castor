@@ -8,10 +8,6 @@ sendfile
 getdents
 getgroups
 ;XXX -- need to support uid_t/gid_t result types
-getuid
-geteuid
-getgid
-getegid
 ;XXX  -- return's void, icky, maybe just put this in events.c.
 closefrom
 sync

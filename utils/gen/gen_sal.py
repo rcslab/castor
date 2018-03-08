@@ -7,9 +7,6 @@ import re
 import subprocess
 import copy
 
-ALWAYS_SUCCESSFUL_SYSCALLS = [ 'getegid', 'geteuid', 'getgid', 'getpgid', 'getpgrp', 'getpid',\
-'getppid', 'getuid', 'issetugid', 'umask']
-
 HANDLER_PATH = "./events_gen.c"
 HEADER_PATH = "./events_gen.h"
 INCLUDES_PATH = "./autogenerate_includes.h"
@@ -75,6 +72,8 @@ def gen_log_data(spec):
                     c_output("\t\t\t }")
         c_output("\t\t}")
 
+ALWAYS_SUCCESSFUL_SYSCALLS = [ 'getegid', 'geteuid', 'getgid', 'getpgid', 'getpgrp', 'getpid',\
+'getppid', 'getuid', 'issetugid', 'umask']
 
 def generate_handler(spec):
     debug("handler_desc:", spec)
@@ -89,6 +88,9 @@ def generate_handler(spec):
     leading_object = arg_types and (arg_types[0] == 'int')
     call_args = [syscall_number] + arg_names
     syscall_str =  "syscall(%s)" % ", ".join(call_args)
+
+    if return_type in ['uid_t', 'gid_t']:
+        syscall_str = "(%s) %s" % (return_type, syscall_str)
 
     #handler opening
     c_output("\n%s" % return_type)

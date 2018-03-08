@@ -10,9 +10,13 @@ getdirentries
 kqueue
 setgroups
 setuid
+getuid
 seteuid
+geteuid
 setgid
+getgid
 setegid
+getegid
 getresgid
 getresuid
 setregid

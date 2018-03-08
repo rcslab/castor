@@ -616,28 +616,6 @@ __rr_fcntl(int fd, int cmd, ...)
     return result;
 }
 
-/*
-mode_t
-__rr_umask(mode_t numask)
-{
-    uint64_t result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_umask, numask);
-	case RRMODE_RECORD:
-	    result = (uint64_t)syscall(SYS_umask, numask);
-	    RRRecordOU(RREVENT_UMASK, 0, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayOU(RREVENT_UMASK, 0, &result);
-	    break;
-    }
-
-    return (mode_t)result;
-}
-*/
-
 int __rr_getdents(int fd, char *buf, int nbytes)
 {
     int result;
