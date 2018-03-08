@@ -1039,6 +1039,50 @@ __rr_chroot(const char *path)
 }
 
 int
+__rr_getgroups(int gidsetsize, gid_t * gidset)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_getgroups, gidsetsize, gidset);
+    case RRMODE_RECORD:
+	result = syscall(SYS_getgroups, gidsetsize, gidset);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_GETGROUPS;
+	e->objectId = (uint64_t) gidsetsize;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    if (gidset != NULL) {
+		logData((uint8_t *) gidset, (unsigned long)result * sizeof(gid_t));
+	    }
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_GETGROUPS);
+	AssertObject(e, (uint64_t) gidsetsize);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    if (gidset != NULL) {
+		logData((uint8_t *) gidset, (unsigned long)result * sizeof(gid_t));
+	    }
+	}
+	break;
+    }
+    return result;
+}
+
+int
 __rr_setgroups(int gidsetsize, const gid_t * gidset)
 {
     int		    result;
@@ -5937,6 +5981,7 @@ BIND_REF(symlink);
 BIND_REF(readlink);
 BIND_REF(umask);
 BIND_REF(chroot);
+BIND_REF(getgroups);
 BIND_REF(setgroups);
 BIND_REF(setitimer);
 BIND_REF(swapon);

@@ -9,7 +9,6 @@ src = [
     "freebsd.c",
     "events.c",
     "events_freebsd.c",
-    "events_id.c",
     "events_mem.c",
     "events_posix.c",
     "events_proc.c",

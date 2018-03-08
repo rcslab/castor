@@ -402,8 +402,11 @@ def format_handlers():
     os.unlink(backup_path)
     print("...formatting complete...")
 
-#XXX half ass heuristic to remove variable names if present
 def clean_types(arg):
+    #get replace array signatures with pointers
+    arg = re.sub('\[\]','*',arg)
+
+    #XXX half ass heuristic to remove variable names
     parts = arg.split()
     result = parts
     if len(parts) == 1:
@@ -433,7 +436,7 @@ def read_libc_type_signatures():
     for line in src_lines:
         match = re.search("(?P<return_type>(^[\w\s\*]+))\s"\
                           "(?P<name>(\w+))\("\
-                          "(?P<args>([\w\s,\*^)]+))\)", line)
+                          "(?P<args>([\w\s\[\],\*^)]+))\)", line)
         if match != None:
             return_type = match.group('return_type').strip()
             name = match.group('name').strip()
