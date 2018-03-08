@@ -2,12 +2,11 @@
 
 
 
+
+
 #include <sys/param.h>
 #include <sys/sysent.h>
 #include <sys/sysproto.h>
-
-
-
 
 
 
@@ -872,6 +871,32 @@ __rr_readlink(const char *path, char *buf, size_t count)
 	if (result != -1) {
 	    logData((uint8_t *) buf, (unsigned long)count * sizeof(char));
 	}
+	break;
+    }
+    return result;
+}
+
+mode_t
+__rr_umask(mode_t newmask)
+{
+    mode_t	    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_umask, newmask);
+    case RRMODE_RECORD:
+	result = syscall(SYS_umask, newmask);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_UMASK;
+	e->value[0] = (uint64_t) result;
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_UMASK);
+	result = (mode_t) e->value[0];
+	RRPlay_Free(rrlog, e);
 	break;
     }
     return result;
@@ -2519,18 +2544,12 @@ __rr_issetugid()
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_ISSETUGID;
 	e->value[0] = (uint64_t) result;
-	if (result == -1) {
-	    e->value[1] = (uint64_t) errno;
-	}
 	RRLog_Append(rrlog, e);
 	break;
     case RRMODE_REPLAY:
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_ISSETUGID);
 	result = (int)e->value[0];
-	if (result == -1) {
-	    errno = e->value[1];
-	}
 	RRPlay_Free(rrlog, e);
 	break;
     }
@@ -5562,6 +5581,7 @@ BIND_REF(acct);
 BIND_REF(reboot);
 BIND_REF(symlink);
 BIND_REF(readlink);
+BIND_REF(umask);
 BIND_REF(chroot);
 BIND_REF(setgroups);
 BIND_REF(setitimer);

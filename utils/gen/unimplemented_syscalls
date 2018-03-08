@@ -2,8 +2,6 @@
 ;XXX weird naming convention thing not supported yet.
 __sysctl
 __getcwd
-;XXX will require adding new type to generator
-umask
 ;XXX get unit test working first
 sendfile
 ;XXX uses result of call for logData size, not supported yet.

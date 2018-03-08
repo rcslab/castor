@@ -616,6 +616,7 @@ __rr_fcntl(int fd, int cmd, ...)
     return result;
 }
 
+/*
 mode_t
 __rr_umask(mode_t numask)
 {
@@ -635,6 +636,7 @@ __rr_umask(mode_t numask)
 
     return (mode_t)result;
 }
+*/
 
 int __rr_getdents(int fd, char *buf, int nbytes)
 {
@@ -876,7 +878,6 @@ __strong_reference(__rr_fcntl, _fcntl);
 __strong_reference(__rr_getcwd, __getcwd);
 
 BIND_REF(openat);
-BIND_REF(umask);
 BIND_REF(getdents);
 BIND_REF(sendfile);
 BIND_REF(select);
