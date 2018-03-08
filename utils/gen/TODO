@@ -1,3 +1,8 @@
+-fix errno handling, use success to only check/set errno when needed --- when this is,
+can we assume that any function for whome result != -1 is success will set errno on failure?
+base this on SAL annotations, add _Success_ annotations (or something else) for calls
+that don't return -1 on error.
+
 -add flags to support parameters in autogenerate_syscalls.
     -e.g. quirky named calls  SYS___.
     -use return value as logging size. (is there SAL for this.)
@@ -7,12 +12,6 @@
     -finish code gen for all SAL annotations.
 
 -rename to autogen.
-
-#just add comment about this..
--fix errno handling, use success to only check/set errno when needed --- when this is,
-can we assume that any function for whome result != -1 is success will set errno on failure?
-base this on SAL annotations, add _Success_ annotations (or something else) for calls
-that don't return -1 on error.
 
 -change code to correctly reference events_gen.h in the variant build directory.
 
