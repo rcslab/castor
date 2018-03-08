@@ -72,8 +72,11 @@ def gen_log_data(spec):
                     c_output("\t\t\t }")
         c_output("\t\t}")
 
-ALWAYS_SUCCESSFUL_SYSCALLS = [ 'getegid', 'geteuid', 'getgid', 'getpgid', 'getpgrp', 'getpid',\
-'getppid', 'getuid', 'issetugid', 'umask']
+ALWAYS_SUCCESSFUL_SYSCALLS = [ 'getegid', 'geteuid', 'getgid', 'getpgid', \
+        'getpgrp', 'getpid', 'getppid', 'getuid', 'issetugid', 'umask']
+CAST_SYSCALL_RETURN_TYPE = ['uid_t', 'gid_t']
+#RETURNS_BYTES_READ = ['getdents', 'getdirentries', 'read', 'pread', 'readv', 'preadv']
+#RETURNS_ELEMENTS_READ = ['kevent']
 
 def generate_handler(spec):
     debug("handler_desc:", spec)
@@ -89,7 +92,7 @@ def generate_handler(spec):
     call_args = [syscall_number] + arg_names
     syscall_str =  "syscall(%s)" % ", ".join(call_args)
 
-    if return_type in ['uid_t', 'gid_t']:
+    if return_type in CAST_SYSCALL_RETURN_TYPE:
         syscall_str = "(%s) %s" % (return_type, syscall_str)
 
     #handler opening
