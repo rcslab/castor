@@ -12,12 +12,6 @@ getuid
 geteuid
 getgid
 getegid
-getresgid
-getresuid
-setregid
-setresgid
-setresuid
-setreuid
 ;XXX  -- return's void, icky, maybe just put this in events.c.
 closefrom
 sync

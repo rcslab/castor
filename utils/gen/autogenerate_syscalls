@@ -13,6 +13,12 @@ setuid
 seteuid
 setgid
 setegid
+getresgid
+getresuid
+setregid
+setresgid
+setresuid
+setreuid
 flock
 read
 pread
