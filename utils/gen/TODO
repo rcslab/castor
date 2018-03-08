@@ -1,8 +1,3 @@
--fix errno handling, use success to only check/set errno when needed --- when this is,
-can we assume that any function for whome result != -1 is success will set errno on failure?
-base this on SAL annotations, add _Success_ annotations (or something else) for calls
-that don't return -1 on error.
-
 -add flags to support parameters in autogenerate_syscalls.
     -e.g. quirky named calls  SYS___.
     -use return value as logging size. (is there SAL for this.)
@@ -10,9 +5,6 @@ that don't return -1 on error.
 -rename to autogen.
 
 -change code to correctly reference events_gen.h in the variant build directory.
-
--optimize recording of calls e.g. (read, kevent, ...) where we should only log
-(result) number of entries for a given pointer _Out_ parameter.
 
 -optimize recording of socketlen_t parameters by storing them as values, and other scalar types (e.g. getdirentries), anything that is an _Out_parameter and scalar type, if it
 is an aggregate type, check the size and if small enough, shove it into values.

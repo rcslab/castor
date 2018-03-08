@@ -66,7 +66,7 @@ def gen_log_data(spec):
                 #XXX formatting ugly
                 if arg['log_spec']['null_check']:
                     c_output("\t\t\t if (%s != NULL) {" % (arg['name']))
-                c_output("\t\t\tlogData((uint8_t *)%s, (unsigned long)%s);" %
+                c_output("\t\t\tlogData((uint8_t *)%s, (unsigned long) %s);" %
                             (arg['name'], arg['log_spec']['size']))
                 if arg['log_spec']['null_check']:
                     c_output("\t\t\t }")
@@ -146,10 +146,10 @@ def generate_handler(spec):
     c_output("}")
 
 
-RETURNS_BYTES_READ = ['getdents', 'getdirentries', 'read', 'pread', 'readv', 'preadv']
-RETURNS_ELEMENTS_READ = ['kevent', 'getgroups']
+RETURNS_BYTES_OUT = ['getdents', 'getdirentries', 'read', 'pread', 'readv', 'preadv']
+RETURNS_ELEMENTS_OUT = ['kevent', 'getgroups']
 
-def parse_logspec(sal, type):
+def parse_logspec(sal, type, syscall_name):
     debug("parse_logspec(%s, %s)" % (str(sal), type))
     sal_tag = sal['tag']
     sal_arg = sal['arg']
@@ -165,11 +165,12 @@ def parse_logspec(sal, type):
         log_spec = { 'size' : "sizeof(%s)" % size_type }
     elif sal_tag in ['_Out_writes_bytes_', '_Out_writes_z_', \
                      '_Inout_updates_bytes_', '_Inout_updates_z_']:
-        log_spec = { 'size': sal_arg}
+        bytes_out = 'result' if syscall_name in RETURNS_BYTES_OUT else sal_arg
+        log_spec = { 'size': bytes_out}
     elif sal_tag in ['_Out_writes_', '_Inout_updates_']:
-        count = sal_arg
+        elements_out = 'result' if syscall_name in RETURNS_ELEMENTS_OUT else sal_arg
         base_type = type.split('*')[0].strip()
-        log_spec = { 'size': "%s * sizeof(%s)" % (count, base_type) }
+        log_spec = { 'size': "%s * sizeof(%s)" % (elements_out, base_type) }
     else:
         error("Unknown SAL annotation:" + str(sal))
 
@@ -455,7 +456,7 @@ def add_logspec(desc):
     logged_desc = copy.deepcopy(desc)
     for arg_spec in logged_desc['args_spec']:
         if arg_spec['sal'] != None:
-            arg_spec['log_spec'] = parse_logspec(arg_spec['sal'], arg_spec['type'])
+            arg_spec['log_spec'] = parse_logspec(arg_spec['sal'], arg_spec['type'], desc['name'])
         else:
             arg_spec['log_spec'] = None
     return logged_desc

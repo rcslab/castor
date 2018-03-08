@@ -84,7 +84,7 @@ __rr_read(int fd, void *buf, size_t nbyte)
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, (unsigned long)nbyte);
+	    logData((uint8_t *) buf, (unsigned long)result);
 	}
 	break;
     case RRMODE_REPLAY:
@@ -97,7 +97,7 @@ __rr_read(int fd, void *buf, size_t nbyte)
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, (unsigned long)nbyte);
+	    logData((uint8_t *) buf, (unsigned long)result);
 	}
 	break;
     }
@@ -4066,7 +4066,7 @@ __rr_pread(int fd, void *buf, size_t nbyte, off_t offset)
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, (unsigned long)nbyte);
+	    logData((uint8_t *) buf, (unsigned long)result);
 	}
 	break;
     case RRMODE_REPLAY:
@@ -4079,7 +4079,7 @@ __rr_pread(int fd, void *buf, size_t nbyte, off_t offset)
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, (unsigned long)nbyte);
+	    logData((uint8_t *) buf, (unsigned long)result);
 	}
 	break;
     }
@@ -5650,7 +5650,7 @@ __rr_getdirentries(int fd, char *buf, int count, long *basep)
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, (unsigned long)count);
+	    logData((uint8_t *) buf, (unsigned long)result);
 	    logData((uint8_t *) basep, (unsigned long)sizeof(long));
 	}
 	break;
@@ -5664,7 +5664,7 @@ __rr_getdirentries(int fd, char *buf, int count, long *basep)
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, (unsigned long)count);
+	    logData((uint8_t *) buf, (unsigned long)result);
 	    logData((uint8_t *) basep, (unsigned long)sizeof(long));
 	}
 	break;
@@ -5885,7 +5885,7 @@ __rr_kevent(int fd, const struct kevent *changelist, int nchanges, struct kevent
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
 	    if (eventlist != NULL) {
-		logData((uint8_t *) eventlist, (unsigned long)nevents * sizeof(struct kevent));
+		logData((uint8_t *) eventlist, (unsigned long)result * sizeof(struct kevent));
 	    }
 	}
 	break;
@@ -5900,7 +5900,7 @@ __rr_kevent(int fd, const struct kevent *changelist, int nchanges, struct kevent
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
 	    if (eventlist != NULL) {
-		logData((uint8_t *) eventlist, (unsigned long)nevents * sizeof(struct kevent));
+		logData((uint8_t *) eventlist, (unsigned long)result * sizeof(struct kevent));
 	    }
 	}
 	break;
