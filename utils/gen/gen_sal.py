@@ -75,8 +75,6 @@ def gen_log_data(spec):
 ALWAYS_SUCCESSFUL_SYSCALLS = [ 'getegid', 'geteuid', 'getgid', 'getpgid', \
         'getpgrp', 'getpid', 'getppid', 'getuid', 'issetugid', 'umask']
 CAST_SYSCALL_RETURN_TYPE = ['uid_t', 'gid_t']
-#RETURNS_BYTES_READ = ['getdents', 'getdirentries', 'read', 'pread', 'readv', 'preadv']
-#RETURNS_ELEMENTS_READ = ['kevent']
 
 def generate_handler(spec):
     debug("handler_desc:", spec)
@@ -148,6 +146,9 @@ def generate_handler(spec):
     c_output("}")
 
 
+RETURNS_BYTES_READ = ['getdents', 'getdirentries', 'read', 'pread', 'readv', 'preadv']
+RETURNS_ELEMENTS_READ = ['kevent', 'getgroups']
+
 def parse_logspec(sal, type):
     debug("parse_logspec(%s, %s)" % (str(sal), type))
     sal_tag = sal['tag']
@@ -159,17 +160,18 @@ def parse_logspec(sal, type):
 
     if sal_tag.startswith('_In_'):
        pass
-    elif sal_tag == "_Out_writes_bytes_":
+    elif sal_tag in ['_Out_', '_Inout_']:
+        size_type = type.split('*')[0].strip()
+        log_spec = { 'size' : "sizeof(%s)" % size_type }
+    elif sal_tag in ['_Out_writes_bytes_', '_Out_writes_z_', \
+                     '_Inout_updates_bytes_', '_Inout_updates_z_']:
         log_spec = { 'size': sal_arg}
-    elif sal_tag in ["_Out_writes_z_", "_Out_writes_"]:
+    elif sal_tag in ['_Out_writes_', '_Inout_updates_']:
         count = sal_arg
         base_type = type.split('*')[0].strip()
         log_spec = { 'size': "%s * sizeof(%s)" % (count, base_type) }
-    elif sal_tag == "_Out_" or sal_tag == '_Inout_':
-        size_type = type.split('*')[0].strip()
-        log_spec = { 'size' : "sizeof(%s)" % size_type }
     else:
-        debug("unknown sal:" + str(sal))
+        error("Unknown SAL annotation:" + str(sal))
 
     if log_spec != None:
         log_spec['null_check'] = null_check

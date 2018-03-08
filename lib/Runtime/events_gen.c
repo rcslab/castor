@@ -961,7 +961,7 @@ __rr_readlink(const char *path, char *buf, size_t count)
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, (unsigned long)count * sizeof(char));
+	    logData((uint8_t *) buf, (unsigned long)count);
 	}
 	break;
     case RRMODE_REPLAY:
@@ -973,7 +973,7 @@ __rr_readlink(const char *path, char *buf, size_t count)
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, (unsigned long)count * sizeof(char));
+	    logData((uint8_t *) buf, (unsigned long)count);
 	}
 	break;
     }
@@ -3381,6 +3381,11 @@ __rr_kenv(int what, const char *name, char *value, int len)
 	    e->value[1] = (uint64_t) errno;
 	}
 	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    if (value != NULL) {
+		logData((uint8_t *) value, (unsigned long)len * sizeof(char));
+	    }
+	}
 	break;
     case RRMODE_REPLAY:
 	e = RRPlay_Dequeue(rrlog, threadId);
@@ -3391,6 +3396,11 @@ __rr_kenv(int what, const char *name, char *value, int len)
 	    errno = e->value[1];
 	}
 	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    if (value != NULL) {
+		logData((uint8_t *) value, (unsigned long)len * sizeof(char));
+	    }
+	}
 	break;
     }
     return result;
@@ -4825,7 +4835,7 @@ __rr_getloginclass(char *namebuf, size_t namelen)
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) namebuf, (unsigned long)namelen * sizeof(char));
+	    logData((uint8_t *) namebuf, (unsigned long)namelen);
 	}
 	break;
     case RRMODE_REPLAY:
@@ -4837,7 +4847,7 @@ __rr_getloginclass(char *namebuf, size_t namelen)
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) namebuf, (unsigned long)namelen * sizeof(char));
+	    logData((uint8_t *) namebuf, (unsigned long)namelen);
 	}
 	break;
     }

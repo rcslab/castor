@@ -7,10 +7,6 @@ that don't return -1 on error.
     -e.g. quirky named calls  SYS___.
     -use return value as logging size. (is there SAL for this.)
 
--check completeness/correctness of SAL handling
-    -finish parsing all SAL annotations.
-    -finish code gen for all SAL annotations.
-
 -rename to autogen.
 
 -change code to correctly reference events_gen.h in the variant build directory.
