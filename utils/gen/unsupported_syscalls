@@ -61,3 +61,25 @@ getkerninfo
 clock_getcpuclockid2
 mac_syscall
 sstk
+
+;obsolete
+nfstat
+nlstat
+nstat
+
+;missing syscall numbers in syscall.h -- only there to support legacy binaries
+;support it in core by calling libc versions.
+send
+recv
+
+;similar, now implements through sysctl
+gethostname
+sethostname
+
+;ditto not sure where the syscall entry is, probably uses sysctl underneath.
+sethostid
+gethostid
+
+;too new, no declaration in lib/type signature yet.
+cpuset_getdomain
+cpuset_setdomain

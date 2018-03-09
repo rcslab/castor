@@ -1,3 +1,4 @@
+-finish inspecting list of calls for return bytes/elements stuff from man pages.
 -add flags to support parameters in autogenerate_syscalls.
     -e.g. quirky named calls  SYS___.
     -use return value as logging size. (is there SAL for this.)

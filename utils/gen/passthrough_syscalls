@@ -13,9 +13,6 @@ kill
 killpg
 vfork
 rfork
-wait4
-wait6
-wait
 nanosleep
 setsid
 getsid

@@ -616,31 +616,6 @@ __rr_fcntl(int fd, int cmd, ...)
     return result;
 }
 
-int __rr_getdents(int fd, char *buf, int nbytes)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_getdents, fd, buf, nbytes);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_getdents, fd, buf, nbytes);
-	    RRRecordOI(RREVENT_GETDENTS, fd, result);
-	    if (result > 0) {
-		logData((uint8_t*)buf, (size_t)result);
-	    }
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_GETDENTS, &result);
-	    if (result > 0) {
-		logData((uint8_t*)buf, (size_t)result);
-	    }
-	    break;
-    }
-
-    return result;
-}
-
 int
 __rr_sendfile(int fd, int s, off_t offset, size_t nbytes, struct sf_hdtr *hdtr, off_t *sbytes, int flags)
 {
@@ -856,7 +831,6 @@ __strong_reference(__rr_fcntl, _fcntl);
 __strong_reference(__rr_getcwd, __getcwd);
 
 BIND_REF(openat);
-BIND_REF(getdents);
 BIND_REF(sendfile);
 BIND_REF(select);
 BIND_REF(recvmsg);

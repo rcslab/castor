@@ -1,3 +1,5 @@
+getpid
+getppid
 cap_enter
 cap_getmode
 cap_fcntls_limit
@@ -7,6 +9,7 @@ cap_ioctls_limit
 cap_rights_limit
 kevent
 getdirentries
+getdents
 kqueue
 getgroups
 setgroups
@@ -60,6 +63,7 @@ chroot
 chdir
 fchdir
 mknodat
+mknod
 mkdir
 mkdirat
 rmdir

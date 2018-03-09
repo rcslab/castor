@@ -17,3 +17,7 @@ BUGS
       catch bugs in Castor with it.
     -sysV shm resource leaks are super annoying, how can we make this more usable so
     users don't have to constantly be cleaning up leaked resources.
+
+    -output divergence checking should be applied to output as well.
+    -output divergence checking should be disabled for release builds to
+     avoid adding overhead.

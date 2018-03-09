@@ -15,7 +15,7 @@ MISSING_CALLS_PATH = "./missing_syscalls.out"
 #In order of precendence -- we will prefer the STD declaration over COMPAT, and so forth.
 SUPPORTED_DECL_TYPES = ['STD', 'COMPAT', 'COMPAT11']
 
-RETURNS_BYTES_OUT = ['getdents', 'getdirentries', 'read', 'pread', 'readv', 'preadv']
+RETURNS_BYTES_OUT = ['getdents', 'getdirentries', 'read', 'pread', 'readv', 'preadv','kenv']
 RETURNS_ELEMENTS_OUT = ['kevent', 'getgroups']
 ALWAYS_SUCCESSFUL_SYSCALLS = [ 'getegid', 'geteuid', 'getgid', 'getpgid', \
         'getpgrp', 'getpid', 'getppid', 'getuid', 'issetugid', 'umask']

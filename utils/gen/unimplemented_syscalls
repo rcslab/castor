@@ -2,12 +2,6 @@
 ;XXX weird naming convention thing not supported yet.
 __sysctl
 __getcwd
-;XXX get unit test working first
-sendfile
-;XXX uses result of call for logData size, not supported yet.
-getdents
-getgroups
-;XXX -- need to support uid_t/gid_t result types
 ;XXX  -- return's void, icky, maybe just put this in events.c.
 closefrom
 sync
@@ -26,6 +20,8 @@ ppoll
 
 ;needs to be added to core runtime.
 creat
+wait4
+wait6
 
 ;Also not done, probably needs to be in core runtime for output divergence checking.
 pwritev
@@ -36,18 +32,6 @@ getpagesize
 
 ;XXX type signature issues
 sysarch
-
-;XXXmissing syscall numbers in syscall.h -- only there to support legacy binaries
-;support it in core by calling libc versions.
-send
-recv
-;similar, now implements through sysctl
-gethostname
-sethostname
-
-;ditto not sure where the syscall entry is, probably uses sysctl underneath.
-sethostid
-gethostid
 
 ;weird return value semantics that we don't yet support.
 __acl_aclcheck_fd
@@ -74,7 +58,6 @@ aio_suspend
 aio_waitcomplete
 aio_write
 ;XXX -- do we need to support COMPAT11 calls?
-mknod
 ;XXX no man page, not sure where prototype is.
 quota
 ;XXX some of these the leading underscore interferes with getting type signatures
@@ -107,6 +90,4 @@ sched_setscheduler
 sched_yield
 
 ;not sure where typesignatures are/what state of these calls is/no man pages
-cpuset_setdomain
-cpuset_getdomain
 
