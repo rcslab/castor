@@ -99,57 +99,6 @@ __rr_poll(struct pollfd fds[], nfds_t nfds, int timeout)
     return result;
 }
 
-int
-__rr_getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen)
-{
-    int result;
-    RRLogEntry *e;
-
-    if (rrMode == RRMODE_NORMAL) {
-	return syscall(SYS_getsockopt, s, level, optname, optval, optlen);
-    }
-
-    if (rrMode == RRMODE_RECORD) {
-	result = syscall(SYS_getsockopt, s, level, optname, optval, optlen);
-	e = RRLog_Alloc(rrlog, threadId);
-	e->event = RREVENT_GETSOCKOPT;
-	e->value[0] = (uint64_t)result;
-	e->value[1] = (uint64_t)optname;
-	if (optlen != NULL) {
-	    e->value[2] = (uint64_t)*optlen;
-	}
-	if (result == -1) {
-	    e->value[3] = (uint64_t)errno;
-	}
-	RRLog_Append(rrlog, e);
-
-	if (result == 0) {
-	    ASSERT(optval != NULL);
-	    ASSERT(optlen != NULL);
-	    logData((uint8_t *)optval, *optlen);
-	}
-    } else {
-	e = RRPlay_Dequeue(rrlog, threadId);
-	AssertEvent(e, RREVENT_GETSOCKOPT);
-	result = (int)e->value[0];
-	if (optlen != NULL) {
-	    *optlen = (socklen_t)e->value[2];
-	}
-	if (result == -1) {
-	    errno = e->value[3];
-	}
-	RRPlay_Free(rrlog, e);
-
-	if (result == 0) {
-	    ASSERT(optval != NULL);
-	    ASSERT(optlen != NULL);
-	    logData((uint8_t *)optval, *optlen);
-	}
-    }
-
-    return result;
-}
-
 #define SYS_pipe SYS_freebsd10_pipe
 
 static inline int
@@ -838,7 +787,6 @@ BIND_REF(recvfrom);
 BIND_REF(open);
 BIND_REF(ioctl);
 BIND_REF(poll);
-BIND_REF(getsockopt);
 BIND_REF(dup2);
 BIND_REF(dup);
 BIND_REF(pipe);

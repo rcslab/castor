@@ -34,6 +34,7 @@ accept
 accept4
 getpeername
 getsockname
+getsockopt
 socket
 bind
 bindat
