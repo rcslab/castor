@@ -1,7 +1,8 @@
--finish inspecting list of calls for return bytes/elements stuff from man pages.
 -add flags to support parameters in autogenerate_syscalls.
     -e.g. quirky named calls  SYS___.
     -use return value as logging size. (is there SAL for this.)
+
+-purge anything else possible from core runtime.
 
 -rename to autogen.
 
@@ -10,13 +11,10 @@
 -optimize recording of socketlen_t parameters by storing them as values, and other scalar types (e.g. getdirentries), anything that is an _Out_parameter and scalar type, if it
 is an aggregate type, check the size and if small enough, shove it into values.
 
--consider what to do with unsupported calls.
-
--improve testing.
-
 -teach gen_sal to log iovec's so we can support preadv/readv.
 
--come up with a theory of passthrough, document it, make sure all calls in passthrough
-conform to this theory -- same thing with unsupported.
+-Write comment block for differnt system call lists
+    -come up with a theory of passthrough, document it, make sure all calls in
+    passthrough conform to this theory -- same thing with unsupported.
 
 -update README.md
