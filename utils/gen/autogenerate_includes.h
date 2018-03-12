@@ -7,10 +7,12 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <kenv.h>
+#include <poll.h>
 
 #include <sys/types.h>
 #include <sys/event.h>
 #include <sys/socket.h>
+#include <sys/uio.h>
 #include <sys/resource.h>
 #include <sys/param.h>
 #include <sys/cpuset.h>

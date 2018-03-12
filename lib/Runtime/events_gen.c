@@ -28,10 +28,12 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <kenv.h>
+#include <poll.h>
 
 #include <sys/types.h>
 #include <sys/event.h>
 #include <sys/socket.h>
+#include <sys/uio.h>
 #include <sys/resource.h>
 #include <sys/param.h>
 #include <sys/cpuset.h>
@@ -1186,6 +1188,62 @@ __rr_getdtablesize()
 	    errno = e->value[1];
 	}
 	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
+__rr_select(int nd, fd_set * in, fd_set * ou, fd_set * ex, struct timeval *tv)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_select, nd, in, ou, ex, tv);
+    case RRMODE_RECORD:
+	result = syscall(SYS_select, nd, in, ou, ex, tv);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_SELECT;
+	e->objectId = (uint64_t) nd;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    if (in != NULL) {
+		logData((uint8_t *) in, (unsigned long)sizeof(fd_set));
+	    }
+	    if (ou != NULL) {
+		logData((uint8_t *) ou, (unsigned long)sizeof(fd_set));
+	    }
+	    if (ex != NULL) {
+		logData((uint8_t *) ex, (unsigned long)sizeof(fd_set));
+	    }
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_SELECT);
+	AssertObject(e, (uint64_t) nd);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    if (in != NULL) {
+		logData((uint8_t *) in, (unsigned long)sizeof(fd_set));
+	    }
+	    if (ou != NULL) {
+		logData((uint8_t *) ou, (unsigned long)sizeof(fd_set));
+	    }
+	    if (ex != NULL) {
+		logData((uint8_t *) ex, (unsigned long)sizeof(fd_set));
+	    }
+	}
 	break;
     }
     return result;
@@ -2426,6 +2484,44 @@ __rr_futimes(int fd, const struct timeval *tptr)
 }
 
 int
+__rr_poll(struct pollfd *fds, nfds_t nfds, int timeout)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_poll, fds, nfds, timeout);
+    case RRMODE_RECORD:
+	result = syscall(SYS_poll, fds, nfds, timeout);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_POLL;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) fds, (unsigned long)nfds * sizeof(struct pollfd));
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_POLL);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) fds, (unsigned long)nfds * sizeof(struct pollfd));
+	}
+	break;
+    }
+    return result;
+}
+
+int
 __rr_clock_settime(clockid_t clock_id, const struct timespec *tp)
 {
     int		    result;
@@ -3453,6 +3549,50 @@ __rr_uuidgen(struct uuid *store, int count)
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
 	    logData((uint8_t *) store, (unsigned long)count * sizeof(struct uuid));
+	}
+	break;
+    }
+    return result;
+}
+
+int
+__rr_sendfile(int fd, int s, off_t offset, size_t nbytes, struct sf_hdtr *hdtr, off_t * sbytes, int flags)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_sendfile, fd, s, offset, nbytes, hdtr, sbytes, flags);
+    case RRMODE_RECORD:
+	result = syscall(SYS_sendfile, fd, s, offset, nbytes, hdtr, sbytes, flags);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_SENDFILE;
+	e->objectId = (uint64_t) fd;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    if (sbytes != NULL) {
+		logData((uint8_t *) sbytes, (unsigned long)sizeof(off_t));
+	    }
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_SENDFILE);
+	AssertObject(e, (uint64_t) fd);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    if (sbytes != NULL) {
+		logData((uint8_t *) sbytes, (unsigned long)sizeof(off_t));
+	    }
 	}
 	break;
     }
@@ -6155,6 +6295,7 @@ BIND_REF(setitimer);
 BIND_REF(swapon);
 BIND_REF(getitimer);
 BIND_REF(getdtablesize);
+BIND_REF(select);
 BIND_REF(fsync);
 BIND_REF(setpriority);
 BIND_REF(socket);
@@ -6191,6 +6332,7 @@ BIND_REF(pathconf);
 BIND_REF(fpathconf);
 BIND_REF(undelete);
 BIND_REF(futimes);
+BIND_REF(poll);
 BIND_REF(clock_settime);
 BIND_REF(clock_getres);
 BIND_REF(ffclock_getcounter);
@@ -6220,6 +6362,7 @@ BIND_REF(nmount);
 BIND_REF(kenv);
 BIND_REF(lchflags);
 BIND_REF(uuidgen);
+BIND_REF(sendfile);
 BIND_REF(extattr_set_link);
 BIND_REF(extattr_get_link);
 BIND_REF(extattr_delete_link);

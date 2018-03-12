@@ -20,26 +20,18 @@
 // stat/fstat
 #include <sys/stat.h>
 
-// sysctl
-#include <sys/sysctl.h>
-
 // socket
 #include <sys/socket.h>
 
 // ioctl
 #include <sys/ioccom.h>
 
-// poll
-#include <poll.h>
 #include <sys/event.h>
 #include <sys/time.h>
 
 // statfs/fstatfs
 #include <sys/param.h>
 #include <sys/mount.h>
-
-// sendfile
-#include <sys/uio.h>
 
 #include <libc_private.h>
 
@@ -57,47 +49,6 @@ extern void *__sys_mmap(void *addr, size_t len, int prot, int flags, int fd, off
 extern int __sys_dup2(int oldd, int newd);
 extern int __sys_close(int fd);
 extern int __sys_pipe(int fildes[2]);
-
-int
-__rr_poll(struct pollfd fds[], nfds_t nfds, int timeout)
-{
-    int result;
-    RRLogEntry *e;
-
-    if (rrMode == RRMODE_NORMAL) {
-	return syscall(SYS_poll, fds, nfds, timeout);
-    }
-
-    if (rrMode == RRMODE_RECORD) {
-	result = syscall(SYS_poll, fds, nfds, timeout);
-	e = RRLog_Alloc(rrlog, threadId);
-	e->event = RREVENT_POLL;
-	e->value[0] = (uint64_t)result;
-	e->value[1] = nfds;
-	if (result == -1) {
-	    e->value[2] = (uint64_t)errno;
-	}
-	RRLog_Append(rrlog, e);
-	if (result > 0) {
-	    logData((uint8_t *)fds, nfds * sizeof(struct pollfd));
-	}
-    } else {
-	e = RRPlay_Dequeue(rrlog, threadId);
-	AssertEvent(e, RREVENT_POLL);
-	result = (int)e->value[0];
-	assert(e->value[1] == nfds);
-	if (result == -1) {
-	    errno = e->value[2];
-	}
-	RRPlay_Free(rrlog, e);
-
-	if (result > 0) {
-	    logData((uint8_t *)fds, nfds * sizeof(struct pollfd));
-	}
-    }
-
-    return result;
-}
 
 #define SYS_pipe SYS_freebsd10_pipe
 
@@ -565,25 +516,6 @@ __rr_fcntl(int fd, int cmd, ...)
     return result;
 }
 
-int
-__rr_sendfile(int fd, int s, off_t offset, size_t nbytes, struct sf_hdtr *hdtr, off_t *sbytes, int flags)
-{
-    int result;
-
-    switch (rrMode) {
-        case RRMODE_NORMAL:
-            return syscall(SYS_sendfile, fd, s, offset, nbytes, hdtr, sbytes, flags);
-        case RRMODE_RECORD:
-            result = syscall(SYS_sendfile, fd, s, offset, nbytes, hdtr, sbytes, flags);
-            RRRecordOI(RREVENT_SENDFILE, s, result);
-            break;
-        case RRMODE_REPLAY:
-            RRReplayOI(RREVENT_SENDFILE, s, &result);
-            break;
-    }
-
-    return result;
-}
 
 void log_msg(struct msghdr *msg)
 {
@@ -635,7 +567,7 @@ ssize_t
 __rr_recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *
 	restrict from, socklen_t * restrict fromlen)
 {
-    
+
     ssize_t result;
 
     switch (rrMode) {
@@ -659,49 +591,6 @@ __rr_recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *
 		if (from != NULL) {
 		    logData((uint8_t*)from, sizeof(struct sockaddr));
 		    logData((uint8_t*)&fromlen, sizeof(socklen_t));
-		}
-	    }
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
-	 struct timeval *timeout)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_select, nfds, readfds, writefds, exceptfds, timeout);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_select, nfds, readfds, writefds, exceptfds, timeout);
-	    RRRecordI(RREVENT_SELECT, result);
-	    if (result != -1) {
-		if (readfds != NULL) {
-		    logData((uint8_t*)readfds, sizeof(*readfds));
-		}
-		if (writefds != NULL) {
-		    logData((uint8_t*)writefds, sizeof(*writefds));
-		}
-		if (exceptfds != NULL) {
-		    logData((uint8_t*)exceptfds, sizeof(*exceptfds));
-		}
-	    }
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_SELECT, &result);
-	    if (result != -1) {
-		if (readfds != NULL) {
-		    logData((uint8_t*)readfds, sizeof(*readfds));
-		}
-		if (writefds != NULL) {
-		    logData((uint8_t*)writefds, sizeof(*writefds));
-		}
-		if (exceptfds != NULL) {
-		    logData((uint8_t*)exceptfds, sizeof(*exceptfds));
 		}
 	    }
 	    break;
@@ -766,10 +655,8 @@ Events_Init()
     Add_Interposer(INTERPOS_close, (interpos_func_t)&__rr_close);
     Add_Interposer(INTERPOS_fcntl, (interpos_func_t)&__rr_fcntl);
     Add_Interposer(INTERPOS_recvfrom,  (interpos_func_t)&__rr_recvfrom);
-    Add_Interposer(INTERPOS_poll,  (interpos_func_t)&__rr_poll);
     Add_Interposer(INTERPOS_readv,  (interpos_func_t)&__rr_readv);
     Add_Interposer(INTERPOS_recvmsg,  (interpos_func_t)&__rr_recvmsg);
-    Add_Interposer(INTERPOS_select,  (interpos_func_t)&__rr_select);
     Add_Interposer(INTERPOS_writev,  (interpos_func_t)&__rr_writev);
 }
 
@@ -780,13 +667,10 @@ __strong_reference(__rr_fcntl, _fcntl);
 __strong_reference(__rr_getcwd, __getcwd);
 
 BIND_REF(openat);
-BIND_REF(sendfile);
-BIND_REF(select);
 BIND_REF(recvmsg);
 BIND_REF(recvfrom);
 BIND_REF(open);
 BIND_REF(ioctl);
-BIND_REF(poll);
 BIND_REF(dup2);
 BIND_REF(dup);
 BIND_REF(pipe);

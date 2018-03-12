@@ -1,3 +1,6 @@
+sendfile
+select
+poll
 getpid
 getppid
 cap_enter

@@ -6,13 +6,15 @@
 #include <netdb.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <string.h> 
+#include <string.h>
 #include <stdlib.h>
 
 int create_sock()
 {
     int sock;
     sock = socket(AF_INET, SOCK_STREAM, 0);
+    setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, NULL, 0);
+
     if (sock < 0) {
         perror("socket");
         exit(1);
@@ -37,7 +39,7 @@ int accept_sock(int sock)
     }
     socklen_t len = sizeof(name);
     int newsock;
-    newsock = accept4(sock, (struct sockaddr *)&name, &len, SOCK_NONBLOCK);
+    newsock = accept4(sock, (struct sockaddr *)&name, &len, 0);
     if (newsock == -1) {
         perror("accept");
         exit(1);
@@ -92,19 +94,18 @@ write_sendfile(void *arg)
     dst_addr.sin_family = AF_INET;
     dst_addr.sin_port = 5555;
     connect(sock, (const struct sockaddr *)&dst_addr, sizeof(dst_addr));
-    
-    int fd = open("read.c", O_RDONLY);
+
+    int fd = open("sendfile.c", O_RDONLY);
     if (fd == -1) {
         perror("open");
         exit(1);
     }
-    
     int result = sendfile(fd, sock, 0, 0, NULL, NULL, 0);
     if (result != 0) {
         perror("write_sendfile");
         exit(1);
     }
-    
+
     close(sock);
     return NULL;
 }
@@ -119,4 +120,3 @@ main()
     pthread_join(write_thread, NULL);
     return 0;
 }
-    

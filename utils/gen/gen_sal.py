@@ -419,7 +419,7 @@ def format_handlers():
 
 def clean_types(arg):
     #get replace array signatures with pointers
-    arg = re.sub('\[\]','*',arg)
+    arg = re.sub('\w*\[\]','*',arg)
 
     #XXX half ass heuristic to remove variable names
     parts = arg.split()
