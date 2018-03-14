@@ -721,6 +721,40 @@ __rr_getppid()
     return result;
 }
 
+int
+__rr_dup(int fd)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_dup, fd);
+    case RRMODE_RECORD:
+	result = syscall(SYS_dup, fd);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_DUP;
+	e->objectId = (uint64_t) fd;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_DUP);
+	AssertObject(e, (uint64_t) fd);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
 gid_t
 __rr_getegid()
 {
@@ -1183,6 +1217,40 @@ __rr_getdtablesize()
     case RRMODE_REPLAY:
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_GETDTABLESIZE);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
+__rr_dup2(int from, int to)
+{
+    int		    result;
+    RRLogEntry     *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return syscall(SYS_dup2, from, to);
+    case RRMODE_RECORD:
+	result = syscall(SYS_dup2, from, to);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_DUP2;
+	e->objectId = (uint64_t) from;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_DUP2);
+	AssertObject(e, (uint64_t) from);
 	result = (int)e->value[0];
 	if (result == -1) {
 	    errno = e->value[1];
@@ -6281,6 +6349,7 @@ BIND_REF(access);
 BIND_REF(chflags);
 BIND_REF(fchflags);
 BIND_REF(getppid);
+BIND_REF(dup);
 BIND_REF(getegid);
 BIND_REF(getgid);
 BIND_REF(acct);
@@ -6295,6 +6364,7 @@ BIND_REF(setitimer);
 BIND_REF(swapon);
 BIND_REF(getitimer);
 BIND_REF(getdtablesize);
+BIND_REF(dup2);
 BIND_REF(select);
 BIND_REF(fsync);
 BIND_REF(setpriority);

@@ -599,48 +599,6 @@ __rr_recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *
     return result;
 }
 
-int
-__rr_dup2(int oldd, int newd)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_dup2, oldd, newd);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_dup2, oldd, newd);
-	    RRRecordOI(RREVENT_DUP2, oldd, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayOI(RREVENT_DUP2, oldd, &result);
-	    // XXX: FDINFO
-	    break;
-    }
-
-    return result;
-}
-
-int
-__rr_dup(int oldd)
-{
-    int result;
-
-    switch (rrMode) {
-	case RRMODE_NORMAL:
-	    return syscall(SYS_dup, oldd);
-	case RRMODE_RECORD:
-	    result = syscall(SYS_dup, oldd);
-	    RRRecordOI(RREVENT_DUP, oldd, result);
-	    break;
-	case RRMODE_REPLAY:
-	    RRReplayOI(RREVENT_DUP, oldd, &result);
-	    // XXX: FDINFO
-	    break;
-    }
-
-    return result;
-}
-
 void Add_Interposer(int slotNum, interpos_func_t newHandler)
 {
     interpos_func_t * slotP = __libc_interposing_slot(slotNum);
@@ -671,8 +629,6 @@ BIND_REF(recvmsg);
 BIND_REF(recvfrom);
 BIND_REF(open);
 BIND_REF(ioctl);
-BIND_REF(dup2);
-BIND_REF(dup);
 BIND_REF(pipe);
 BIND_REF(pipe2);
 BIND_REF(pwrite);
