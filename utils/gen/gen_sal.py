@@ -360,16 +360,19 @@ def generate_preambles():
     c_output(preamble)
     h_output(preamble)
 
+def padding(str):
+    return (20 - len(str)) * ' '
+
 def generate_header_file(generated):
-    index = 0x000A000
+    index = 0x10000000
     h_output("#ifndef __EVENTS_GEN_H")
     h_output("#define __EVENTS_GEN_H\n\n")
     h_output("#define RREVENT_TABLE_GEN\\")
     last = generated[-1]
     for name in generated[:-1]:
-        h_output("\tRREVENT(%s,\t0x%X)\\" % (name.upper(), index))
+        h_output("\tRREVENT(%s,%s0x%X)\\" % (name.upper(), padding(name), index))
         index += 1
-    h_output("\tRREVENT(%s,\t0x%X)" % (last.upper(), index))
+    h_output("\tRREVENT(%s,%s0x%X)" % (last.upper(), padding(name), index))
 
     h_output("#endif")
 
