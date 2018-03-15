@@ -1,5 +1,3 @@
 #!/bin/sh
-mkdir -p logs
-
-replay -o logs/pbzip2-compress.rr truss -o logs/replay1.truss sh -c "./pbzip2 -l -p2 words"
-replay -o logs/pbzip2-decompress.rr truss -o logs/replay2.truss sh -c "./pbzip2 -l -p2 -d words.bz2"
+replay -o logs/zip.rr truss -o logs/truss-r.out sh -c "./pbzip2 -c -l -v -p2 words > words.bz2"
+replay -o logs/unzip.rr truss -o logs/truss-r.out sh -c "./pbzip2 -c -d -l -v -p2 words.bz2 > words.out"
