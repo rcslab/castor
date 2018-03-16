@@ -114,33 +114,23 @@ pthread_create(pthread_t * thread, const pthread_attr_t * attr,
     }
 
     if (rrMode == RRMODE_RECORD) {
-	thrNo = RRShared_AllocThread(rrlog);
-
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_THREAD_CREATE;
+	thrNo = RRShared_AllocThread(rrlog);
 	e->value[1] = thrNo;
 	RRLog_Append(rrlog, e);
-
-	threadState[thrNo].start = start_routine;
-	threadState[thrNo].arg = arg;
-
-	result = _pthread_create(thread, attr, thrwrapper, (void *)thrNo);
-	ASSERT_IMPLEMENTED(result == 0);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	thrNo = e->value[1];
 	AssertEvent(e, RREVENT_THREAD_CREATE);
 	RRPlay_Free(rrlog, e);
-
 	RRShared_SetupThread(rrlog, thrNo);
-
-	threadState[thrNo].start = start_routine;
-	threadState[thrNo].arg = arg;
-
-	result = _pthread_create(thread, attr, thrwrapper, (void *)thrNo);
-	ASSERT_IMPLEMENTED(result == 0);
     }
 
+    threadState[thrNo].start = start_routine;
+    threadState[thrNo].arg = arg;
+    result = _pthread_create(thread, attr, thrwrapper, (void *)thrNo);
+    ASSERT_IMPLEMENTED(result == 0);
     return result;
 }
 
