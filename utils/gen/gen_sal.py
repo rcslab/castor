@@ -13,7 +13,7 @@ INCLUDES_PATH = "./autogenerate_includes.h"
 MISSING_CALLS_PATH = "./missing_syscalls.out"
 
 #In order of precendence -- we will prefer the STD declaration over COMPAT, and so forth.
-SUPPORTED_DECL_TYPES = ['STD', 'COMPAT', 'COMPAT11']
+SUPPORTED_DECL_TYPES = ['STD', 'NOSTD', 'COMPAT', 'COMPAT11']
 
 RETURNS_BYTES_OUT = ['getdents', 'getdirentries', 'read', 'pread', 'readv', 'preadv','kenv']
 RETURNS_ELEMENTS_OUT = ['kevent', 'getgroups']
@@ -328,7 +328,7 @@ def parse_spec():
                 else:
                     parse_unused(line)
             else:
-                die("parse error")
+                die("Parse error on line:" + str(line_number))
         else:
             if line.endswith("\\"):
                 partial_line = partial_line + line
