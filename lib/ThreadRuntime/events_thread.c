@@ -607,11 +607,13 @@ pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct timespec *abs_timeo
 	    AssertEvent(e, RREVENT_MUTEX_TIMEDLOCK);
       
       /* Record call was successful, wait until replay call matches */
-      if (e->value[0] == 0)
-        while (result != 0)
+      if (e->value[0] == 0) {
+        while (result != 0) {
           result = _pthread_mutex_timedlock(mutex, abs_timeout);
-      else 
+        }
+      } else {
         result = e->value[0];
+      }
       
 	    RRPlay_LFree(e);
 	    break;
@@ -890,11 +892,13 @@ pthread_rwlock_timedrdlock(pthread_rwlock_t *lock, const struct timespec *abs_ti
 	    AssertEvent(e, RREVENT_RWLOCK_TIMEDRDLOCK);
 
       /* Record call was successful, wait until replay call matches */
-      if (e->value[0] == 0)
-        while (result != 0)
+      if (e->value[0] == 0) {
+        while (result != 0) {
           result = _pthread_rwlock_timedrdlock(lock, abs_timeout);
-      else 
+        }
+      } else {
         result = e->value[0];
+      }
 	    
 	    RRPlay_LFree(e);
 	    break;
@@ -1005,12 +1009,14 @@ pthread_rwlock_timedwrlock(pthread_rwlock_t *lock, const struct timespec *abs_ti
 	    AssertEvent(e, RREVENT_RWLOCK_TIMEDWRLOCK);
 
       /* Record call was successful, wait until replay call matches */
-      if (e->value[0] == 0)
-        while (result != 0)
+      if (e->value[0] == 0) {
+        while (result != 0) {
           result = _pthread_rwlock_timedwrlock(lock, abs_timeout);
-      else 
+        }
+      } else { 
         result = e->value[0];
-	    
+	    }
+      
 	    RRPlay_LFree(e);
 	    break;
 	}
@@ -1211,12 +1217,14 @@ _pthread_timedjoin_np(pthread_t thread, void **value_ptr,
 	    AssertEvent(e, RREVENT_THREAD_TIMEDJOIN);
 
       /* Record call was successful, wait until replay call matches */
-      if (e->value[0] == 0)
-        while (result != 0)
+      if (e->value[0] == 0) {
+        while (result != 0) {
           result = _pthread_join(thread, value_ptr);
-      else 
+        }
+      } else {
         result = e->value[0];
-    
+      }
+      
 	    RRPlay_Free(rrlog, e);
 	    break;
 	}
