@@ -14,6 +14,7 @@
   -unit tests:
   -more complicated pthread tests
   -corner cases for pthread cond variables.
+  -look into using regression test suite to test castor tools/
 
 --Completeness
     -stuff in SYSCALLS_TODO, and PTHREAD_TODO
