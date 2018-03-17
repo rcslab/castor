@@ -114,33 +114,23 @@ pthread_create(pthread_t * thread, const pthread_attr_t * attr,
     }
 
     if (rrMode == RRMODE_RECORD) {
-	thrNo = RRShared_AllocThread(rrlog);
-
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_THREAD_CREATE;
+	thrNo = RRShared_AllocThread(rrlog);
 	e->value[1] = thrNo;
 	RRLog_Append(rrlog, e);
-
-	threadState[thrNo].start = start_routine;
-	threadState[thrNo].arg = arg;
-
-	result = _pthread_create(thread, attr, thrwrapper, (void *)thrNo);
-	ASSERT_IMPLEMENTED(result == 0);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
 	thrNo = e->value[1];
 	AssertEvent(e, RREVENT_THREAD_CREATE);
 	RRPlay_Free(rrlog, e);
-
 	RRShared_SetupThread(rrlog, thrNo);
-
-	threadState[thrNo].start = start_routine;
-	threadState[thrNo].arg = arg;
-
-	result = _pthread_create(thread, attr, thrwrapper, (void *)thrNo);
-	ASSERT_IMPLEMENTED(result == 0);
     }
 
+    threadState[thrNo].start = start_routine;
+    threadState[thrNo].arg = arg;
+    result = _pthread_create(thread, attr, thrwrapper, (void *)thrNo);
+    ASSERT_IMPLEMENTED(result == 0);
     return result;
 }
 
@@ -452,7 +442,7 @@ _pthread_mutex_lock(pthread_mutex_t *mtx)
 	    e->event = RREVENT_MUTEX_LOCK;
 	    e->objectId = (uint64_t)mtx;
 	    e->value[0] = (uint64_t)result;
-	    e->value[4] = __builtin_readcyclecounter();
+	    e->value[4] = __builtin_readcyclecounter(); //XXX: where is this used?
 	    RRLog_LAppend(e);
 	    break;
 	}
@@ -1047,6 +1037,7 @@ pthread_rwlock_trywrlock(pthread_rwlock_t *lock)
 	}
 	case RRMODE_REPLAY: {
 	    e = RRPlay_Dequeue(rrlog, threadId);
+	    AssertEvent(e, RREVENT_RWLOCK_TRYWRLOCK);
 	    result = (int)e->value[0];
 	    RRPlay_Free(rrlog, e);
 	    break;
@@ -1233,7 +1224,7 @@ _pthread_timedjoin_np(pthread_t thread, void **value_ptr,
     return result;
 }
 
-/* Does not ensure that signals are received 
+/* Does not ensure that signals are received
    in the same order. */
 int
 pthread_kill(pthread_t thread, int sig)
@@ -1251,7 +1242,7 @@ pthread_kill(pthread_t thread, int sig)
 	    e = RRLog_Alloc(rrlog, threadId);
 	    e->event = RREVENT_THREAD_KILL;
 	    e->value[0] = (uint64_t)result;
-	    e->value[4] = __builtin_readcyclecounter();
+	    e->value[4] = __builtin_readcyclecounter(); //XXX: why is this here
 	    RRLog_Append(rrlog, e);
 	    break;
 	}
