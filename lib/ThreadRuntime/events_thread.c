@@ -499,10 +499,12 @@ pthread_mutex_trylock(pthread_mutex_t *mtx)
 	}
 	case RRMODE_REPLAY: {
 	    e = RRPlay_Dequeue(rrlog, threadId);
+      AssertEvent(e, RREVENT_MUTEX_TRYLOCK);
 	    result = (int)e->value[0];
 	    RRPlay_Free(rrlog, e);
 	    break;
 	}
+  /* XXX: remove cruft */
 	/*
 	 * case RRMODE_FDREPLAY: {
 	 *     e = RRLog_Alloc(rrlog, threadId);
@@ -604,7 +606,7 @@ pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct timespec *abs_timeo
       } else {
         result = e->value[0];
       }
-      
+
 	    RRPlay_LFree(e);
 	    break;
 	}
@@ -722,6 +724,7 @@ pthread_spin_trylock(pthread_spinlock_t *lock)
 	}
 	case RRMODE_REPLAY: {
 	    e = RRPlay_Dequeue(rrlog, threadId);
+      AssertEvent(e, RREVENT_SPIN_TRYLOCK);
 	    result = (int)e->value[0];
 	    RRPlay_Free(rrlog, e);
 	    break;
@@ -889,7 +892,7 @@ pthread_rwlock_timedrdlock(pthread_rwlock_t *lock, const struct timespec *abs_ti
       } else {
         result = e->value[0];
       }
-	    
+
 	    RRPlay_LFree(e);
 	    break;
 	}
@@ -920,6 +923,7 @@ pthread_rwlock_tryrdlock(pthread_rwlock_t *lock)
 	}
 	case RRMODE_REPLAY: {
 	    e = RRPlay_Dequeue(rrlog, threadId);
+      AssertEvent(e, RREVENT_RWLOCK_TRYRDLOCK);
 	    result = (int)e->value[0];
 	    RRPlay_Free(rrlog, e);
 	    break;
@@ -1003,10 +1007,10 @@ pthread_rwlock_timedwrlock(pthread_rwlock_t *lock, const struct timespec *abs_ti
         while (result != 0) {
           result = _pthread_rwlock_timedwrlock(lock, abs_timeout);
         }
-      } else { 
+      } else {
         result = e->value[0];
 	    }
-      
+
 	    RRPlay_LFree(e);
 	    break;
 	}
@@ -1215,7 +1219,7 @@ _pthread_timedjoin_np(pthread_t thread, void **value_ptr,
       } else {
         result = e->value[0];
       }
-      
+
 	    RRPlay_Free(rrlog, e);
 	    break;
 	}
