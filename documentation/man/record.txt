@@ -1,5 +1,3 @@
-RECORD(1)               FreeBSD General Commands Manual              RECORD(1)
-
 NAME
      record – record program execution.
 
@@ -8,19 +6,21 @@ SYNOPSIS
 
 DESCRIPTION
      The record utility is part of the Castor record/replay system. It records
-     program execution to a log, which can later be replayed with the
-     replay(1) utility. To do this efficiently, it records only non-
-     deterministic inputs e.g. the result of system calls such as getpid(2),
-     gettimeofday(2), read(2), recv(2), etc. to a log file.  It does this
-     through a combination of compile time instrumentation using clang(1) and
-     shared library interposition.
+     program execution to a log, which can later be replayed with the replay(1)
+     utility.
+
+     To do this efficiently, it records non-deterministic inputs e.g. from
+     system calls such as getpid(2), read(2), or recv(2), to a log file.
+     Inputs are captured using a combination of compile time instrumentation
+     using clang(1) and shared library interposition.
 
 
 OPTIONS
 
-  -o [file]     Log file name, default name is default.rr
-
   -h            Help
+
+  -o [file]     Log file name. (default: default.rr)
+
 
   -r [size]     Size of shared region memory region used to communicate between record
 		process and application processes.

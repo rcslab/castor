@@ -5,27 +5,33 @@ SYNOPSIS
     replay [options] [program path] [args]
 
 DESCRIPTION
-     The record utility is part of the Castor record/replay system. It records
-     program execution to a log, which can later be replayed with the replay(1)
-     utility. To do this efficiently, it records only non- deterministic inputs
-     e.g. the result of system calls such as getpid(2), gettimeofday(2),
-     read(2), recv(2), etc. to a log file.  It does this through a combination
-     of compile time instrumentation using clang(1) and shared library
-     interposition.
+     The replay utility is part of the Castor record/replay system. It replays
+     program execution from a log which was captured using the record(1) utility.
 
+     replay reads all non-deterministic inputs e.g. from system calls such as
+     getpid(2), read(2), or recv(2), from the log file and feeds them back to the
+     application using, as well as enforcing the same order of non-deterministic
+     operations on shared state such as lock acquire/release as took place during
+     initial program execution.
+
+     The program binary may be modified between record and replay time, so long
+     as the modifications do not introduce new non-determinism. For example, calls
+     to rr_printf(3) or rr_assert(3) can be added to support debugging at replay
+     time.
 
 OPTIONS
 
-  -o [file]     Log file name, default name is default.rr
-
   -h            Help
 
+  -o [file]     Log file name. (default: default.rr)
+
+
   -r [size]     Size of shared region memory region used to communicate between record
-		process and application processes.
+		process and application processes. (default: XXX)
 
-  -e [entries]  Number of entries per thread in shared memory queues
+  -e [entries]  Number of entries per thread in shared memory queues (default: XXX)
 
-  -c [cores]    Maximum number of application cores
+  -c [cores]    Maximum number of application cores (default: no core limit)
 
   -p            Pin threads
 
