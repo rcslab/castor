@@ -58,8 +58,13 @@ int main(int argc, const char *argv[])
     int flags = O_RDWR;
 
     if (argc != 2) {
-	fprintf(stderr, "Usage: %s [LOGFILE]\n", argv[0]);
+	fprintf(stderr, "Usage: %s [-h] [LOGFILE]\n", argv[0]);
 	return 1;
+    }
+
+    if (!strcmp(argv[1],"-h")) {
+	fprintf(stdout, "Usage: %s [-h] [LOGFILE]\n", argv[0]);
+	return 0;
     }
 
     logfd = open(argv[1], flags, 0600);
