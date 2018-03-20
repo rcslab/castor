@@ -1,0 +1,53 @@
+NAME
+    replay – replay program execution.
+
+SYNOPSIS
+    replay [options] [program path] [args]
+
+DESCRIPTION
+     The record utility is part of the Castor record/replay system. It records
+     program execution to a log, which can later be replayed with the replay(1)
+     utility. To do this efficiently, it records only non- deterministic inputs
+     e.g. the result of system calls such as getpid(2), gettimeofday(2),
+     read(2), recv(2), etc. to a log file.  It does this through a combination
+     of compile time instrumentation using clang(1) and shared library
+     interposition.
+
+
+OPTIONS
+
+  -o [file]     Log file name, default name is default.rr
+
+  -h            Help
+
+  -r [size]     Size of shared region memory region used to communicate between record
+		process and application processes.
+
+  -e [entries]  Number of entries per thread in shared memory queues
+
+  -c [cores]    Maximum number of application cores
+
+  -p            Pin threads
+
+  -t            Stops child process on creation for attaching a debugger in replay mode
+
+  -i            Interactive debug shell
+
+  -s            Sandbox replayed child process using capsicum(4)
+
+  -t            Stops child process on creation for attaching a debugger in replay mode
+
+
+EXIT STATUS
+  If an error occurs replay exits 1, otherwise, it exists with whatever the
+  exit status of the program being replayed.
+
+COMPATIBILITY
+    Castor only targets FreeBSD Release 1.2 Stable and beyond.
+
+LIMITATIONS
+    Castor may not be able to replay applications that make system calls
+    directly or that don't build with the castor compiler pass.
+
+SEE ALSO
+     replay(1), rrlog(1), rr_printf(3), rr_assert(3)
