@@ -5,10 +5,7 @@
     -document how to use a debugger with Castor
     -document rr_assert/rr_printf
 
-    Documentation
-	-finish man pages for record.1, replay.1, rrlog.1
-	-add instructions on how to build new apps to README.md
-
+    
 --Testing
   -look into using libc test suite to test castor
   -unit tests:
