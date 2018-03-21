@@ -1,0 +1,51 @@
+NAME
+    rrlog – display contents of replay log.
+
+SYNOPSIS
+    rrlog [options] path-to-logfile
+
+DESCRIPTION
+     The rrlog utility is part of the Castor record/replay system. It displays
+     the contents of a log which has been recorded using the record(1) utility.	   and ends with a summary.
+
+LOG FORMAT
+     The log is a sorted collection of entries with the following fields which
+     are displayed in order:
+
+     "Event #", "Thread #", "Event", "Object ID", "Value[0] - Value[4]"
+
+     These fields denote the following:
+
+     Event # - order event was recorded/will be replayed.
+
+     Thread # - threadid of thread which logged the event.
+
+     Event - name of event that generated the log entry: the name will either
+     be of a system call e.g. FORK, WAIT, GETPID. Argument data for a system
+     call: DATA, A thread library call: e.g. MUTEX_INIT, COND_INIT, SPIN_LOCK.
+     or a compiler primitive: ATOMIC_LOAD, INLINE_ASM. Or additional castor
+     meta-data e.g. LOCKED_EVENT
+
+     Object ID - stores the object a system call is operating on e.g. the file
+     descriptor # for read(2) or the socket descriptor # for sendmsg(2).
+
+     VALUE[0-4] - contents of this field is system call dependant. In general
+     VALUE[0] stores the result of a system call, VALUE[1] stores the value of
+     errno if result < 0. Value fields can also be used to store the side
+     effects of system calls e.g. that are small enough to be stored with the
+     event and don't require seperate data records.
+
+     A summary of the event totals is output after the log.
+
+OPTIONS
+
+  -h            Help
+
+EXIT STATUS
+  If an error occurs while reading the log exits 1, otherwise, exits 0.
+
+COMPATIBILITY
+    Castor only targets FreeBSD Release 1.2 Stable and beyond.
+
+SEE ALSO
+     replay(1), record(1), rr_printf(3), rr_assert(3)
