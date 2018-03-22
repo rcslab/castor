@@ -1,48 +1,53 @@
 NAME
-    replay – replay program execution.
+replay – replay program execution.
 
 SYNOPSIS
-    replay [options] [program path] [args]
+replay [options] program-path [program-args]
 
 DESCRIPTION
-     The replay utility is part of the Castor record/replay system. It replays
-     program execution from a log which was captured using the record(1) utility.
+ The replay utility is part of the Castor record/replay system. It replays
+ program execution from a log which was captured using the record(1) utility.
 
-     replay reads all non-deterministic inputs e.g. from system calls such as
-     getpid(2), read(2), or recv(2), from the log file and feeds them back to the
-     application using, as well as enforcing the same order of non-deterministic
-     operations on shared state such as lock acquire/release as took place during
-     initial program execution.
+ To do this, the replay utility spawns a new process to run the program at
+ program-path with program-args and loads the castor runtime into the
+ program's address space at startup. The runtime intercepts all
+ non-deterministic events and replays them based on contents of
+ the replay log which is read in by the replay process and shared
+ with the castor runtime through shared memory.
 
-     The program binary may be modified between record and replay time, so long
-     as the modifications do not introduce new non-determinism. For example, calls
-     to rr_printf(3) or rr_assert(3) can be added to support debugging at replay
-     time.
+ For example, a system call to read(2) would be intercepted by the castor
+ runtime, and instead of being performed, the call would be elided, and
+ the results of the call would be read directly from the log. Consequently,
+ when examining a replayed application with truss(1), and comparing it with
+ the original run, you will notice most system calls do not appear in the trace
+ on replay.
+
+ The program binary may be modified between record and replay time, so long
+ as the modifications do not introduce new non-determinism. For example, calls
+ to rr_printf(3) or rr_assert(3) can be added to support debugging at replay
+ time.
 
 OPTIONS
-
   -h            Help
 
-  -o [file]     Log file name. (default: default.rr)
+  -o [file] Log file name. (default: default.rr)
 
-
-  -r [size]     Size of shared region memory region used to communicate between record
+  -r [size] Size of shared region memory region used to communicate between record
 		process and application processes. (default: XXX)
 
-  -e [entries]  Number of entries per thread in shared memory queues (default: XXX)
+  -e [entries] Number of entries per thread in shared memory queues (default: XXX)
 
-  -c [cores]    Maximum number of application cores (default: no core limit)
+  -c [cores] Maximum number of application cores (default: no core limit)
 
-  -p            Pin threads
+  -p Pin threads
 
-  -t            Stops child process on creation for attaching a debugger in replay mode
+  -t Stops child process on creation for attaching a debugger in replay mode
 
-  -i            Interactive debug shell
+  -i Interactive debug shell
 
-  -s            Sandbox replayed child process using capsicum(4)
+  -s Sandbox replayed child process using capsicum(4)
 
-  -t            Stops child process on creation for attaching a debugger in replay mode
-
+  -t Stops child process on creation for attaching a debugger in replay mode
 
 EXIT STATUS
   If an error occurs replay exits 1, otherwise, it exists with whatever the

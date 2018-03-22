@@ -1,6 +1,3 @@
--add examples
 -explain compiler pass (i.e. show how to do this)
 -explain advanced options for performance/debugging, segregate these out.
--minor formatting issues
--provide explanation of how castor works with the runtime etc. somewhere.
 -add documentation for rr_assert, rr_printf.

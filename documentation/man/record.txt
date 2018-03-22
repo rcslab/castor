@@ -1,37 +1,38 @@
 NAME
-     record – record program execution.
+record – record program execution.
 
 SYNOPSIS
-     record [-ph] [-o file] [-e entries] [-c cores] command [args]
+record [options] program-path [program-args]
 
 DESCRIPTION
-     The record utility is part of the Castor record/replay system. It records
-     program execution to a log, which can later be replayed with the replay(1)
-     utility.
+ The record utility is part of the Castor record/replay system. It records
+ program execution to a log, which can later be replayed with the replay(1)
+ utility.
+  
+ To do this, the record utility spawns a new process to run the program at
+ program-path with program-args and loads the castor runtime into the program's
+ address space at startup. The runtime records all non-deterministic inputs
+ such as as system calls getpid(2), read(2), or recv(2), using shared library
+ interposition, as well as language level non-determinism e.g. C/C++ atomics,
+ RDTSC.
 
-     To do this efficiently, it records non-deterministic inputs e.g. from
-     system calls such as getpid(2), read(2), or recv(2), to a log file.
-     Inputs are captured using a combination of compile time instrumentation
-     using clang(1) and shared library interposition.
-
+ A log of these events is written to a memory buffer shared with the record
+ process, which drains this log onto disk.
 
 OPTIONS
+  -h        Help
 
-  -h            Help
+  -o [file] Log file name. (default: default.rr)
 
-  -o [file]     Log file name. (default: default.rr)
+  -r [size] Size of shared region memory region used to communicate between record process and application processes.
 
+  -e [entries] Number of entries per thread
 
-  -r [size]     Size of shared region memory region used to communicate between record
-		process and application processes.
+  -c [cores] Maximum number of application cores
 
-  -e [entries]  Number of entries per thread
+  -p Pin threads
 
-  -c [cores]    Maximum number of application cores
-
-  -p            Pin threads
-
-  -t            Stops child process on creation for attaching a debugger in record mode
+  -t Stops child process on creation for attaching a debugger in record mode
 
 EXIT STATUS
   If an error occurs record exits 1, otherwise, it exists with whatever the
