@@ -430,6 +430,9 @@ SignalCloseLog(int sig)
 void
 OpenLog(const char *logfile, uintptr_t regionSz, uint32_t numEvents, bool forRecord)
 {
+    const uint64_t castor_magic_number = 0xDABADABA;
+    const uint16_t castor_version_number = 1;
+
     // Open log file
     int flags = O_RDWR;
     if (forRecord) {
@@ -440,6 +443,27 @@ OpenLog(const char *logfile, uintptr_t regionSz, uint32_t numEvents, bool forRec
     if (logfd < 0) {
 	fprintf(stderr, "Could not open record/replay log '%s'", logfile);
 	PERROR("open");
+    }
+
+    if (forRecord) {
+	write(logfd, &castor_magic_number, sizeof(castor_magic_number));
+	write(logfd, &castor_version_number, sizeof(castor_version_number));
+    } else {
+	uint64_t magic_number;
+	uint16_t version_number;
+	read(logfd, &magic_number, sizeof(magic_number));
+	read(logfd, &version_number, sizeof(version_number));
+	if (magic_number != castor_magic_number) {
+	    fprintf(stderr, "OpenLog failed: %s does not appear to be a log file, invalid "\
+			    "magic number at file start.\n", logfile);
+	    exit(1);
+	}
+	if (version_number != castor_version_number) {
+	    fprintf(stderr, "OpenLog failed: %s recorded with version %d,"\
+			    "current version is %d.\n",
+			    logfile, version_number, castor_version_number);
+	    exit(1);
+	}
     }
 
     signal(SIGINT, &SignalCloseLog);
