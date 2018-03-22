@@ -32,6 +32,4 @@
     -ensure that Castor symbols are either static or prefixed with __rr_ to prevent namespace pollution.
 
 --Other features:
-    -Add magic number to log files to improve error reporting for record/replay.
-    -Add version number to log files so we can ensure consistency between tools/runtimes on record/replay
     -Add check to ensure that binary has been compiled with Castor pass.
