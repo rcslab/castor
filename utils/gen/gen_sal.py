@@ -207,7 +207,7 @@ def parse_args(args_string, handler_spec):
             sal = {'tag': so.group('tag'), 'arg' :so.group('arg')}
             arg = re.sub(SAL_PATTERN,"",arg)
             debug("arg_sal:", str(sal))
-        elif '*' in arg:
+        elif '*' in arg or 'caddr_t' in arg:
             error("Pointer argument %s with missing sal annotation in %s." % \
                     (name, handler_spec['name']))
         arg_spec['sal'] = sal
