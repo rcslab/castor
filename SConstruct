@@ -164,17 +164,17 @@ SConscript("#build/tools/rrdump/SConstruct")
 SConscript("#build/tools/rrtool/SConstruct")
 
 
-cp = env.Command("#lib/Pass/libCastorPass.so",
-            [ "lib/Pass/CastorPass.cc", "lib/Pass/CastorPass.h",
-              "lib/Pass/CMakeLists.txt" ],
-            "cd lib/Pass && cmake . && cmake --build .")
-env.Alias("CastorPass", "#lib/Pass/libCastorPass.so")
+#cp = env.Command("#lib/Pass/libCastorPass.so",
+#            [ "lib/Pass/CastorPass.cc", "lib/Pass/CastorPass.h",
+#              "lib/Pass/CMakeLists.txt" ],
+#            "cd lib/Pass && cmake . && cmake --build .")
+#env.Alias("CastorPass", "#lib/Pass/libCastorPass.so")
 
-VariantDir("build/unit-tests", "unit-tests")
-SConscript("#build/unit-tests/SConstruct")
+#VariantDir("build/unit-tests", "unit-tests")
+#SConscript("#build/unit-tests/SConstruct")
 
-VariantDir("build/perf", "perf")
-SConscript("#build/perf/SConstruct")
+#VariantDir("build/perf", "perf")
+#SConscript("#build/perf/SConstruct")
 
 AlwaysBuild(Alias('sysroot', "", "utils/sysroot.sh"))
 AlwaysBuild(Alias('llvm', "", "utils/llvm.sh"))
