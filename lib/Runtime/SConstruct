@@ -19,10 +19,14 @@ src = [
     "rr_fdprintf.c",
 ]
 
-# Made global to make compilation_db work
-env["CPPPATH"].append("#sysroot-src/lib/libc/include")
+env_libsys = env.Clone()
 
-env.StaticLibrary("libsys_castor.so", src)
+# Made global to make compilation_db work
+env_libsys["CPPPATH"].append("#sysroot-src/lib/libc/include")
+
+env_libsys["LINKFLAGS"].append("-nodefaultlibs")
+
+env_libsys.SharedLibrary("libsys_castor.so", src, LIBS = ["compiler_rt"])
 
 #rt = env.CopyFile("$SYSROOT/usr/lib/libCastorRuntime.a", 
 #"#build/lib/Runtime/libCastorRuntime.a")
