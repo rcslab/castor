@@ -39,11 +39,11 @@ int __rr___sysctl(const int *name, u_int namelen, void *oldp,
     RRLogEntry *e;
 
     if (rrMode == RRMODE_NORMAL) {
-	return syscall(SYS___sysctl, name, namelen, oldp, oldlenp, newp, newlen);
+	return rr_syscall(SYS___sysctl, name, namelen, oldp, oldlenp, newp, newlen);
     }
 
     if (rrMode == RRMODE_RECORD) {
-	result = syscall(SYS___sysctl, name, namelen, oldp, oldlenp, newp, newlen);
+	result = rr_syscall(SYS___sysctl, name, namelen, oldp, oldlenp, newp, newlen);
 
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SYSCTL;

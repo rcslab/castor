@@ -73,9 +73,9 @@ __rr_read(int fd, void *buf, size_t nbyte)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_read, fd, buf, nbyte);
+	return rr_syscall(SYS_read, fd, buf, nbyte);
     case RRMODE_RECORD:
-	result = syscall(SYS_read, fd, buf, nbyte);
+	result = rr_syscall(SYS_read, fd, buf, nbyte);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_READ;
 	e->objectId = (uint64_t) fd;
@@ -113,9 +113,9 @@ __rr_link(const char *path, const char *link)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_link, path, link);
+	return rr_syscall(SYS_link, path, link);
     case RRMODE_RECORD:
-	result = syscall(SYS_link, path, link);
+	result = rr_syscall(SYS_link, path, link);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_LINK;
 	e->value[0] = (uint64_t) result;
@@ -145,9 +145,9 @@ __rr_unlink(const char *path)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_unlink, path);
+	return rr_syscall(SYS_unlink, path);
     case RRMODE_RECORD:
-	result = syscall(SYS_unlink, path);
+	result = rr_syscall(SYS_unlink, path);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_UNLINK;
 	e->value[0] = (uint64_t) result;
@@ -177,9 +177,9 @@ __rr_chdir(const char *path)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_chdir, path);
+	return rr_syscall(SYS_chdir, path);
     case RRMODE_RECORD:
-	result = syscall(SYS_chdir, path);
+	result = rr_syscall(SYS_chdir, path);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CHDIR;
 	e->value[0] = (uint64_t) result;
@@ -209,9 +209,9 @@ __rr_fchdir(int fd)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_fchdir, fd);
+	return rr_syscall(SYS_fchdir, fd);
     case RRMODE_RECORD:
-	result = syscall(SYS_fchdir, fd);
+	result = rr_syscall(SYS_fchdir, fd);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FCHDIR;
 	e->objectId = (uint64_t) fd;
@@ -243,9 +243,9 @@ __rr_mknod(const char *path, mode_t mode, dev_t dev)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_mknod, path, mode, dev);
+	return rr_syscall(SYS_mknod, path, mode, dev);
     case RRMODE_RECORD:
-	result = syscall(SYS_mknod, path, mode, dev);
+	result = rr_syscall(SYS_mknod, path, mode, dev);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_MKNOD;
 	e->value[0] = (uint64_t) result;
@@ -275,9 +275,9 @@ __rr_chmod(const char *path, mode_t mode)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_chmod, path, mode);
+	return rr_syscall(SYS_chmod, path, mode);
     case RRMODE_RECORD:
-	result = syscall(SYS_chmod, path, mode);
+	result = rr_syscall(SYS_chmod, path, mode);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CHMOD;
 	e->value[0] = (uint64_t) result;
@@ -307,9 +307,9 @@ __rr_chown(const char *path, uid_t uid, gid_t gid)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_chown, path, uid, gid);
+	return rr_syscall(SYS_chown, path, uid, gid);
     case RRMODE_RECORD:
-	result = syscall(SYS_chown, path, uid, gid);
+	result = rr_syscall(SYS_chown, path, uid, gid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CHOWN;
 	e->value[0] = (uint64_t) result;
@@ -339,9 +339,9 @@ __rr_getpid()
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getpid);
+	return rr_syscall(SYS_getpid);
     case RRMODE_RECORD:
-	result = syscall(SYS_getpid);
+	result = rr_syscall(SYS_getpid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETPID;
 	e->value[0] = (uint64_t) result;
@@ -365,9 +365,9 @@ __rr_mount(const char *type, const char *path, int flags, void *data)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_mount, type, path, flags, data);
+	return rr_syscall(SYS_mount, type, path, flags, data);
     case RRMODE_RECORD:
-	result = syscall(SYS_mount, type, path, flags, data);
+	result = rr_syscall(SYS_mount, type, path, flags, data);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_MOUNT;
 	e->value[0] = (uint64_t) result;
@@ -397,9 +397,9 @@ __rr_unmount(const char *path, int flags)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_unmount, path, flags);
+	return rr_syscall(SYS_unmount, path, flags);
     case RRMODE_RECORD:
-	result = syscall(SYS_unmount, path, flags);
+	result = rr_syscall(SYS_unmount, path, flags);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_UNMOUNT;
 	e->value[0] = (uint64_t) result;
@@ -429,9 +429,9 @@ __rr_setuid(uid_t uid)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_setuid, uid);
+	return rr_syscall(SYS_setuid, uid);
     case RRMODE_RECORD:
-	result = syscall(SYS_setuid, uid);
+	result = rr_syscall(SYS_setuid, uid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETUID;
 	e->value[0] = (uint64_t) result;
@@ -461,9 +461,9 @@ __rr_getuid()
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return (uid_t) syscall(SYS_getuid);
+	return (uid_t) rr_syscall(SYS_getuid);
     case RRMODE_RECORD:
-	result = (uid_t) syscall(SYS_getuid);
+	result = (uid_t) rr_syscall(SYS_getuid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETUID;
 	e->value[0] = (uint64_t) result;
@@ -487,9 +487,9 @@ __rr_geteuid()
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return (uid_t) syscall(SYS_geteuid);
+	return (uid_t) rr_syscall(SYS_geteuid);
     case RRMODE_RECORD:
-	result = (uid_t) syscall(SYS_geteuid);
+	result = (uid_t) rr_syscall(SYS_geteuid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETEUID;
 	e->value[0] = (uint64_t) result;
@@ -513,9 +513,9 @@ __rr_accept(int s, struct sockaddr *name, socklen_t * anamelen)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_accept, s, name, anamelen);
+	return rr_syscall(SYS_accept, s, name, anamelen);
     case RRMODE_RECORD:
-	result = syscall(SYS_accept, s, name, anamelen);
+	result = rr_syscall(SYS_accept, s, name, anamelen);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_ACCEPT;
 	e->objectId = (uint64_t) s;
@@ -563,9 +563,9 @@ __rr_getsockname(int fdes, struct sockaddr *asa, socklen_t * alen)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getsockname, fdes, asa, alen);
+	return rr_syscall(SYS_getsockname, fdes, asa, alen);
     case RRMODE_RECORD:
-	result = syscall(SYS_getsockname, fdes, asa, alen);
+	result = rr_syscall(SYS_getsockname, fdes, asa, alen);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETSOCKNAME;
 	e->objectId = (uint64_t) fdes;
@@ -605,9 +605,9 @@ __rr_access(const char *path, int amode)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_access, path, amode);
+	return rr_syscall(SYS_access, path, amode);
     case RRMODE_RECORD:
-	result = syscall(SYS_access, path, amode);
+	result = rr_syscall(SYS_access, path, amode);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_ACCESS;
 	e->value[0] = (uint64_t) result;
@@ -637,9 +637,9 @@ __rr_chflags(const char *path, unsigned long flags)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_chflags, path, flags);
+	return rr_syscall(SYS_chflags, path, flags);
     case RRMODE_RECORD:
-	result = syscall(SYS_chflags, path, flags);
+	result = rr_syscall(SYS_chflags, path, flags);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CHFLAGS;
 	e->value[0] = (uint64_t) result;
@@ -669,9 +669,9 @@ __rr_fchflags(int fd, unsigned long flags)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_fchflags, fd, flags);
+	return rr_syscall(SYS_fchflags, fd, flags);
     case RRMODE_RECORD:
-	result = syscall(SYS_fchflags, fd, flags);
+	result = rr_syscall(SYS_fchflags, fd, flags);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FCHFLAGS;
 	e->objectId = (uint64_t) fd;
@@ -703,9 +703,9 @@ __rr_getppid()
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getppid);
+	return rr_syscall(SYS_getppid);
     case RRMODE_RECORD:
-	result = syscall(SYS_getppid);
+	result = rr_syscall(SYS_getppid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETPPID;
 	e->value[0] = (uint64_t) result;
@@ -729,9 +729,9 @@ __rr_dup(int fd)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_dup, fd);
+	return rr_syscall(SYS_dup, fd);
     case RRMODE_RECORD:
-	result = syscall(SYS_dup, fd);
+	result = rr_syscall(SYS_dup, fd);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_DUP;
 	e->objectId = (uint64_t) fd;
@@ -763,9 +763,9 @@ __rr_getegid()
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return (gid_t) syscall(SYS_getegid);
+	return (gid_t) rr_syscall(SYS_getegid);
     case RRMODE_RECORD:
-	result = (gid_t) syscall(SYS_getegid);
+	result = (gid_t) rr_syscall(SYS_getegid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETEGID;
 	e->value[0] = (uint64_t) result;
@@ -789,9 +789,9 @@ __rr_getgid()
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return (gid_t) syscall(SYS_getgid);
+	return (gid_t) rr_syscall(SYS_getgid);
     case RRMODE_RECORD:
-	result = (gid_t) syscall(SYS_getgid);
+	result = (gid_t) rr_syscall(SYS_getgid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETGID;
 	e->value[0] = (uint64_t) result;
@@ -815,9 +815,9 @@ __rr_acct(const char *path)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_acct, path);
+	return rr_syscall(SYS_acct, path);
     case RRMODE_RECORD:
-	result = syscall(SYS_acct, path);
+	result = rr_syscall(SYS_acct, path);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_ACCT;
 	e->value[0] = (uint64_t) result;
@@ -847,9 +847,9 @@ __rr_reboot(int opt)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_reboot, opt);
+	return rr_syscall(SYS_reboot, opt);
     case RRMODE_RECORD:
-	result = syscall(SYS_reboot, opt);
+	result = rr_syscall(SYS_reboot, opt);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_REBOOT;
 	e->objectId = (uint64_t) opt;
@@ -881,9 +881,9 @@ __rr_symlink(const char *path, const char *link)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_symlink, path, link);
+	return rr_syscall(SYS_symlink, path, link);
     case RRMODE_RECORD:
-	result = syscall(SYS_symlink, path, link);
+	result = rr_syscall(SYS_symlink, path, link);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SYMLINK;
 	e->value[0] = (uint64_t) result;
@@ -913,9 +913,9 @@ __rr_readlink(const char *path, char *buf, size_t count)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_readlink, path, buf, count);
+	return rr_syscall(SYS_readlink, path, buf, count);
     case RRMODE_RECORD:
-	result = syscall(SYS_readlink, path, buf, count);
+	result = rr_syscall(SYS_readlink, path, buf, count);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_READLINK;
 	e->value[0] = (uint64_t) result;
@@ -951,9 +951,9 @@ __rr_umask(mode_t newmask)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_umask, newmask);
+	return rr_syscall(SYS_umask, newmask);
     case RRMODE_RECORD:
-	result = syscall(SYS_umask, newmask);
+	result = rr_syscall(SYS_umask, newmask);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_UMASK;
 	e->value[0] = (uint64_t) result;
@@ -977,9 +977,9 @@ __rr_chroot(const char *path)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_chroot, path);
+	return rr_syscall(SYS_chroot, path);
     case RRMODE_RECORD:
-	result = syscall(SYS_chroot, path);
+	result = rr_syscall(SYS_chroot, path);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CHROOT;
 	e->value[0] = (uint64_t) result;
@@ -1009,9 +1009,9 @@ __rr_getgroups(int gidsetsize, gid_t * gidset)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getgroups, gidsetsize, gidset);
+	return rr_syscall(SYS_getgroups, gidsetsize, gidset);
     case RRMODE_RECORD:
-	result = syscall(SYS_getgroups, gidsetsize, gidset);
+	result = rr_syscall(SYS_getgroups, gidsetsize, gidset);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETGROUPS;
 	e->objectId = (uint64_t) gidsetsize;
@@ -1053,9 +1053,9 @@ __rr_setgroups(int gidsetsize, const gid_t * gidset)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_setgroups, gidsetsize, gidset);
+	return rr_syscall(SYS_setgroups, gidsetsize, gidset);
     case RRMODE_RECORD:
-	result = syscall(SYS_setgroups, gidsetsize, gidset);
+	result = rr_syscall(SYS_setgroups, gidsetsize, gidset);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETGROUPS;
 	e->objectId = (uint64_t) gidsetsize;
@@ -1087,9 +1087,9 @@ __rr_setitimer(int which, const struct itimerval *itv, struct itimerval *oitv)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_setitimer, which, itv, oitv);
+	return rr_syscall(SYS_setitimer, which, itv, oitv);
     case RRMODE_RECORD:
-	result = syscall(SYS_setitimer, which, itv, oitv);
+	result = rr_syscall(SYS_setitimer, which, itv, oitv);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETITIMER;
 	e->objectId = (uint64_t) which;
@@ -1131,9 +1131,9 @@ __rr_swapon(const char *name)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_swapon, name);
+	return rr_syscall(SYS_swapon, name);
     case RRMODE_RECORD:
-	result = syscall(SYS_swapon, name);
+	result = rr_syscall(SYS_swapon, name);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SWAPON;
 	e->value[0] = (uint64_t) result;
@@ -1163,9 +1163,9 @@ __rr_getitimer(int which, struct itimerval *itv)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getitimer, which, itv);
+	return rr_syscall(SYS_getitimer, which, itv);
     case RRMODE_RECORD:
-	result = syscall(SYS_getitimer, which, itv);
+	result = rr_syscall(SYS_getitimer, which, itv);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETITIMER;
 	e->objectId = (uint64_t) which;
@@ -1203,9 +1203,9 @@ __rr_getdtablesize()
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getdtablesize);
+	return rr_syscall(SYS_getdtablesize);
     case RRMODE_RECORD:
-	result = syscall(SYS_getdtablesize);
+	result = rr_syscall(SYS_getdtablesize);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETDTABLESIZE;
 	e->value[0] = (uint64_t) result;
@@ -1235,9 +1235,9 @@ __rr_dup2(int from, int to)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_dup2, from, to);
+	return rr_syscall(SYS_dup2, from, to);
     case RRMODE_RECORD:
-	result = syscall(SYS_dup2, from, to);
+	result = rr_syscall(SYS_dup2, from, to);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_DUP2;
 	e->objectId = (uint64_t) from;
@@ -1269,9 +1269,9 @@ __rr_select(int nd, fd_set * in, fd_set * ou, fd_set * ex, struct timeval *tv)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_select, nd, in, ou, ex, tv);
+	return rr_syscall(SYS_select, nd, in, ou, ex, tv);
     case RRMODE_RECORD:
-	result = syscall(SYS_select, nd, in, ou, ex, tv);
+	result = rr_syscall(SYS_select, nd, in, ou, ex, tv);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SELECT;
 	e->objectId = (uint64_t) nd;
@@ -1325,9 +1325,9 @@ __rr_fsync(int fd)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_fsync, fd);
+	return rr_syscall(SYS_fsync, fd);
     case RRMODE_RECORD:
-	result = syscall(SYS_fsync, fd);
+	result = rr_syscall(SYS_fsync, fd);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FSYNC;
 	e->objectId = (uint64_t) fd;
@@ -1359,9 +1359,9 @@ __rr_setpriority(int which, int who, int prio)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_setpriority, which, who, prio);
+	return rr_syscall(SYS_setpriority, which, who, prio);
     case RRMODE_RECORD:
-	result = syscall(SYS_setpriority, which, who, prio);
+	result = rr_syscall(SYS_setpriority, which, who, prio);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETPRIORITY;
 	e->objectId = (uint64_t) which;
@@ -1393,9 +1393,9 @@ __rr_socket(int domain, int type, int protocol)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_socket, domain, type, protocol);
+	return rr_syscall(SYS_socket, domain, type, protocol);
     case RRMODE_RECORD:
-	result = syscall(SYS_socket, domain, type, protocol);
+	result = rr_syscall(SYS_socket, domain, type, protocol);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SOCKET;
 	e->objectId = (uint64_t) domain;
@@ -1427,9 +1427,9 @@ __rr_connect(int s, const struct sockaddr *name, socklen_t namelen)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_connect, s, name, namelen);
+	return rr_syscall(SYS_connect, s, name, namelen);
     case RRMODE_RECORD:
-	result = syscall(SYS_connect, s, name, namelen);
+	result = rr_syscall(SYS_connect, s, name, namelen);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CONNECT;
 	e->objectId = (uint64_t) s;
@@ -1461,9 +1461,9 @@ __rr_getpriority(int which, int who)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getpriority, which, who);
+	return rr_syscall(SYS_getpriority, which, who);
     case RRMODE_RECORD:
-	result = syscall(SYS_getpriority, which, who);
+	result = rr_syscall(SYS_getpriority, which, who);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETPRIORITY;
 	e->objectId = (uint64_t) which;
@@ -1495,9 +1495,9 @@ __rr_bind(int s, const struct sockaddr *name, socklen_t namelen)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_bind, s, name, namelen);
+	return rr_syscall(SYS_bind, s, name, namelen);
     case RRMODE_RECORD:
-	result = syscall(SYS_bind, s, name, namelen);
+	result = rr_syscall(SYS_bind, s, name, namelen);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_BIND;
 	e->objectId = (uint64_t) s;
@@ -1529,9 +1529,9 @@ __rr_setsockopt(int s, int level, int name, const void *val, socklen_t valsize)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_setsockopt, s, level, name, val, valsize);
+	return rr_syscall(SYS_setsockopt, s, level, name, val, valsize);
     case RRMODE_RECORD:
-	result = syscall(SYS_setsockopt, s, level, name, val, valsize);
+	result = rr_syscall(SYS_setsockopt, s, level, name, val, valsize);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETSOCKOPT;
 	e->objectId = (uint64_t) s;
@@ -1563,9 +1563,9 @@ __rr_listen(int s, int backlog)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_listen, s, backlog);
+	return rr_syscall(SYS_listen, s, backlog);
     case RRMODE_RECORD:
-	result = syscall(SYS_listen, s, backlog);
+	result = rr_syscall(SYS_listen, s, backlog);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_LISTEN;
 	e->objectId = (uint64_t) s;
@@ -1597,9 +1597,9 @@ __rr_getrusage(int who, struct rusage *rusage)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getrusage, who, rusage);
+	return rr_syscall(SYS_getrusage, who, rusage);
     case RRMODE_RECORD:
-	result = syscall(SYS_getrusage, who, rusage);
+	result = rr_syscall(SYS_getrusage, who, rusage);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETRUSAGE;
 	e->objectId = (uint64_t) who;
@@ -1637,9 +1637,9 @@ __rr_getsockopt(int s, int level, int name, void *val, socklen_t * avalsize)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getsockopt, s, level, name, val, avalsize);
+	return rr_syscall(SYS_getsockopt, s, level, name, val, avalsize);
     case RRMODE_RECORD:
-	result = syscall(SYS_getsockopt, s, level, name, val, avalsize);
+	result = rr_syscall(SYS_getsockopt, s, level, name, val, avalsize);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETSOCKOPT;
 	e->objectId = (uint64_t) s;
@@ -1683,9 +1683,9 @@ __rr_settimeofday(const struct timeval *tv, const struct timezone *tzp)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_settimeofday, tv, tzp);
+	return rr_syscall(SYS_settimeofday, tv, tzp);
     case RRMODE_RECORD:
-	result = syscall(SYS_settimeofday, tv, tzp);
+	result = rr_syscall(SYS_settimeofday, tv, tzp);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETTIMEOFDAY;
 	e->value[0] = (uint64_t) result;
@@ -1715,9 +1715,9 @@ __rr_fchown(int fd, uid_t uid, gid_t gid)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_fchown, fd, uid, gid);
+	return rr_syscall(SYS_fchown, fd, uid, gid);
     case RRMODE_RECORD:
-	result = syscall(SYS_fchown, fd, uid, gid);
+	result = rr_syscall(SYS_fchown, fd, uid, gid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FCHOWN;
 	e->objectId = (uint64_t) fd;
@@ -1749,9 +1749,9 @@ __rr_fchmod(int fd, mode_t mode)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_fchmod, fd, mode);
+	return rr_syscall(SYS_fchmod, fd, mode);
     case RRMODE_RECORD:
-	result = syscall(SYS_fchmod, fd, mode);
+	result = rr_syscall(SYS_fchmod, fd, mode);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FCHMOD;
 	e->objectId = (uint64_t) fd;
@@ -1783,9 +1783,9 @@ __rr_setreuid(uid_t ruid, uid_t euid)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_setreuid, ruid, euid);
+	return rr_syscall(SYS_setreuid, ruid, euid);
     case RRMODE_RECORD:
-	result = syscall(SYS_setreuid, ruid, euid);
+	result = rr_syscall(SYS_setreuid, ruid, euid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETREUID;
 	e->value[0] = (uint64_t) result;
@@ -1815,9 +1815,9 @@ __rr_setregid(gid_t rgid, gid_t egid)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_setregid, rgid, egid);
+	return rr_syscall(SYS_setregid, rgid, egid);
     case RRMODE_RECORD:
-	result = syscall(SYS_setregid, rgid, egid);
+	result = rr_syscall(SYS_setregid, rgid, egid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETREGID;
 	e->value[0] = (uint64_t) result;
@@ -1847,9 +1847,9 @@ __rr_rename(const char *from, const char *to)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_rename, from, to);
+	return rr_syscall(SYS_rename, from, to);
     case RRMODE_RECORD:
-	result = syscall(SYS_rename, from, to);
+	result = rr_syscall(SYS_rename, from, to);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_RENAME;
 	e->value[0] = (uint64_t) result;
@@ -1879,9 +1879,9 @@ __rr_flock(int fd, int how)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_flock, fd, how);
+	return rr_syscall(SYS_flock, fd, how);
     case RRMODE_RECORD:
-	result = syscall(SYS_flock, fd, how);
+	result = rr_syscall(SYS_flock, fd, how);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FLOCK;
 	e->objectId = (uint64_t) fd;
@@ -1913,9 +1913,9 @@ __rr_mkfifo(const char *path, mode_t mode)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_mkfifo, path, mode);
+	return rr_syscall(SYS_mkfifo, path, mode);
     case RRMODE_RECORD:
-	result = syscall(SYS_mkfifo, path, mode);
+	result = rr_syscall(SYS_mkfifo, path, mode);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_MKFIFO;
 	e->value[0] = (uint64_t) result;
@@ -1945,9 +1945,9 @@ __rr_sendto(int s, const void *buf, size_t len, int flags, const struct sockaddr
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_sendto, s, buf, len, flags, to, tolen);
+	return rr_syscall(SYS_sendto, s, buf, len, flags, to, tolen);
     case RRMODE_RECORD:
-	result = syscall(SYS_sendto, s, buf, len, flags, to, tolen);
+	result = rr_syscall(SYS_sendto, s, buf, len, flags, to, tolen);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SENDTO;
 	e->objectId = (uint64_t) s;
@@ -1979,9 +1979,9 @@ __rr_shutdown(int s, int how)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_shutdown, s, how);
+	return rr_syscall(SYS_shutdown, s, how);
     case RRMODE_RECORD:
-	result = syscall(SYS_shutdown, s, how);
+	result = rr_syscall(SYS_shutdown, s, how);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SHUTDOWN;
 	e->objectId = (uint64_t) s;
@@ -2013,9 +2013,9 @@ __rr_mkdir(const char *path, mode_t mode)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_mkdir, path, mode);
+	return rr_syscall(SYS_mkdir, path, mode);
     case RRMODE_RECORD:
-	result = syscall(SYS_mkdir, path, mode);
+	result = rr_syscall(SYS_mkdir, path, mode);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_MKDIR;
 	e->value[0] = (uint64_t) result;
@@ -2045,9 +2045,9 @@ __rr_rmdir(const char *path)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_rmdir, path);
+	return rr_syscall(SYS_rmdir, path);
     case RRMODE_RECORD:
-	result = syscall(SYS_rmdir, path);
+	result = rr_syscall(SYS_rmdir, path);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_RMDIR;
 	e->value[0] = (uint64_t) result;
@@ -2077,9 +2077,9 @@ __rr_utimes(const char *path, const struct timeval *tptr)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_utimes, path, tptr);
+	return rr_syscall(SYS_utimes, path, tptr);
     case RRMODE_RECORD:
-	result = syscall(SYS_utimes, path, tptr);
+	result = rr_syscall(SYS_utimes, path, tptr);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_UTIMES;
 	e->value[0] = (uint64_t) result;
@@ -2109,9 +2109,9 @@ __rr_adjtime(const struct timeval *delta, struct timeval *olddelta)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_adjtime, delta, olddelta);
+	return rr_syscall(SYS_adjtime, delta, olddelta);
     case RRMODE_RECORD:
-	result = syscall(SYS_adjtime, delta, olddelta);
+	result = rr_syscall(SYS_adjtime, delta, olddelta);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_ADJTIME;
 	e->value[0] = (uint64_t) result;
@@ -2151,9 +2151,9 @@ __rr_quotactl(const char *path, int cmd, int uid, void *arg)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_quotactl, path, cmd, uid, arg);
+	return rr_syscall(SYS_quotactl, path, cmd, uid, arg);
     case RRMODE_RECORD:
-	result = syscall(SYS_quotactl, path, cmd, uid, arg);
+	result = rr_syscall(SYS_quotactl, path, cmd, uid, arg);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_QUOTACTL;
 	e->value[0] = (uint64_t) result;
@@ -2183,9 +2183,9 @@ __rr_lgetfh(const char *fname, fhandle_t * fhp)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_lgetfh, fname, fhp);
+	return rr_syscall(SYS_lgetfh, fname, fhp);
     case RRMODE_RECORD:
-	result = syscall(SYS_lgetfh, fname, fhp);
+	result = rr_syscall(SYS_lgetfh, fname, fhp);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_LGETFH;
 	e->value[0] = (uint64_t) result;
@@ -2221,9 +2221,9 @@ __rr_getfh(const char *fname, fhandle_t * fhp)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getfh, fname, fhp);
+	return rr_syscall(SYS_getfh, fname, fhp);
     case RRMODE_RECORD:
-	result = syscall(SYS_getfh, fname, fhp);
+	result = rr_syscall(SYS_getfh, fname, fhp);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETFH;
 	e->value[0] = (uint64_t) result;
@@ -2259,9 +2259,9 @@ __rr_setfib(int fibnum)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_setfib, fibnum);
+	return rr_syscall(SYS_setfib, fibnum);
     case RRMODE_RECORD:
-	result = syscall(SYS_setfib, fibnum);
+	result = rr_syscall(SYS_setfib, fibnum);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETFIB;
 	e->objectId = (uint64_t) fibnum;
@@ -2293,9 +2293,9 @@ __rr_ntp_adjtime(struct timex *tp)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_ntp_adjtime, tp);
+	return rr_syscall(SYS_ntp_adjtime, tp);
     case RRMODE_RECORD:
-	result = syscall(SYS_ntp_adjtime, tp);
+	result = rr_syscall(SYS_ntp_adjtime, tp);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_NTP_ADJTIME;
 	e->value[0] = (uint64_t) result;
@@ -2331,9 +2331,9 @@ __rr_setgid(gid_t gid)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_setgid, gid);
+	return rr_syscall(SYS_setgid, gid);
     case RRMODE_RECORD:
-	result = syscall(SYS_setgid, gid);
+	result = rr_syscall(SYS_setgid, gid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETGID;
 	e->value[0] = (uint64_t) result;
@@ -2363,9 +2363,9 @@ __rr_setegid(gid_t egid)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_setegid, egid);
+	return rr_syscall(SYS_setegid, egid);
     case RRMODE_RECORD:
-	result = syscall(SYS_setegid, egid);
+	result = rr_syscall(SYS_setegid, egid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETEGID;
 	e->value[0] = (uint64_t) result;
@@ -2395,9 +2395,9 @@ __rr_seteuid(uid_t euid)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_seteuid, euid);
+	return rr_syscall(SYS_seteuid, euid);
     case RRMODE_RECORD:
-	result = syscall(SYS_seteuid, euid);
+	result = rr_syscall(SYS_seteuid, euid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETEUID;
 	e->value[0] = (uint64_t) result;
@@ -2427,9 +2427,9 @@ __rr_pathconf(const char *path, int name)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_pathconf, path, name);
+	return rr_syscall(SYS_pathconf, path, name);
     case RRMODE_RECORD:
-	result = syscall(SYS_pathconf, path, name);
+	result = rr_syscall(SYS_pathconf, path, name);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_PATHCONF;
 	e->value[0] = (uint64_t) result;
@@ -2459,9 +2459,9 @@ __rr_fpathconf(int fd, int name)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_fpathconf, fd, name);
+	return rr_syscall(SYS_fpathconf, fd, name);
     case RRMODE_RECORD:
-	result = syscall(SYS_fpathconf, fd, name);
+	result = rr_syscall(SYS_fpathconf, fd, name);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FPATHCONF;
 	e->objectId = (uint64_t) fd;
@@ -2493,9 +2493,9 @@ __rr_undelete(const char *path)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_undelete, path);
+	return rr_syscall(SYS_undelete, path);
     case RRMODE_RECORD:
-	result = syscall(SYS_undelete, path);
+	result = rr_syscall(SYS_undelete, path);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_UNDELETE;
 	e->value[0] = (uint64_t) result;
@@ -2525,9 +2525,9 @@ __rr_futimes(int fd, const struct timeval *tptr)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_futimes, fd, tptr);
+	return rr_syscall(SYS_futimes, fd, tptr);
     case RRMODE_RECORD:
-	result = syscall(SYS_futimes, fd, tptr);
+	result = rr_syscall(SYS_futimes, fd, tptr);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FUTIMES;
 	e->objectId = (uint64_t) fd;
@@ -2559,9 +2559,9 @@ __rr_poll(struct pollfd *fds, nfds_t nfds, int timeout)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_poll, fds, nfds, timeout);
+	return rr_syscall(SYS_poll, fds, nfds, timeout);
     case RRMODE_RECORD:
-	result = syscall(SYS_poll, fds, nfds, timeout);
+	result = rr_syscall(SYS_poll, fds, nfds, timeout);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_POLL;
 	e->value[0] = (uint64_t) result;
@@ -2597,9 +2597,9 @@ __rr_clock_settime(clockid_t clock_id, const struct timespec *tp)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_clock_settime, clock_id, tp);
+	return rr_syscall(SYS_clock_settime, clock_id, tp);
     case RRMODE_RECORD:
-	result = syscall(SYS_clock_settime, clock_id, tp);
+	result = rr_syscall(SYS_clock_settime, clock_id, tp);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CLOCK_SETTIME;
 	e->value[0] = (uint64_t) result;
@@ -2629,9 +2629,9 @@ __rr_clock_getres(clockid_t clock_id, struct timespec *tp)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_clock_getres, clock_id, tp);
+	return rr_syscall(SYS_clock_getres, clock_id, tp);
     case RRMODE_RECORD:
-	result = syscall(SYS_clock_getres, clock_id, tp);
+	result = rr_syscall(SYS_clock_getres, clock_id, tp);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CLOCK_GETRES;
 	e->value[0] = (uint64_t) result;
@@ -2667,9 +2667,9 @@ __rr_ffclock_getcounter(ffcounter * ffcount)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_ffclock_getcounter, ffcount);
+	return rr_syscall(SYS_ffclock_getcounter, ffcount);
     case RRMODE_RECORD:
-	result = syscall(SYS_ffclock_getcounter, ffcount);
+	result = rr_syscall(SYS_ffclock_getcounter, ffcount);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FFCLOCK_GETCOUNTER;
 	e->value[0] = (uint64_t) result;
@@ -2705,9 +2705,9 @@ __rr_ffclock_setestimate(struct ffclock_estimate *cest)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_ffclock_setestimate, cest);
+	return rr_syscall(SYS_ffclock_setestimate, cest);
     case RRMODE_RECORD:
-	result = syscall(SYS_ffclock_setestimate, cest);
+	result = rr_syscall(SYS_ffclock_setestimate, cest);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FFCLOCK_SETESTIMATE;
 	e->value[0] = (uint64_t) result;
@@ -2737,9 +2737,9 @@ __rr_ffclock_getestimate(struct ffclock_estimate *cest)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_ffclock_getestimate, cest);
+	return rr_syscall(SYS_ffclock_getestimate, cest);
     case RRMODE_RECORD:
-	result = syscall(SYS_ffclock_getestimate, cest);
+	result = rr_syscall(SYS_ffclock_getestimate, cest);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FFCLOCK_GETESTIMATE;
 	e->value[0] = (uint64_t) result;
@@ -2775,9 +2775,9 @@ __rr_ntp_gettime(struct ntptimeval *ntvp)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_ntp_gettime, ntvp);
+	return rr_syscall(SYS_ntp_gettime, ntvp);
     case RRMODE_RECORD:
-	result = syscall(SYS_ntp_gettime, ntvp);
+	result = rr_syscall(SYS_ntp_gettime, ntvp);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_NTP_GETTIME;
 	e->value[0] = (uint64_t) result;
@@ -2813,9 +2813,9 @@ __rr_issetugid()
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_issetugid);
+	return rr_syscall(SYS_issetugid);
     case RRMODE_RECORD:
-	result = syscall(SYS_issetugid);
+	result = rr_syscall(SYS_issetugid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_ISSETUGID;
 	e->value[0] = (uint64_t) result;
@@ -2839,9 +2839,9 @@ __rr_lchown(const char *path, uid_t uid, gid_t gid)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_lchown, path, uid, gid);
+	return rr_syscall(SYS_lchown, path, uid, gid);
     case RRMODE_RECORD:
-	result = syscall(SYS_lchown, path, uid, gid);
+	result = rr_syscall(SYS_lchown, path, uid, gid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_LCHOWN;
 	e->value[0] = (uint64_t) result;
@@ -2871,9 +2871,9 @@ __rr_getdents(int fd, char *buf, int count)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getdents, fd, buf, count);
+	return rr_syscall(SYS_getdents, fd, buf, count);
     case RRMODE_RECORD:
-	result = syscall(SYS_getdents, fd, buf, count);
+	result = rr_syscall(SYS_getdents, fd, buf, count);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETDENTS;
 	e->objectId = (uint64_t) fd;
@@ -2911,9 +2911,9 @@ __rr_lchmod(const char *path, mode_t mode)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_lchmod, path, mode);
+	return rr_syscall(SYS_lchmod, path, mode);
     case RRMODE_RECORD:
-	result = syscall(SYS_lchmod, path, mode);
+	result = rr_syscall(SYS_lchmod, path, mode);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_LCHMOD;
 	e->value[0] = (uint64_t) result;
@@ -2943,9 +2943,9 @@ __rr_lutimes(const char *path, const struct timeval *tptr)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_lutimes, path, tptr);
+	return rr_syscall(SYS_lutimes, path, tptr);
     case RRMODE_RECORD:
-	result = syscall(SYS_lutimes, path, tptr);
+	result = rr_syscall(SYS_lutimes, path, tptr);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_LUTIMES;
 	e->value[0] = (uint64_t) result;
@@ -2975,9 +2975,9 @@ __rr_fhopen(const struct fhandle *u_fhp, int flags)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_fhopen, u_fhp, flags);
+	return rr_syscall(SYS_fhopen, u_fhp, flags);
     case RRMODE_RECORD:
-	result = syscall(SYS_fhopen, u_fhp, flags);
+	result = rr_syscall(SYS_fhopen, u_fhp, flags);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FHOPEN;
 	e->value[0] = (uint64_t) result;
@@ -3007,9 +3007,9 @@ __rr_setresuid(uid_t ruid, uid_t euid, uid_t suid)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_setresuid, ruid, euid, suid);
+	return rr_syscall(SYS_setresuid, ruid, euid, suid);
     case RRMODE_RECORD:
-	result = syscall(SYS_setresuid, ruid, euid, suid);
+	result = rr_syscall(SYS_setresuid, ruid, euid, suid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETRESUID;
 	e->value[0] = (uint64_t) result;
@@ -3039,9 +3039,9 @@ __rr_setresgid(gid_t rgid, gid_t egid, gid_t sgid)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_setresgid, rgid, egid, sgid);
+	return rr_syscall(SYS_setresgid, rgid, egid, sgid);
     case RRMODE_RECORD:
-	result = syscall(SYS_setresgid, rgid, egid, sgid);
+	result = rr_syscall(SYS_setresgid, rgid, egid, sgid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETRESGID;
 	e->value[0] = (uint64_t) result;
@@ -3071,9 +3071,9 @@ __rr_extattrctl(const char *path, int cmd, const char *filename, int attrnamespa
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_extattrctl, path, cmd, filename, attrnamespace, attrname);
+	return rr_syscall(SYS_extattrctl, path, cmd, filename, attrnamespace, attrname);
     case RRMODE_RECORD:
-	result = syscall(SYS_extattrctl, path, cmd, filename, attrnamespace, attrname);
+	result = rr_syscall(SYS_extattrctl, path, cmd, filename, attrnamespace, attrname);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_EXTATTRCTL;
 	e->value[0] = (uint64_t) result;
@@ -3103,9 +3103,9 @@ __rr_extattr_set_file(const char *path, int attrnamespace, const char *attrname,
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_extattr_set_file, path, attrnamespace, attrname, data, nbytes);
+	return rr_syscall(SYS_extattr_set_file, path, attrnamespace, attrname, data, nbytes);
     case RRMODE_RECORD:
-	result = syscall(SYS_extattr_set_file, path, attrnamespace, attrname, data, nbytes);
+	result = rr_syscall(SYS_extattr_set_file, path, attrnamespace, attrname, data, nbytes);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_EXTATTR_SET_FILE;
 	e->value[0] = (uint64_t) result;
@@ -3135,9 +3135,9 @@ __rr_extattr_get_file(const char *path, int attrnamespace, const char *attrname,
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_extattr_get_file, path, attrnamespace, attrname, data, nbytes);
+	return rr_syscall(SYS_extattr_get_file, path, attrnamespace, attrname, data, nbytes);
     case RRMODE_RECORD:
-	result = syscall(SYS_extattr_get_file, path, attrnamespace, attrname, data, nbytes);
+	result = rr_syscall(SYS_extattr_get_file, path, attrnamespace, attrname, data, nbytes);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_EXTATTR_GET_FILE;
 	e->value[0] = (uint64_t) result;
@@ -3173,9 +3173,9 @@ __rr_extattr_delete_file(const char *path, int attrnamespace, const char *attrna
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_extattr_delete_file, path, attrnamespace, attrname);
+	return rr_syscall(SYS_extattr_delete_file, path, attrnamespace, attrname);
     case RRMODE_RECORD:
-	result = syscall(SYS_extattr_delete_file, path, attrnamespace, attrname);
+	result = rr_syscall(SYS_extattr_delete_file, path, attrnamespace, attrname);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_EXTATTR_DELETE_FILE;
 	e->value[0] = (uint64_t) result;
@@ -3205,9 +3205,9 @@ __rr_getresuid(uid_t * ruid, uid_t * euid, uid_t * suid)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getresuid, ruid, euid, suid);
+	return rr_syscall(SYS_getresuid, ruid, euid, suid);
     case RRMODE_RECORD:
-	result = syscall(SYS_getresuid, ruid, euid, suid);
+	result = rr_syscall(SYS_getresuid, ruid, euid, suid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETRESUID;
 	e->value[0] = (uint64_t) result;
@@ -3259,9 +3259,9 @@ __rr_getresgid(gid_t * rgid, gid_t * egid, gid_t * sgid)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getresgid, rgid, egid, sgid);
+	return rr_syscall(SYS_getresgid, rgid, egid, sgid);
     case RRMODE_RECORD:
-	result = syscall(SYS_getresgid, rgid, egid, sgid);
+	result = rr_syscall(SYS_getresgid, rgid, egid, sgid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETRESGID;
 	e->value[0] = (uint64_t) result;
@@ -3313,9 +3313,9 @@ __rr_kqueue()
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_kqueue);
+	return rr_syscall(SYS_kqueue);
     case RRMODE_RECORD:
-	result = syscall(SYS_kqueue);
+	result = rr_syscall(SYS_kqueue);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_KQUEUE;
 	e->value[0] = (uint64_t) result;
@@ -3345,9 +3345,9 @@ __rr_extattr_set_fd(int fd, int attrnamespace, const char *attrname, const void 
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_extattr_set_fd, fd, attrnamespace, attrname, data, nbytes);
+	return rr_syscall(SYS_extattr_set_fd, fd, attrnamespace, attrname, data, nbytes);
     case RRMODE_RECORD:
-	result = syscall(SYS_extattr_set_fd, fd, attrnamespace, attrname, data, nbytes);
+	result = rr_syscall(SYS_extattr_set_fd, fd, attrnamespace, attrname, data, nbytes);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_EXTATTR_SET_FD;
 	e->objectId = (uint64_t) fd;
@@ -3379,9 +3379,9 @@ __rr_extattr_get_fd(int fd, int attrnamespace, const char *attrname, void *data,
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_extattr_get_fd, fd, attrnamespace, attrname, data, nbytes);
+	return rr_syscall(SYS_extattr_get_fd, fd, attrnamespace, attrname, data, nbytes);
     case RRMODE_RECORD:
-	result = syscall(SYS_extattr_get_fd, fd, attrnamespace, attrname, data, nbytes);
+	result = rr_syscall(SYS_extattr_get_fd, fd, attrnamespace, attrname, data, nbytes);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_EXTATTR_GET_FD;
 	e->objectId = (uint64_t) fd;
@@ -3419,9 +3419,9 @@ __rr_extattr_delete_fd(int fd, int attrnamespace, const char *attrname)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_extattr_delete_fd, fd, attrnamespace, attrname);
+	return rr_syscall(SYS_extattr_delete_fd, fd, attrnamespace, attrname);
     case RRMODE_RECORD:
-	result = syscall(SYS_extattr_delete_fd, fd, attrnamespace, attrname);
+	result = rr_syscall(SYS_extattr_delete_fd, fd, attrnamespace, attrname);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_EXTATTR_DELETE_FD;
 	e->objectId = (uint64_t) fd;
@@ -3453,9 +3453,9 @@ __rr_eaccess(const char *path, int amode)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_eaccess, path, amode);
+	return rr_syscall(SYS_eaccess, path, amode);
     case RRMODE_RECORD:
-	result = syscall(SYS_eaccess, path, amode);
+	result = rr_syscall(SYS_eaccess, path, amode);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_EACCESS;
 	e->value[0] = (uint64_t) result;
@@ -3485,9 +3485,9 @@ __rr_nmount(struct iovec *iovp, unsigned int iovcnt, int flags)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_nmount, iovp, iovcnt, flags);
+	return rr_syscall(SYS_nmount, iovp, iovcnt, flags);
     case RRMODE_RECORD:
-	result = syscall(SYS_nmount, iovp, iovcnt, flags);
+	result = rr_syscall(SYS_nmount, iovp, iovcnt, flags);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_NMOUNT;
 	e->value[0] = (uint64_t) result;
@@ -3517,9 +3517,9 @@ __rr_kenv(int what, const char *name, char *value, int len)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_kenv, what, name, value, len);
+	return rr_syscall(SYS_kenv, what, name, value, len);
     case RRMODE_RECORD:
-	result = syscall(SYS_kenv, what, name, value, len);
+	result = rr_syscall(SYS_kenv, what, name, value, len);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_KENV;
 	e->objectId = (uint64_t) what;
@@ -3561,9 +3561,9 @@ __rr_lchflags(const char *path, unsigned long flags)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_lchflags, path, flags);
+	return rr_syscall(SYS_lchflags, path, flags);
     case RRMODE_RECORD:
-	result = syscall(SYS_lchflags, path, flags);
+	result = rr_syscall(SYS_lchflags, path, flags);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_LCHFLAGS;
 	e->value[0] = (uint64_t) result;
@@ -3593,9 +3593,9 @@ __rr_uuidgen(struct uuid *store, int count)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_uuidgen, store, count);
+	return rr_syscall(SYS_uuidgen, store, count);
     case RRMODE_RECORD:
-	result = syscall(SYS_uuidgen, store, count);
+	result = rr_syscall(SYS_uuidgen, store, count);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_UUIDGEN;
 	e->value[0] = (uint64_t) result;
@@ -3631,9 +3631,9 @@ __rr_sendfile(int fd, int s, off_t offset, size_t nbytes, struct sf_hdtr *hdtr, 
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_sendfile, fd, s, offset, nbytes, hdtr, sbytes, flags);
+	return rr_syscall(SYS_sendfile, fd, s, offset, nbytes, hdtr, sbytes, flags);
     case RRMODE_RECORD:
-	result = syscall(SYS_sendfile, fd, s, offset, nbytes, hdtr, sbytes, flags);
+	result = rr_syscall(SYS_sendfile, fd, s, offset, nbytes, hdtr, sbytes, flags);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SENDFILE;
 	e->objectId = (uint64_t) fd;
@@ -3675,9 +3675,9 @@ __rr_extattr_set_link(const char *path, int attrnamespace, const char *attrname,
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_extattr_set_link, path, attrnamespace, attrname, data, nbytes);
+	return rr_syscall(SYS_extattr_set_link, path, attrnamespace, attrname, data, nbytes);
     case RRMODE_RECORD:
-	result = syscall(SYS_extattr_set_link, path, attrnamespace, attrname, data, nbytes);
+	result = rr_syscall(SYS_extattr_set_link, path, attrnamespace, attrname, data, nbytes);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_EXTATTR_SET_LINK;
 	e->value[0] = (uint64_t) result;
@@ -3707,9 +3707,9 @@ __rr_extattr_get_link(const char *path, int attrnamespace, const char *attrname,
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_extattr_get_link, path, attrnamespace, attrname, data, nbytes);
+	return rr_syscall(SYS_extattr_get_link, path, attrnamespace, attrname, data, nbytes);
     case RRMODE_RECORD:
-	result = syscall(SYS_extattr_get_link, path, attrnamespace, attrname, data, nbytes);
+	result = rr_syscall(SYS_extattr_get_link, path, attrnamespace, attrname, data, nbytes);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_EXTATTR_GET_LINK;
 	e->value[0] = (uint64_t) result;
@@ -3745,9 +3745,9 @@ __rr_extattr_delete_link(const char *path, int attrnamespace, const char *attrna
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_extattr_delete_link, path, attrnamespace, attrname);
+	return rr_syscall(SYS_extattr_delete_link, path, attrnamespace, attrname);
     case RRMODE_RECORD:
-	result = syscall(SYS_extattr_delete_link, path, attrnamespace, attrname);
+	result = rr_syscall(SYS_extattr_delete_link, path, attrnamespace, attrname);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_EXTATTR_DELETE_LINK;
 	e->value[0] = (uint64_t) result;
@@ -3777,9 +3777,9 @@ __rr_swapoff(const char *name)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_swapoff, name);
+	return rr_syscall(SYS_swapoff, name);
     case RRMODE_RECORD:
-	result = syscall(SYS_swapoff, name);
+	result = rr_syscall(SYS_swapoff, name);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SWAPOFF;
 	e->value[0] = (uint64_t) result;
@@ -3809,9 +3809,9 @@ __rr_extattr_list_fd(int fd, int attrnamespace, void *data, size_t nbytes)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_extattr_list_fd, fd, attrnamespace, data, nbytes);
+	return rr_syscall(SYS_extattr_list_fd, fd, attrnamespace, data, nbytes);
     case RRMODE_RECORD:
-	result = syscall(SYS_extattr_list_fd, fd, attrnamespace, data, nbytes);
+	result = rr_syscall(SYS_extattr_list_fd, fd, attrnamespace, data, nbytes);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_EXTATTR_LIST_FD;
 	e->objectId = (uint64_t) fd;
@@ -3853,9 +3853,9 @@ __rr_extattr_list_file(const char *path, int attrnamespace, void *data, size_t n
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_extattr_list_file, path, attrnamespace, data, nbytes);
+	return rr_syscall(SYS_extattr_list_file, path, attrnamespace, data, nbytes);
     case RRMODE_RECORD:
-	result = syscall(SYS_extattr_list_file, path, attrnamespace, data, nbytes);
+	result = rr_syscall(SYS_extattr_list_file, path, attrnamespace, data, nbytes);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_EXTATTR_LIST_FILE;
 	e->value[0] = (uint64_t) result;
@@ -3895,9 +3895,9 @@ __rr_extattr_list_link(const char *path, int attrnamespace, void *data, size_t n
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_extattr_list_link, path, attrnamespace, data, nbytes);
+	return rr_syscall(SYS_extattr_list_link, path, attrnamespace, data, nbytes);
     case RRMODE_RECORD:
-	result = syscall(SYS_extattr_list_link, path, attrnamespace, data, nbytes);
+	result = rr_syscall(SYS_extattr_list_link, path, attrnamespace, data, nbytes);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_EXTATTR_LIST_LINK;
 	e->value[0] = (uint64_t) result;
@@ -3937,9 +3937,9 @@ __rr_audit(const void *record, int length)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_audit, record, length);
+	return rr_syscall(SYS_audit, record, length);
     case RRMODE_RECORD:
-	result = syscall(SYS_audit, record, length);
+	result = rr_syscall(SYS_audit, record, length);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_AUDIT;
 	e->value[0] = (uint64_t) result;
@@ -3969,9 +3969,9 @@ __rr_auditon(int cmd, void *data, int length)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_auditon, cmd, data, length);
+	return rr_syscall(SYS_auditon, cmd, data, length);
     case RRMODE_RECORD:
-	result = syscall(SYS_auditon, cmd, data, length);
+	result = rr_syscall(SYS_auditon, cmd, data, length);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_AUDITON;
 	e->objectId = (uint64_t) cmd;
@@ -4003,9 +4003,9 @@ __rr_getauid(au_id_t * auid)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getauid, auid);
+	return rr_syscall(SYS_getauid, auid);
     case RRMODE_RECORD:
-	result = syscall(SYS_getauid, auid);
+	result = rr_syscall(SYS_getauid, auid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETAUID;
 	e->value[0] = (uint64_t) result;
@@ -4041,9 +4041,9 @@ __rr_setauid(const au_id_t * auid)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_setauid, auid);
+	return rr_syscall(SYS_setauid, auid);
     case RRMODE_RECORD:
-	result = syscall(SYS_setauid, auid);
+	result = rr_syscall(SYS_setauid, auid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETAUID;
 	e->value[0] = (uint64_t) result;
@@ -4073,9 +4073,9 @@ __rr_getaudit(struct auditinfo *auditinfo)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getaudit, auditinfo);
+	return rr_syscall(SYS_getaudit, auditinfo);
     case RRMODE_RECORD:
-	result = syscall(SYS_getaudit, auditinfo);
+	result = rr_syscall(SYS_getaudit, auditinfo);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETAUDIT;
 	e->value[0] = (uint64_t) result;
@@ -4111,9 +4111,9 @@ __rr_setaudit(const struct auditinfo *auditinfo)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_setaudit, auditinfo);
+	return rr_syscall(SYS_setaudit, auditinfo);
     case RRMODE_RECORD:
-	result = syscall(SYS_setaudit, auditinfo);
+	result = rr_syscall(SYS_setaudit, auditinfo);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETAUDIT;
 	e->value[0] = (uint64_t) result;
@@ -4143,9 +4143,9 @@ __rr_getaudit_addr(struct auditinfo_addr *auditinfo_addr, int length)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getaudit_addr, auditinfo_addr, length);
+	return rr_syscall(SYS_getaudit_addr, auditinfo_addr, length);
     case RRMODE_RECORD:
-	result = syscall(SYS_getaudit_addr, auditinfo_addr, length);
+	result = rr_syscall(SYS_getaudit_addr, auditinfo_addr, length);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETAUDIT_ADDR;
 	e->value[0] = (uint64_t) result;
@@ -4181,9 +4181,9 @@ __rr_setaudit_addr(const struct auditinfo_addr *auditinfo_addr, int length)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_setaudit_addr, auditinfo_addr, length);
+	return rr_syscall(SYS_setaudit_addr, auditinfo_addr, length);
     case RRMODE_RECORD:
-	result = syscall(SYS_setaudit_addr, auditinfo_addr, length);
+	result = rr_syscall(SYS_setaudit_addr, auditinfo_addr, length);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETAUDIT_ADDR;
 	e->value[0] = (uint64_t) result;
@@ -4213,9 +4213,9 @@ __rr_auditctl(const char *path)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_auditctl, path);
+	return rr_syscall(SYS_auditctl, path);
     case RRMODE_RECORD:
-	result = syscall(SYS_auditctl, path);
+	result = rr_syscall(SYS_auditctl, path);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_AUDITCTL;
 	e->value[0] = (uint64_t) result;
@@ -4245,9 +4245,9 @@ __rr_pread(int fd, void *buf, size_t nbyte, off_t offset)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_pread, fd, buf, nbyte, offset);
+	return rr_syscall(SYS_pread, fd, buf, nbyte, offset);
     case RRMODE_RECORD:
-	result = syscall(SYS_pread, fd, buf, nbyte, offset);
+	result = rr_syscall(SYS_pread, fd, buf, nbyte, offset);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_PREAD;
 	e->objectId = (uint64_t) fd;
@@ -4285,9 +4285,9 @@ __rr_cpuset(cpusetid_t * setid)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_cpuset, setid);
+	return rr_syscall(SYS_cpuset, setid);
     case RRMODE_RECORD:
-	result = syscall(SYS_cpuset, setid);
+	result = rr_syscall(SYS_cpuset, setid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CPUSET;
 	e->value[0] = (uint64_t) result;
@@ -4323,9 +4323,9 @@ __rr_cpuset_setid(cpuwhich_t which, id_t id, cpusetid_t setid)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_cpuset_setid, which, id, setid);
+	return rr_syscall(SYS_cpuset_setid, which, id, setid);
     case RRMODE_RECORD:
-	result = syscall(SYS_cpuset_setid, which, id, setid);
+	result = rr_syscall(SYS_cpuset_setid, which, id, setid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CPUSET_SETID;
 	e->value[0] = (uint64_t) result;
@@ -4355,9 +4355,9 @@ __rr_cpuset_getid(cpulevel_t level, cpuwhich_t which, id_t id, cpusetid_t * seti
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_cpuset_getid, level, which, id, setid);
+	return rr_syscall(SYS_cpuset_getid, level, which, id, setid);
     case RRMODE_RECORD:
-	result = syscall(SYS_cpuset_getid, level, which, id, setid);
+	result = rr_syscall(SYS_cpuset_getid, level, which, id, setid);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CPUSET_GETID;
 	e->value[0] = (uint64_t) result;
@@ -4393,9 +4393,9 @@ __rr_cpuset_getaffinity(cpulevel_t level, cpuwhich_t which, id_t id, size_t cpus
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_cpuset_getaffinity, level, which, id, cpusetsize, mask);
+	return rr_syscall(SYS_cpuset_getaffinity, level, which, id, cpusetsize, mask);
     case RRMODE_RECORD:
-	result = syscall(SYS_cpuset_getaffinity, level, which, id, cpusetsize, mask);
+	result = rr_syscall(SYS_cpuset_getaffinity, level, which, id, cpusetsize, mask);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CPUSET_GETAFFINITY;
 	e->value[0] = (uint64_t) result;
@@ -4431,9 +4431,9 @@ __rr_cpuset_setaffinity(cpulevel_t level, cpuwhich_t which, id_t id, size_t cpus
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_cpuset_setaffinity, level, which, id, cpusetsize, mask);
+	return rr_syscall(SYS_cpuset_setaffinity, level, which, id, cpusetsize, mask);
     case RRMODE_RECORD:
-	result = syscall(SYS_cpuset_setaffinity, level, which, id, cpusetsize, mask);
+	result = rr_syscall(SYS_cpuset_setaffinity, level, which, id, cpusetsize, mask);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CPUSET_SETAFFINITY;
 	e->value[0] = (uint64_t) result;
@@ -4469,9 +4469,9 @@ __rr_faccessat(int fd, const char *path, int amode, int flag)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_faccessat, fd, path, amode, flag);
+	return rr_syscall(SYS_faccessat, fd, path, amode, flag);
     case RRMODE_RECORD:
-	result = syscall(SYS_faccessat, fd, path, amode, flag);
+	result = rr_syscall(SYS_faccessat, fd, path, amode, flag);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FACCESSAT;
 	e->objectId = (uint64_t) fd;
@@ -4503,9 +4503,9 @@ __rr_fchmodat(int fd, const char *path, mode_t mode, int flag)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_fchmodat, fd, path, mode, flag);
+	return rr_syscall(SYS_fchmodat, fd, path, mode, flag);
     case RRMODE_RECORD:
-	result = syscall(SYS_fchmodat, fd, path, mode, flag);
+	result = rr_syscall(SYS_fchmodat, fd, path, mode, flag);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FCHMODAT;
 	e->objectId = (uint64_t) fd;
@@ -4537,9 +4537,9 @@ __rr_fchownat(int fd, const char *path, uid_t uid, gid_t gid, int flag)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_fchownat, fd, path, uid, gid, flag);
+	return rr_syscall(SYS_fchownat, fd, path, uid, gid, flag);
     case RRMODE_RECORD:
-	result = syscall(SYS_fchownat, fd, path, uid, gid, flag);
+	result = rr_syscall(SYS_fchownat, fd, path, uid, gid, flag);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FCHOWNAT;
 	e->objectId = (uint64_t) fd;
@@ -4571,9 +4571,9 @@ __rr_linkat(int fd1, const char *path1, int fd2, const char *path2, int flag)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_linkat, fd1, path1, fd2, path2, flag);
+	return rr_syscall(SYS_linkat, fd1, path1, fd2, path2, flag);
     case RRMODE_RECORD:
-	result = syscall(SYS_linkat, fd1, path1, fd2, path2, flag);
+	result = rr_syscall(SYS_linkat, fd1, path1, fd2, path2, flag);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_LINKAT;
 	e->objectId = (uint64_t) fd1;
@@ -4605,9 +4605,9 @@ __rr_mkdirat(int fd, const char *path, mode_t mode)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_mkdirat, fd, path, mode);
+	return rr_syscall(SYS_mkdirat, fd, path, mode);
     case RRMODE_RECORD:
-	result = syscall(SYS_mkdirat, fd, path, mode);
+	result = rr_syscall(SYS_mkdirat, fd, path, mode);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_MKDIRAT;
 	e->objectId = (uint64_t) fd;
@@ -4639,9 +4639,9 @@ __rr_mkfifoat(int fd, const char *path, mode_t mode)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_mkfifoat, fd, path, mode);
+	return rr_syscall(SYS_mkfifoat, fd, path, mode);
     case RRMODE_RECORD:
-	result = syscall(SYS_mkfifoat, fd, path, mode);
+	result = rr_syscall(SYS_mkfifoat, fd, path, mode);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_MKFIFOAT;
 	e->objectId = (uint64_t) fd;
@@ -4673,9 +4673,9 @@ __rr_readlinkat(int fd, const char *path, char *buf, size_t bufsize)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_readlinkat, fd, path, buf, bufsize);
+	return rr_syscall(SYS_readlinkat, fd, path, buf, bufsize);
     case RRMODE_RECORD:
-	result = syscall(SYS_readlinkat, fd, path, buf, bufsize);
+	result = rr_syscall(SYS_readlinkat, fd, path, buf, bufsize);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_READLINKAT;
 	e->objectId = (uint64_t) fd;
@@ -4713,9 +4713,9 @@ __rr_renameat(int oldfd, const char *old, int newfd, const char *new)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_renameat, oldfd, old, newfd, new);
+	return rr_syscall(SYS_renameat, oldfd, old, newfd, new);
     case RRMODE_RECORD:
-	result = syscall(SYS_renameat, oldfd, old, newfd, new);
+	result = rr_syscall(SYS_renameat, oldfd, old, newfd, new);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_RENAMEAT;
 	e->objectId = (uint64_t) oldfd;
@@ -4747,9 +4747,9 @@ __rr_symlinkat(const char *path1, int fd, const char *path2)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_symlinkat, path1, fd, path2);
+	return rr_syscall(SYS_symlinkat, path1, fd, path2);
     case RRMODE_RECORD:
-	result = syscall(SYS_symlinkat, path1, fd, path2);
+	result = rr_syscall(SYS_symlinkat, path1, fd, path2);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SYMLINKAT;
 	e->value[0] = (uint64_t) result;
@@ -4779,9 +4779,9 @@ __rr_unlinkat(int fd, const char *path, int flag)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_unlinkat, fd, path, flag);
+	return rr_syscall(SYS_unlinkat, fd, path, flag);
     case RRMODE_RECORD:
-	result = syscall(SYS_unlinkat, fd, path, flag);
+	result = rr_syscall(SYS_unlinkat, fd, path, flag);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_UNLINKAT;
 	e->objectId = (uint64_t) fd;
@@ -4813,9 +4813,9 @@ __rr_lpathconf(const char *path, int name)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_lpathconf, path, name);
+	return rr_syscall(SYS_lpathconf, path, name);
     case RRMODE_RECORD:
-	result = syscall(SYS_lpathconf, path, name);
+	result = rr_syscall(SYS_lpathconf, path, name);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_LPATHCONF;
 	e->value[0] = (uint64_t) result;
@@ -4845,9 +4845,9 @@ __rr_cap_enter()
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_cap_enter);
+	return rr_syscall(SYS_cap_enter);
     case RRMODE_RECORD:
-	result = syscall(SYS_cap_enter);
+	result = rr_syscall(SYS_cap_enter);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CAP_ENTER;
 	e->value[0] = (uint64_t) result;
@@ -4877,9 +4877,9 @@ __rr_cap_getmode(u_int * modep)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_cap_getmode, modep);
+	return rr_syscall(SYS_cap_getmode, modep);
     case RRMODE_RECORD:
-	result = syscall(SYS_cap_getmode, modep);
+	result = rr_syscall(SYS_cap_getmode, modep);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CAP_GETMODE;
 	e->value[0] = (uint64_t) result;
@@ -4915,9 +4915,9 @@ __rr_getloginclass(char *namebuf, size_t namelen)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getloginclass, namebuf, namelen);
+	return rr_syscall(SYS_getloginclass, namebuf, namelen);
     case RRMODE_RECORD:
-	result = syscall(SYS_getloginclass, namebuf, namelen);
+	result = rr_syscall(SYS_getloginclass, namebuf, namelen);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETLOGINCLASS;
 	e->value[0] = (uint64_t) result;
@@ -4953,9 +4953,9 @@ __rr_setloginclass(const char *namebuf)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_setloginclass, namebuf);
+	return rr_syscall(SYS_setloginclass, namebuf);
     case RRMODE_RECORD:
-	result = syscall(SYS_setloginclass, namebuf);
+	result = rr_syscall(SYS_setloginclass, namebuf);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETLOGINCLASS;
 	e->value[0] = (uint64_t) result;
@@ -4985,9 +4985,9 @@ __rr_rctl_get_racct(const char *inbufp, size_t inbuflen, char *outbufp, size_t o
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_rctl_get_racct, inbufp, inbuflen, outbufp, outbuflen);
+	return rr_syscall(SYS_rctl_get_racct, inbufp, inbuflen, outbufp, outbuflen);
     case RRMODE_RECORD:
-	result = syscall(SYS_rctl_get_racct, inbufp, inbuflen, outbufp, outbuflen);
+	result = rr_syscall(SYS_rctl_get_racct, inbufp, inbuflen, outbufp, outbuflen);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_RCTL_GET_RACCT;
 	e->value[0] = (uint64_t) result;
@@ -5023,9 +5023,9 @@ __rr_rctl_get_rules(const char *inbufp, size_t inbuflen, char *outbufp, size_t o
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_rctl_get_rules, inbufp, inbuflen, outbufp, outbuflen);
+	return rr_syscall(SYS_rctl_get_rules, inbufp, inbuflen, outbufp, outbuflen);
     case RRMODE_RECORD:
-	result = syscall(SYS_rctl_get_rules, inbufp, inbuflen, outbufp, outbuflen);
+	result = rr_syscall(SYS_rctl_get_rules, inbufp, inbuflen, outbufp, outbuflen);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_RCTL_GET_RULES;
 	e->value[0] = (uint64_t) result;
@@ -5061,9 +5061,9 @@ __rr_rctl_get_limits(const char *inbufp, size_t inbuflen, char *outbufp, size_t 
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_rctl_get_limits, inbufp, inbuflen, outbufp, outbuflen);
+	return rr_syscall(SYS_rctl_get_limits, inbufp, inbuflen, outbufp, outbuflen);
     case RRMODE_RECORD:
-	result = syscall(SYS_rctl_get_limits, inbufp, inbuflen, outbufp, outbuflen);
+	result = rr_syscall(SYS_rctl_get_limits, inbufp, inbuflen, outbufp, outbuflen);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_RCTL_GET_LIMITS;
 	e->value[0] = (uint64_t) result;
@@ -5099,9 +5099,9 @@ __rr_rctl_add_rule(const char *inbufp, size_t inbuflen, char *outbufp, size_t ou
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_rctl_add_rule, inbufp, inbuflen, outbufp, outbuflen);
+	return rr_syscall(SYS_rctl_add_rule, inbufp, inbuflen, outbufp, outbuflen);
     case RRMODE_RECORD:
-	result = syscall(SYS_rctl_add_rule, inbufp, inbuflen, outbufp, outbuflen);
+	result = rr_syscall(SYS_rctl_add_rule, inbufp, inbuflen, outbufp, outbuflen);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_RCTL_ADD_RULE;
 	e->value[0] = (uint64_t) result;
@@ -5137,9 +5137,9 @@ __rr_rctl_remove_rule(const char *inbufp, size_t inbuflen, char *outbufp, size_t
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_rctl_remove_rule, inbufp, inbuflen, outbufp, outbuflen);
+	return rr_syscall(SYS_rctl_remove_rule, inbufp, inbuflen, outbufp, outbuflen);
     case RRMODE_RECORD:
-	result = syscall(SYS_rctl_remove_rule, inbufp, inbuflen, outbufp, outbuflen);
+	result = rr_syscall(SYS_rctl_remove_rule, inbufp, inbuflen, outbufp, outbuflen);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_RCTL_REMOVE_RULE;
 	e->value[0] = (uint64_t) result;
@@ -5175,9 +5175,9 @@ __rr_posix_fallocate(int fd, off_t offset, off_t len)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_posix_fallocate, fd, offset, len);
+	return rr_syscall(SYS_posix_fallocate, fd, offset, len);
     case RRMODE_RECORD:
-	result = syscall(SYS_posix_fallocate, fd, offset, len);
+	result = rr_syscall(SYS_posix_fallocate, fd, offset, len);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_POSIX_FALLOCATE;
 	e->objectId = (uint64_t) fd;
@@ -5209,9 +5209,9 @@ __rr_posix_fadvise(int fd, off_t offset, off_t len, int advice)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_posix_fadvise, fd, offset, len, advice);
+	return rr_syscall(SYS_posix_fadvise, fd, offset, len, advice);
     case RRMODE_RECORD:
-	result = syscall(SYS_posix_fadvise, fd, offset, len, advice);
+	result = rr_syscall(SYS_posix_fadvise, fd, offset, len, advice);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_POSIX_FADVISE;
 	e->objectId = (uint64_t) fd;
@@ -5243,9 +5243,9 @@ __rr_cap_rights_limit(int fd, const cap_rights_t * rightsp)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_cap_rights_limit, fd, rightsp);
+	return rr_syscall(SYS_cap_rights_limit, fd, rightsp);
     case RRMODE_RECORD:
-	result = syscall(SYS_cap_rights_limit, fd, rightsp);
+	result = rr_syscall(SYS_cap_rights_limit, fd, rightsp);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CAP_RIGHTS_LIMIT;
 	e->objectId = (uint64_t) fd;
@@ -5277,9 +5277,9 @@ __rr_cap_ioctls_limit(int fd, const cap_ioctl_t * cmds, size_t ncmds)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_cap_ioctls_limit, fd, cmds, ncmds);
+	return rr_syscall(SYS_cap_ioctls_limit, fd, cmds, ncmds);
     case RRMODE_RECORD:
-	result = syscall(SYS_cap_ioctls_limit, fd, cmds, ncmds);
+	result = rr_syscall(SYS_cap_ioctls_limit, fd, cmds, ncmds);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CAP_IOCTLS_LIMIT;
 	e->objectId = (uint64_t) fd;
@@ -5311,9 +5311,9 @@ __rr_cap_ioctls_get(int fd, cap_ioctl_t * cmds, size_t maxcmds)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_cap_ioctls_get, fd, cmds, maxcmds);
+	return rr_syscall(SYS_cap_ioctls_get, fd, cmds, maxcmds);
     case RRMODE_RECORD:
-	result = syscall(SYS_cap_ioctls_get, fd, cmds, maxcmds);
+	result = rr_syscall(SYS_cap_ioctls_get, fd, cmds, maxcmds);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CAP_IOCTLS_GET;
 	e->objectId = (uint64_t) fd;
@@ -5351,9 +5351,9 @@ __rr_cap_fcntls_limit(int fd, uint32_t fcntlrights)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_cap_fcntls_limit, fd, fcntlrights);
+	return rr_syscall(SYS_cap_fcntls_limit, fd, fcntlrights);
     case RRMODE_RECORD:
-	result = syscall(SYS_cap_fcntls_limit, fd, fcntlrights);
+	result = rr_syscall(SYS_cap_fcntls_limit, fd, fcntlrights);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CAP_FCNTLS_LIMIT;
 	e->objectId = (uint64_t) fd;
@@ -5385,9 +5385,9 @@ __rr_cap_fcntls_get(int fd, uint32_t * fcntlrightsp)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_cap_fcntls_get, fd, fcntlrightsp);
+	return rr_syscall(SYS_cap_fcntls_get, fd, fcntlrightsp);
     case RRMODE_RECORD:
-	result = syscall(SYS_cap_fcntls_get, fd, fcntlrightsp);
+	result = rr_syscall(SYS_cap_fcntls_get, fd, fcntlrightsp);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CAP_FCNTLS_GET;
 	e->objectId = (uint64_t) fd;
@@ -5425,9 +5425,9 @@ __rr_bindat(int fd, int s, const struct sockaddr *name, socklen_t namelen)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_bindat, fd, s, name, namelen);
+	return rr_syscall(SYS_bindat, fd, s, name, namelen);
     case RRMODE_RECORD:
-	result = syscall(SYS_bindat, fd, s, name, namelen);
+	result = rr_syscall(SYS_bindat, fd, s, name, namelen);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_BINDAT;
 	e->objectId = (uint64_t) fd;
@@ -5459,9 +5459,9 @@ __rr_connectat(int fd, int s, const struct sockaddr *name, socklen_t namelen)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_connectat, fd, s, name, namelen);
+	return rr_syscall(SYS_connectat, fd, s, name, namelen);
     case RRMODE_RECORD:
-	result = syscall(SYS_connectat, fd, s, name, namelen);
+	result = rr_syscall(SYS_connectat, fd, s, name, namelen);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CONNECTAT;
 	e->objectId = (uint64_t) fd;
@@ -5493,9 +5493,9 @@ __rr_chflagsat(int fd, const char *path, unsigned long flags, int atflag)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_chflagsat, fd, path, flags, atflag);
+	return rr_syscall(SYS_chflagsat, fd, path, flags, atflag);
     case RRMODE_RECORD:
-	result = syscall(SYS_chflagsat, fd, path, flags, atflag);
+	result = rr_syscall(SYS_chflagsat, fd, path, flags, atflag);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_CHFLAGSAT;
 	e->objectId = (uint64_t) fd;
@@ -5527,9 +5527,9 @@ __rr_accept4(int s, struct sockaddr *name, socklen_t * anamelen, int flags)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_accept4, s, name, anamelen, flags);
+	return rr_syscall(SYS_accept4, s, name, anamelen, flags);
     case RRMODE_RECORD:
-	result = syscall(SYS_accept4, s, name, anamelen, flags);
+	result = rr_syscall(SYS_accept4, s, name, anamelen, flags);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_ACCEPT4;
 	e->objectId = (uint64_t) s;
@@ -5577,9 +5577,9 @@ __rr_fdatasync(int fd)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_fdatasync, fd);
+	return rr_syscall(SYS_fdatasync, fd);
     case RRMODE_RECORD:
-	result = syscall(SYS_fdatasync, fd);
+	result = rr_syscall(SYS_fdatasync, fd);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FDATASYNC;
 	e->objectId = (uint64_t) fd;
@@ -5611,9 +5611,9 @@ __rr_lseek(int fd, __off_t offset, int whence)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_lseek, fd, offset, whence);
+	return rr_syscall(SYS_lseek, fd, offset, whence);
     case RRMODE_RECORD:
-	result = syscall(SYS_lseek, fd, offset, whence);
+	result = rr_syscall(SYS_lseek, fd, offset, whence);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_LSEEK;
 	e->objectId = (uint64_t) fd;
@@ -5645,9 +5645,9 @@ __rr_stat(const char *path, struct stat *ub)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_stat, path, ub);
+	return rr_syscall(SYS_stat, path, ub);
     case RRMODE_RECORD:
-	result = syscall(SYS_stat, path, ub);
+	result = rr_syscall(SYS_stat, path, ub);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_STAT;
 	e->value[0] = (uint64_t) result;
@@ -5683,9 +5683,9 @@ __rr_getdirentries(int fd, char *buf, int count, long *basep)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getdirentries, fd, buf, count, basep);
+	return rr_syscall(SYS_getdirentries, fd, buf, count, basep);
     case RRMODE_RECORD:
-	result = syscall(SYS_getdirentries, fd, buf, count, basep);
+	result = rr_syscall(SYS_getdirentries, fd, buf, count, basep);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETDIRENTRIES;
 	e->objectId = (uint64_t) fd;
@@ -5725,9 +5725,9 @@ __rr_truncate(const char *path, __off_t length)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_truncate, path, length);
+	return rr_syscall(SYS_truncate, path, length);
     case RRMODE_RECORD:
-	result = syscall(SYS_truncate, path, length);
+	result = rr_syscall(SYS_truncate, path, length);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_TRUNCATE;
 	e->value[0] = (uint64_t) result;
@@ -5757,9 +5757,9 @@ __rr_lstat(const char *path, struct stat *ub)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_lstat, path, ub);
+	return rr_syscall(SYS_lstat, path, ub);
     case RRMODE_RECORD:
-	result = syscall(SYS_lstat, path, ub);
+	result = rr_syscall(SYS_lstat, path, ub);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_LSTAT;
 	e->value[0] = (uint64_t) result;
@@ -5795,9 +5795,9 @@ __rr_fhstat(const struct fhandle *u_fhp, struct stat *sb)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_fhstat, u_fhp, sb);
+	return rr_syscall(SYS_fhstat, u_fhp, sb);
     case RRMODE_RECORD:
-	result = syscall(SYS_fhstat, u_fhp, sb);
+	result = rr_syscall(SYS_fhstat, u_fhp, sb);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FHSTAT;
 	e->value[0] = (uint64_t) result;
@@ -5833,9 +5833,9 @@ __rr_getfsstat(struct statfs *buf, long bufsize, int mode)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getfsstat, buf, bufsize, mode);
+	return rr_syscall(SYS_getfsstat, buf, bufsize, mode);
     case RRMODE_RECORD:
-	result = syscall(SYS_getfsstat, buf, bufsize, mode);
+	result = rr_syscall(SYS_getfsstat, buf, bufsize, mode);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETFSSTAT;
 	e->value[0] = (uint64_t) result;
@@ -5875,9 +5875,9 @@ __rr_getpeername(int fdes, struct sockaddr *asa, socklen_t * alen)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getpeername, fdes, asa, alen);
+	return rr_syscall(SYS_getpeername, fdes, asa, alen);
     case RRMODE_RECORD:
-	result = syscall(SYS_getpeername, fdes, asa, alen);
+	result = rr_syscall(SYS_getpeername, fdes, asa, alen);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETPEERNAME;
 	e->objectId = (uint64_t) fdes;
@@ -5921,9 +5921,9 @@ __rr_fstatfs(int fd, struct statfs *buf)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_fstatfs, fd, buf);
+	return rr_syscall(SYS_fstatfs, fd, buf);
     case RRMODE_RECORD:
-	result = syscall(SYS_fstatfs, fd, buf);
+	result = rr_syscall(SYS_fstatfs, fd, buf);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FSTATFS;
 	e->objectId = (uint64_t) fd;
@@ -5961,9 +5961,9 @@ __rr_mknodat(int fd, const char *path, mode_t mode, dev_t dev)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_mknodat, fd, path, mode, dev);
+	return rr_syscall(SYS_mknodat, fd, path, mode, dev);
     case RRMODE_RECORD:
-	result = syscall(SYS_mknodat, fd, path, mode, dev);
+	result = rr_syscall(SYS_mknodat, fd, path, mode, dev);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_MKNODAT;
 	e->objectId = (uint64_t) fd;
@@ -5995,9 +5995,9 @@ __rr_fstatat(int fd, const char *path, struct stat *buf, int flag)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_fstatat, fd, path, buf, flag);
+	return rr_syscall(SYS_fstatat, fd, path, buf, flag);
     case RRMODE_RECORD:
-	result = syscall(SYS_fstatat, fd, path, buf, flag);
+	result = rr_syscall(SYS_fstatat, fd, path, buf, flag);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FSTATAT;
 	e->objectId = (uint64_t) fd;
@@ -6035,9 +6035,9 @@ __rr_fhstatfs(const struct fhandle *u_fhp, struct statfs *buf)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_fhstatfs, u_fhp, buf);
+	return rr_syscall(SYS_fhstatfs, u_fhp, buf);
     case RRMODE_RECORD:
-	result = syscall(SYS_fhstatfs, u_fhp, buf);
+	result = rr_syscall(SYS_fhstatfs, u_fhp, buf);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FHSTATFS;
 	e->value[0] = (uint64_t) result;
@@ -6073,9 +6073,9 @@ __rr_sendmsg(int s, const struct msghdr *msg, int flags)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_sendmsg, s, msg, flags);
+	return rr_syscall(SYS_sendmsg, s, msg, flags);
     case RRMODE_RECORD:
-	result = syscall(SYS_sendmsg, s, msg, flags);
+	result = rr_syscall(SYS_sendmsg, s, msg, flags);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SENDMSG;
 	e->objectId = (uint64_t) s;
@@ -6107,9 +6107,9 @@ __rr_statfs(const char *path, struct statfs *buf)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_statfs, path, buf);
+	return rr_syscall(SYS_statfs, path, buf);
     case RRMODE_RECORD:
-	result = syscall(SYS_statfs, path, buf);
+	result = rr_syscall(SYS_statfs, path, buf);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_STATFS;
 	e->value[0] = (uint64_t) result;
@@ -6145,9 +6145,9 @@ __rr_ftruncate(int fd, __off_t length)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_ftruncate, fd, length);
+	return rr_syscall(SYS_ftruncate, fd, length);
     case RRMODE_RECORD:
-	result = syscall(SYS_ftruncate, fd, length);
+	result = rr_syscall(SYS_ftruncate, fd, length);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FTRUNCATE;
 	e->objectId = (uint64_t) fd;
@@ -6179,9 +6179,9 @@ __rr_getrlimit(int which, struct rlimit *rlp)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_getrlimit, which, rlp);
+	return rr_syscall(SYS_getrlimit, which, rlp);
     case RRMODE_RECORD:
-	result = syscall(SYS_getrlimit, which, rlp);
+	result = rr_syscall(SYS_getrlimit, which, rlp);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_GETRLIMIT;
 	e->objectId = (uint64_t) which;
@@ -6219,9 +6219,9 @@ __rr_fstat(int fd, struct stat *sb)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_fstat, fd, sb);
+	return rr_syscall(SYS_fstat, fd, sb);
     case RRMODE_RECORD:
-	result = syscall(SYS_fstat, fd, sb);
+	result = rr_syscall(SYS_fstat, fd, sb);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_FSTAT;
 	e->objectId = (uint64_t) fd;
@@ -6259,9 +6259,9 @@ __rr_setrlimit(int which, const struct rlimit *rlp)
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_setrlimit, which, rlp);
+	return rr_syscall(SYS_setrlimit, which, rlp);
     case RRMODE_RECORD:
-	result = syscall(SYS_setrlimit, which, rlp);
+	result = rr_syscall(SYS_setrlimit, which, rlp);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SETRLIMIT;
 	e->objectId = (uint64_t) which;
@@ -6293,9 +6293,9 @@ __rr_kevent(int fd, const struct kevent *changelist, int nchanges, struct kevent
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return syscall(SYS_kevent, fd, changelist, nchanges, eventlist, nevents, timeout);
+	return rr_syscall(SYS_kevent, fd, changelist, nchanges, eventlist, nevents, timeout);
     case RRMODE_RECORD:
-	result = syscall(SYS_kevent, fd, changelist, nchanges, eventlist, nevents, timeout);
+	result = rr_syscall(SYS_kevent, fd, changelist, nchanges, eventlist, nevents, timeout);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_KEVENT;
 	e->objectId = (uint64_t) fd;

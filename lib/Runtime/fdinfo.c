@@ -11,7 +11,13 @@
 #include <sys/syscall.h>
 
 #include <castor/debug.h>
+#include <castor/rrlog.h>
+#include <castor/rrplay.h>
+#include <castor/rrgq.h>
+#include <castor/mtx.h>
+#include <castor/events.h>
 
+#include "util.h"
 #include "fdinfo.h"
 
 extern int __sys_ftruncate(int fd, off_t length);
@@ -79,7 +85,7 @@ FDInfo_FTruncate(int fd, off_t length)
 
     switch (FDInfo_GetType(fd)) {
 	case FDTYPE_SHM:
-	    status = syscall(SYS_ftruncate, FDInfo_GetFD(fd), length);
+	    status = rr_syscall(SYS_ftruncate, FDInfo_GetFD(fd), length);
 	    ASSERT_IMPLEMENTED(status != -1);
 	    break;
 	default:
