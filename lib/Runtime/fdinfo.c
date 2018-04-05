@@ -52,7 +52,7 @@ void
 FDInfo_OpenMmapLazy(int fd)
 {
     ASSERT(fd < FDTABLE_SIZE);
-    int f = open(fdTable[fd].path, fdTable[fd].flags, fdTable[fd].mode);
+    int f = __rr_syscall(SYS_open, fdTable[fd].path, fdTable[fd].flags, fdTable[fd].mode);
     if (f < 0) {
 	PERROR("open");
     }
