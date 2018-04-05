@@ -33,6 +33,7 @@
 #include <castor/mtx.h>
 #include <castor/events.h>
 
+#include "system.h"
 #include "util.h"
 
 pid_t
@@ -126,7 +127,7 @@ __rr_exit(int status)
 	RRPlay_Free(rrlog, e);
     }
 
-    rr_syscall(SYS_exit, status);
+    __rr_syscall(SYS_exit, status);
 }
 
 /*

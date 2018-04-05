@@ -6,7 +6,6 @@ src = [
     "debug.c",
     "util.c",
     "fdinfo.c",
-    "freebsd.c",
     "events.c",
     "events_freebsd.c",
     "events_mem.c",
@@ -17,6 +16,10 @@ src = [
     "events_llvm.c",
     "rr_assert.c",
     "rr_fdprintf.c",
+    "system.c",
+    "syscall.S",
+    "cerror.S",
+    "__error.c",
 ]
 
 env_libsys = env.Clone()
@@ -24,6 +27,7 @@ env_libsys = env.Clone()
 # Made global to make compilation_db work
 env_libsys["CPPPATH"].append("#sysroot-src/lib/libc/include")
 
+env_libsys["ASFLAGS"].append("-DPIC")
 env_libsys["LINKFLAGS"].append("-nodefaultlibs")
 
 env_libsys.SharedLibrary("libsys_castor.so", src, LIBS = ["compiler_rt"])

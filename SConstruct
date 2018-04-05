@@ -53,6 +53,7 @@ opts.AddVariables(
     ("CASTORPASS", "Castor LLVM IR Pass", "lib/Pass/libCastorPass.so"),
     EnumVariable("VERBOSE", "Show full build information", "0", ["0", "1"]),
     EnumVariable("BUILDTYPE", "Build Type", "DEBUG", ["DEBUG", "RELEASE"]),
+    EnumVariable("ARCH", "CPU Architecture", "amd64", ["amd64"]),
     EnumVariable("RR", "R/R Type", "ctr", ["ctr", "tsc", "tsx"]),
     EnumVariable("CFG", "R/R Log Config", "ft", ["ft", "dbg", "snap"]),
     PathVariable("PREFIX", "Installation target directory", "/usr/local", PathVariable.PathAccept),
@@ -142,7 +143,9 @@ elif (env["CFG"] == "snap"):
 else:
     print "Unknown CFG"
 
-env.Append(CPPPATH = ["#include", "#include/" + env["RR"]])
+env.Append(CPPPATH = ["#include",
+                      "#include/" + env["RR"],
+                      "#include/" + env["ARCH"]])
 
 env["SYSROOT"] = os.getcwd() + "/sysroot/usr/amd64-freebsd/"
 

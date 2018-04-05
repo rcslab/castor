@@ -11,15 +11,14 @@
 #include <threads.h>
 
 #include <unistd.h>
-#include <sys/types.h>
 #include <errno.h>
 #include <fcntl.h>
-
+#include <sys/types.h>
+#include <sys/mman.h>
 #include <sys/cdefs.h>
 #include <sys/syscall.h>
 
-// mmap
-#include <sys/mman.h>
+
 
 #include <libc_private.h>
 
@@ -31,6 +30,7 @@
 #include <castor/events.h>
 
 #include "fdinfo.h"
+#include "system.h"
 #include "util.h"
 
 void *
@@ -40,7 +40,7 @@ __rr_mmap_log(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
     RRLogEntry *e;
 
     if (rrMode == RRMODE_RECORD) {
-        result = (void *)rr_syscall_long(SYS_mmap, addr, len, prot, flags, fd, offset);
+        result = (void *)__rr_syscall_long(SYS_mmap, addr, len, prot, flags, fd, offset);
         e = RRLog_Alloc(rrlog, threadId);
         e->event = RREVENT_MMAPFD;
         e->value[0] = (uint64_t)result;
@@ -66,7 +66,7 @@ __rr_mmap_log(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 
         if (result != MAP_FAILED) {
             void *origAddr = result;
-            result = (void *) rr_syscall_long(SYS_mmap, origAddr, len, prot | 
+            result = (void *) __rr_syscall_long(SYS_mmap, origAddr, len, prot | 
                     PROT_WRITE, flags | MAP_ANON, -1, (off_t)0);
             if (result == MAP_FAILED) {
                 PERROR(strerror(errno));
@@ -76,7 +76,7 @@ __rr_mmap_log(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
             }
             logData(result, len);
             if ((prot & PROT_WRITE) == 0) {
-                int status = rr_syscall(SYS_mprotect, addr, len, prot);
+                int status = __rr_syscall(SYS_mprotect, addr, len, prot);
                 ASSERT_IMPLEMENTED(status == 0);
             }
         }
@@ -92,7 +92,7 @@ __rr_mmap_shared(void *addr, size_t len, int prot, int flags, int fd, off_t offs
     RRLogEntry *e;
 
     if (rrMode == RRMODE_RECORD) {
-        result = (void *)rr_syscall_long(SYS_mmap, addr, len, prot, flags, fd, offset);
+        result = (void *)__rr_syscall_long(SYS_mmap, addr, len, prot, flags, fd, offset);
         e = RRLog_Alloc(rrlog, threadId);
         e->event = RREVENT_MMAPFD;
         e->value[0] = (uint64_t)result;
@@ -122,7 +122,7 @@ __rr_mmap_shared(void *addr, size_t len, int prot, int flags, int fd, off_t offs
 
         if (result != MAP_FAILED) {
             void *origAddr = result;
-            result = (void *)rr_syscall_long(SYS_mmap, origAddr, len, prot, flags, realFd, offset);
+            result = (void *)__rr_syscall_long(SYS_mmap, origAddr, len, prot, flags, realFd, offset);
             ASSERT_IMPLEMENTED(result != MAP_FAILED);
             if (origAddr != result) {
                 WARNING("mmap replay didn't use the same address (%p -> %p)", origAddr, result);
@@ -137,7 +137,7 @@ void *
 __rr_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 {
     if (rrMode == RRMODE_NORMAL) {
-        return (void *)rr_syscall_long(SYS_mmap,addr, len, prot, flags, fd, offset);
+        return (void *)__rr_syscall_long(SYS_mmap,addr, len, prot, flags, fd, offset);
     }
 
     /*
@@ -145,7 +145,7 @@ __rr_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
      * modification.
      */
     if (fd == -1) {
-        return (void *)rr_syscall_long(SYS_mmap,addr, len, prot, flags, fd, offset);
+        return (void *)__rr_syscall_long(SYS_mmap,addr, len, prot, flags, fd, offset);
     }
 
     if (flags & MAP_PRIVATE) {

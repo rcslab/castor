@@ -91,7 +91,7 @@ def generate_handler(spec):
     event_number = "RREVENT_%s" % name.upper()
     leading_object = arg_types and (arg_types[0] == 'int')
     call_args = [syscall_number] + arg_names
-    syscall_str =  "rr_syscall(%s)" % ", ".join(call_args)
+    syscall_str =  "__rr_syscall(%s)" % ", ".join(call_args)
 
     if return_type in CAST_SYSCALL_RETURN_TYPE:
         syscall_str = "(%s) %s" % (return_type, syscall_str)

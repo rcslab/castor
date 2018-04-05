@@ -15,18 +15,18 @@
 int
 SystemRead(int fd, void *buf, size_t nbytes)
 {
-    return rr_syscall(SYS_read, fd, buf, nbytes);
+    return __rr_syscall(SYS_read, fd, buf, nbytes);
 }
 
 int
 SystemWrite(int fd, const void *buf, size_t nbytes)
 {
-    return rr_syscall(SYS_write, fd, buf, nbytes);
+    return __rr_syscall(SYS_write, fd, buf, nbytes);
 }
 
 int
 SystemGetpid()
 {
-    return rr_syscall(SYS_getpid);
+    return __rr_syscall(SYS_getpid);
 }
 

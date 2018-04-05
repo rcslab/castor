@@ -11,14 +11,11 @@
 #include <threads.h>
 
 #include <unistd.h>
-#include <sys/types.h>
 #include <errno.h>
 #include <fcntl.h>
-
+#include <sys/types.h>
 #include <sys/cdefs.h>
 #include <sys/syscall.h>
-
-// sysctl
 #include <sys/sysctl.h>
 
 #include <libc_private.h>
@@ -30,6 +27,7 @@
 #include <castor/mtx.h>
 #include <castor/events.h>
 
+#include "system.h"
 #include "util.h"
 
 int __rr___sysctl(const int *name, u_int namelen, void *oldp,
@@ -39,11 +37,11 @@ int __rr___sysctl(const int *name, u_int namelen, void *oldp,
     RRLogEntry *e;
 
     if (rrMode == RRMODE_NORMAL) {
-	return rr_syscall(SYS___sysctl, name, namelen, oldp, oldlenp, newp, newlen);
+	return __rr_syscall(SYS___sysctl, name, namelen, oldp, oldlenp, newp, newlen);
     }
 
     if (rrMode == RRMODE_RECORD) {
-	result = rr_syscall(SYS___sysctl, name, namelen, oldp, oldlenp, newp, newlen);
+	result = __rr_syscall(SYS___sysctl, name, namelen, oldp, oldlenp, newp, newlen);
 
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_SYSCTL;
