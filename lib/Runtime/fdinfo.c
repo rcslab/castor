@@ -21,8 +21,6 @@
 #include "system.h"
 #include "util.h"
 
-extern int __sys_ftruncate(int fd, off_t length);
-
 FDInfo fdTable[FDTABLE_SIZE];
 
 FDType
