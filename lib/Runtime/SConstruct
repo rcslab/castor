@@ -16,6 +16,7 @@ src = [
     "events_llvm.c",
     "rr_assert.c",
     "rr_fdprintf.c",
+    "rr_memcpy.c",
     "system.c",
     "syscall.S",
     "cerror.S",

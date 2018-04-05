@@ -101,7 +101,7 @@
 static void* XXH_malloc(size_t s) { return malloc(s); }
 static void  XXH_free  (void* p)  { free(p); }
 /*! and for memcpy() */
-#include <string.h>
+#include "string.h"
 static void* XXH_memcpy(void* dest, const void* src, size_t size) { return memcpy(dest,src,size); }
 
 #define XXH_STATIC_LINKING_ONLY
