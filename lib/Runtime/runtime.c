@@ -20,6 +20,7 @@
 #include <sys/capsicum.h>
 
 #include <castor/debug.h>
+#include <castor/rr_debug.h>
 #include <castor/rrlog.h>
 #include <castor/rrplay.h>
 #include <castor/rrgq.h>
@@ -76,7 +77,7 @@ log_init()
     threadId = 0;
 
     // XXX: Need to remap the region again to the right size
-    assert(RRLOG_DEFAULT_REGIONSZ == rrlog->regionSz);
+    rr_assert(RRLOG_DEFAULT_REGIONSZ == rrlog->regionSz);
 
     char *sandbox = getenv("CASTOR_SANDBOX");
     if (sandbox) {
