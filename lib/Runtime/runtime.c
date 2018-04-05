@@ -4,8 +4,7 @@
 #include <stdint.h>
 #include <stdatomic.h>
 #include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+
 #include <threads.h>
 
 #include <errno.h>
@@ -63,12 +62,12 @@ log_init()
 	PERROR("ftok");
     }
 
-    int shmid = shmget(shmkey, RRLOG_DEFAULT_REGIONSZ, 0);
+    int shmid = __rr_syscall(SYS_shmget, shmkey, RRLOG_DEFAULT_REGIONSZ, 0);
     if (shmid == -1) {
 	PERROR("shmget");
     }
 
-    rrlog = shmat(shmid, NULL, 0);
+    rrlog = (RRLog *) __rr_syscall_long(SYS_shmat, shmid, NULL, 0);
     if (rrlog == MAP_FAILED) {
 	PERROR("shmat");
     }
@@ -81,22 +80,22 @@ log_init()
 
     char *sandbox = getenv("CASTOR_SANDBOX");
     if (sandbox) {
-	status = cap_enter();
+	status = __rr_syscall(SYS_cap_enter);
 	if (status != 0) {
 	    PERROR("cap_enter");
 	}
     }
 
     if (strcmp(mode, "RECORD") == 0) {
-	fprintf(stderr, "RECORD\n");
+	rr_fdprintf(STDERR_FILENO, "RECORD\n");
 	rrMode = RRMODE_RECORD;
     } else if (strcmp(mode, "REPLAY") == 0) {
-	fprintf(stderr, "REPLAY\n");
+	rr_fdprintf(STDERR_FILENO, "REPLAY\n");
 	rrMode = RRMODE_REPLAY;
     }
 
     if (getenv("CASTOR_STOPCHILD")) {
         unsetenv("CASTOR_STOPCHILD");
-        raise(SIGSTOP);
+        __rr_syscall(SYS_kill, -1, SIGSTOP);
     }
 }

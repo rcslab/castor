@@ -17,6 +17,8 @@ src = [
     "rr_assert.c",
     "rr_fdprintf.c",
     "rr_memcpy.c",
+    "rr_memset.c",
+    "rr_strlen.c",
     "system.c",
     "syscall.S",
     "cerror.S",

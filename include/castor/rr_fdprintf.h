@@ -30,6 +30,7 @@
 
 #include <sys/cdefs.h>
 #include <unistd.h>
+#include <stdarg.h>
 
 int rr_fdprintf(int fd, const char *fmt, ...) __printflike(2, 3);
 int rr_vfdprintf(int fd, const char *fmt, va_list ap);

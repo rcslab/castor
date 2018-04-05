@@ -1,7 +1,6 @@
 #include <stdarg.h>
 #include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
+
 #include <stdlib.h>
 #include <stdatomic.h>
 #include <threads.h>

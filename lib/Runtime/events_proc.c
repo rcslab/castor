@@ -4,8 +4,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+
 #include <stdatomic.h>
 #include <threads.h>
 
@@ -36,15 +35,6 @@
 #include "util.h"
 
 pid_t
-__libc_fork(void)
-{
-
-    interpos_func_t * forkP = __libc_interposing_slot(INTERPOS_fork);
-    return (pid_t) (*forkP)();
-
-}
-
-pid_t
 __rr_fork(void)
 {
     pid_t result;
@@ -52,7 +42,7 @@ __rr_fork(void)
     RRLogEntry *e;
 
     if (rrMode == RRMODE_NORMAL) {
-	return __libc_fork();
+	return __rr_syscall(SYS_fork);
     }
 
     if (rrMode == RRMODE_RECORD) {
@@ -63,7 +53,7 @@ __rr_fork(void)
 	e->value[1] = thrNo;
 	RRLog_Append(rrlog, e);
 
-	result = __libc_fork();
+	result = __rr_syscall(SYS_fork);
 
 	if (result == 0) {
 	    threadId = thrNo;
@@ -84,7 +74,7 @@ __rr_fork(void)
 
 	RRShared_SetupThread(rrlog, thrNo);
 
-	int rstatus = __libc_fork();
+	int rstatus = __rr_syscall(SYS_fork);
 	if (rstatus < 0) {
 	    PERROR("Unable to fork on replay!");
 	}

@@ -3,7 +3,7 @@
  *	The Regents of the University of California.  All rights reserved.
  *
  * This code is derived from software contributed to Berkeley by
- * Chris Torek.
+ * Mike Hibler and Chris Torek.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,6 +34,7 @@ __FBSDID("$FreeBSD: releng/11.1/lib/libc/string/bcopy.c 251069 2013-05-28 20:57:
 
 #include <sys/cdefs.h>
 #include <sys/types.h>
+#include <limits.h>
 
 /*
  * sizeof(word) MUST BE A POWER OF TWO
@@ -122,3 +123,6 @@ void * rr_memcpy(void *dst0, const void *src0, size_t length)
 done:
 	return (dst0);
 }
+
+
+

@@ -1,6 +1,7 @@
 #ifndef RR_DEBUG_H
 #define RR_DEBUG_H 1
 
+#include <stdarg.h>
 #include <stdbool.h>
 #include <threads.h>
 #include <sys/cdefs.h>
