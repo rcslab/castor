@@ -269,6 +269,4 @@ __rr_semctl(int semid, int semnum, int cmd, ...)
 	return __rr___semctl(semid, semnum, cmd, ptr);
 }
 
-__strong_reference(__rr___semctl, __semctl);
-__strong_reference(__rr_semctl, semctl);
-
+BIND_REF(semctl);

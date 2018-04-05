@@ -276,7 +276,7 @@ __rr_preadv(int fd, const struct iovec *iov, int iovcnt, off_t offset)
 }
 
 int
-__rr_getcwd(char * buf, size_t size)
+__rr___getcwd(char * buf, size_t size)
 {
     int result;
 
@@ -618,12 +618,11 @@ Events_Init()
     Add_Interposer(INTERPOS_writev,  (interpos_func_t)&__rr_writev);
 }
 
-__strong_reference(__rr_write, _write);
-__strong_reference(__rr_close, _close);
-__strong_reference(__rr_fcntl, _fcntl);
-
-__strong_reference(__rr_getcwd, __getcwd);
-
+BIND_REF(write);
+BIND_REF(close);
+BIND_REF(fcntl);
+BIND_REF(__getcwd); //do this funny trick with name to avoid conflicting
+		    //with libc definition.
 BIND_REF(openat);
 BIND_REF(recvmsg);
 BIND_REF(recvfrom);

@@ -32,7 +32,7 @@
 
 #include "util.h"
 
-int __rr_sysctl(const int *name, u_int namelen, void *oldp,
+int __rr___sysctl(const int *name, u_int namelen, void *oldp,
 	     size_t *oldlenp, const void *newp, size_t newlen)
 {
     ssize_t result;
@@ -79,5 +79,4 @@ int __rr_sysctl(const int *name, u_int namelen, void *oldp,
     return result;
 }
 
-__strong_reference(__rr_sysctl, __sysctl);
-
+BIND_REF(__sysctl);
