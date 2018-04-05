@@ -46,18 +46,13 @@
 #include "system.h"
 #include "util.h"
 
-extern void *__sys_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
-extern int __sys_dup2(int oldd, int newd);
-extern int __sys_close(int fd);
-extern int __sys_pipe(int fildes[2]);
-
 #define SYS_pipe SYS_freebsd10_pipe
 
 static inline int
 call_pipe(int callnum, int fildes[2], int flags)
 {
     if (callnum == SYS_pipe) {
-	return __sys_pipe(fildes);
+	return __rr_syscall(SYS_pipe, fildes);
     } else {
 	return __rr_syscall(SYS_pipe2, fildes, flags);
     }
@@ -106,14 +101,14 @@ pipe_handler(int callnum, int fildes[2], int flags)
 	    fildes[1] = (int)e->value[3];
 
 	    if (fildes[1] != n_fildes[1]) {
-		status = __sys_dup2(n_fildes[1], fildes[1]);
+		status = __rr_syscall(SYS_dup2, n_fildes[1], fildes[1]);
 		ASSERT(status != -1);
-		__sys_close(n_fildes[1]);
+		__rr_syscall(SYS_close, n_fildes[1]);
 	    }
 	    if (fildes[0] != n_fildes[0]) {
-		status = __sys_dup2(n_fildes[0], fildes[0]);
+		status = __rr_syscall(SYS_dup2, n_fildes[0], fildes[0]);
 		ASSERT(status != -1);
-		__sys_close(n_fildes[0]);
+		__rr_syscall(SYS_close, n_fildes[0]);
 	    }
 	}
 
