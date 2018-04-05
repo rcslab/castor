@@ -12,7 +12,6 @@ src = [
     "events_posix.c",
     "events_proc.c",
     "events_sysv.c",
-    "events_time.c",
     "events_llvm.c",
     "rr_assert.c",
     "rr_fdprintf.c",
