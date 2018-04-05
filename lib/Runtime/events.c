@@ -594,17 +594,6 @@ __rr_recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *
     return result;
 }
 
-void Add_Interposer(int slotNum, interpos_func_t newHandler)
-{
-    interpos_func_t * slotP = __libc_interposing_slot(slotNum);
-    *slotP = (int (*)(void)) newHandler;
-}
-
-void
-Events_Init()
-{
-}
-
 BIND_REF(write);
 BIND_REF(close);
 BIND_REF(fcntl);

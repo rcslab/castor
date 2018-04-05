@@ -95,8 +95,6 @@ log_init()
 	rrMode = RRMODE_REPLAY;
     }
 
-    Events_Init();
-
     if (getenv("CASTOR_STOPCHILD")) {
         unsetenv("CASTOR_STOPCHILD");
         raise(SIGSTOP);
