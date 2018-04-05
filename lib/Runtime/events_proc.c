@@ -141,11 +141,11 @@ __rr_wait(int *status)
     RRLogEntry *e;
 
     if (rrMode == RRMODE_NORMAL) {
-	return __sys_wait4(WAIT_ANY, status, 0, NULL);
+	return __rr_syscall(SYS_wait4, WAIT_ANY, status, 0, NULL);
     }
 
     if (rrMode == RRMODE_RECORD) {
-	pid = __sys_wait4(WAIT_ANY, status, 0, NULL);
+	pid = __rr_syscall(SYS_wait4, WAIT_ANY, status, 0, NULL);
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_WAIT;
 	e->value[0] = (uint64_t)pid;
@@ -158,7 +158,7 @@ __rr_wait(int *status)
 	RRLog_Append(rrlog, e);
     } else {
 	// XXX: Use waitpid to wait for the correct child
-	__sys_wait4(WAIT_ANY, NULL, 0, NULL);
+	__rr_syscall(SYS_wait4, WAIT_ANY, NULL, 0, NULL);
 	e = RRPlay_Dequeue(rrlog, threadId);
 	AssertEvent(e, RREVENT_WAIT);
 	pid = (int)e->value[0];

@@ -31,6 +31,7 @@
 #include <castor/events.h>
 
 #include "util.h"
+#include "system.h"
 
 #define SYSV_MAX_ENTRIES 64
 
@@ -95,12 +96,6 @@ sysv_lookup(int key)
     return -1;
 }
 
-extern int __sys_shmget(key_t key, size_t size, int flag);
-extern void *__sys_shmat(int shmid, const void *addr, int flag);
-extern int __sys_semget(key_t key, int nsems, int flag);
-extern int __sys_semop(int semid, struct sembuf *array, size_t nops);
-extern int __sys___semctl(int semid, int semnum, int cmd, union semun *arg);
-
 /*
  * XXX: Several sources of nondeterminism left in shmget/shmat/shmdt/shmctl 
  * when threads/procs race to make calls at the same time.
@@ -114,9 +109,9 @@ shmget(key_t key, size_t size, int flag)
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-	    return __sys_shmget(key, size, flag);
+	    return __rr_syscall(SYS_shmget, key, size, flag);
 	case RRMODE_RECORD:
-	    result = __sys_shmget(key, size, flag);
+	    result = __rr_syscall(SYS_shmget, key, size, flag);
 	    e = RRLog_Alloc(rrlog, threadId);
 	    e->event = RREVENT_SHMGET;
 	    e->objectId = (uint64_t)result;
@@ -131,7 +126,7 @@ shmget(key_t key, size_t size, int flag)
 	    if ((int)e->objectId == -1) {
 		errno = e->value[1];
 	    } else {
-		result = __sys_shmget(key, size, flag);
+		result = __rr_syscall(SYS_shmget, key, size, flag);
 		sysv_insert(e->objectId, result);
 	    }
 	    result = e->objectId;
@@ -151,10 +146,10 @@ shmat(int shmid, const void *addr, int flag)
     switch (rrMode) {
 	case RRMODE_NORMAL:
 	case RRMODE_RECORD:
-	    return __sys_shmat(shmid, addr, flag);
+	    return (void *)__rr_syscall_long(SYS_shmat, shmid, addr, flag);
 	case RRMODE_REPLAY: {
 	    int rShmid = sysv_lookup(shmid);
-	    return __sys_shmat(rShmid, addr, flag);
+	    return (void *)__rr_syscall_long(SYS_shmat, rShmid, addr, flag);
 	}
     }
 }
@@ -167,9 +162,9 @@ semget(key_t key, int nsems, int flag)
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-	    return __sys_semget(key, nsems, flag);
+	    return __rr_syscall(SYS_semget, key, nsems, flag);
 	case RRMODE_RECORD:
-	    result = __sys_semget(key, nsems, flag);
+	    result = __rr_syscall(SYS_semget, key, nsems, flag);
 	    e = RRLog_Alloc(rrlog, threadId);
 	    e->event = RREVENT_SEMGET;
 	    e->objectId = (uint64_t)result;
@@ -184,7 +179,7 @@ semget(key_t key, int nsems, int flag)
 	    if ((int)e->objectId == -1) {
 		errno = e->value[1];
 	    } else {
-		result = __sys_semget(key, nsems, flag);
+		result = __rr_syscall(SYS_semget, key, nsems, flag);
 		sysv_insert(e->objectId, result);
 	    }
 	    result = e->objectId;
@@ -201,10 +196,10 @@ semop(int semid, struct sembuf *array, size_t nops)
     switch (rrMode) {
 	case RRMODE_NORMAL:
 	case RRMODE_RECORD:
-	    return __sys_semop(semid, array, nops);
+	    return __rr_syscall(SYS_semop, semid, array, nops);
 	case RRMODE_REPLAY: {
 	    int rSemid = sysv_lookup(semid);
-	    return __sys_semop(rSemid, array, nops);
+	    return __rr_syscall(SYS_semop, rSemid, array, nops);
 	}
     }
 }
@@ -217,11 +212,11 @@ __rr___semctl(int semid, int semnum, int cmd, union semun *arg)
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-	    return __sys___semctl(semid, semnum, cmd, arg);
+	    return __rr_syscall(SYS___semctl, semid, semnum, cmd, arg);
 	case RRMODE_RECORD:
 	    Mutex_Lock(&rrlog->sysvlck);
 	    e = RRLog_Alloc(rrlog, threadId);
-	    result = __sys___semctl(semid, semnum, cmd, arg);
+	    result = __rr_syscall(SYS___semctl, semid, semnum, cmd, arg);
 	    e->event = RREVENT_SEMCTL;
 	    e->objectId = (uint64_t)semid;
 	    if (cmd == GETPID) {
@@ -237,7 +232,7 @@ __rr___semctl(int semid, int semnum, int cmd, union semun *arg)
 	    if (cmd == GETPID) {
 		result = (int) e->value[0];
 	    } else {
-		result = __sys___semctl(rSemid, semnum, cmd, arg);
+		result = __rr_syscall(SYS___semctl, rSemid, semnum, cmd, arg);
 	    }
 	    AssertEvent(e, RREVENT_SEMCTL);
 	    RRPlay_Free(rrlog, e);
@@ -266,7 +261,7 @@ __rr_semctl(int semid, int semnum, int cmd, ...)
 	}
 	va_end(ap);
 
-	return __rr___semctl(semid, semnum, cmd, ptr);
+	return __rr_syscall(SYS___semctl, semid, semnum, cmd, ptr);
 }
 
 BIND_REF(semctl);

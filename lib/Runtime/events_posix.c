@@ -17,10 +17,8 @@
 #include <castor/events.h>
 
 #include "util.h"
+#include "system.h"
 #include "fdinfo.h"
-
-extern int __sys_shm_open(const char *path, int flags, mode_t mode);
-extern int __sys_shm_unlink(const char *path);
 
 // XXX: Patch libc to switch to new sem_* calls
 extern int _libc_sem_init_compat(sem_t *, int, unsigned int);
@@ -41,16 +39,16 @@ __rr_shm_open(const char *path, int flags, mode_t mode)
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-	    return __sys_shm_open(path, flags, mode);
+	    return __rr_syscall(SYS_shm_open, path, flags, mode);
 	case RRMODE_RECORD: {
-	    status = __sys_shm_open(path, flags, mode);
+	    status = __rr_syscall(SYS_shm_open, path, flags, mode);
 	    RRRecordI(RREVENT_SHM_OPEN, status);
 	    break;
 	}
 	case RRMODE_REPLAY:
 	    RRReplayI(RREVENT_SHM_OPEN, &status);
 	    if (status != -1) {
-		int fd = __sys_shm_open(path, flags, mode);
+		int fd = __rr_syscall(SYS_shm_open, path, flags, mode);
 		ASSERT_IMPLEMENTED(fd == status);
 		FDInfo_OpenShm(status, fd);
 	    }
@@ -67,16 +65,16 @@ __rr_shm_unlink(const char *path)
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-	    return __sys_shm_unlink(path);
+	    return __rr_syscall(SYS_shm_unlink, path);
 	case RRMODE_RECORD: {
-	    status = __sys_shm_unlink(path);
+	    status = __rr_syscall(SYS_shm_unlink, path);
 	    RRRecordI(RREVENT_SHM_UNLINK, status);
 	    break;
 	}
 	case RRMODE_REPLAY:
 	    RRReplayI(RREVENT_SHM_UNLINK, &status);
 	    if (status != -1) {
-		__sys_shm_unlink(path);
+		__rr_syscall(SYS_shm_unlink, path);
 		// XXX: Warn of divergence if unlink fails
 	    }
 	    break;
