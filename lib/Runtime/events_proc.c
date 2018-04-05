@@ -126,7 +126,7 @@ __rr_exit(int status)
 	RRPlay_Free(rrlog, e);
     }
 
-    syscall(SYS_exit, status);
+    rr_syscall(SYS_exit, status);
 }
 
 /*

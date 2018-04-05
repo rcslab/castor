@@ -3,6 +3,7 @@
 #define __UTIL_H__
 
 #include <threads.h>
+#include <errno.h>
 
 #define LOCKTABLE_SIZE 4096
 
@@ -11,9 +12,14 @@ extern RRLog *rrlog;
 extern thread_local uint32_t threadId;
 extern Mutex lockTable[LOCKTABLE_SIZE];
 
+#define rr_syscall(...) syscall(__VA_ARGS__)
+
+#define rr_syscall_long(...) __syscall(__VA_ARGS__)
+
 #define BIND_REF(_name)\
-    __strong_reference(__rr_ ## _name, _name);\
-    __strong_reference(__rr_ ## _name, _ ## _name)
+    __strong_reference(__rr_ ## _name, _name); \
+    __strong_reference(__rr_ ## _name, _ ## _name); \
+    __strong_reference(__rr_ ## _name, __ ## _name)
 
 #if defined(CASTOR_DEBUG)
 void AssertObject(RRLogEntry *e, uint64_t od);

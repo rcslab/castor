@@ -308,14 +308,13 @@ __rr_sem_getvalue(sem_t *sem, int *sval)
 
 BIND_REF(shm_open);
 BIND_REF(shm_unlink);
-__strong_reference(__rr_sem_init, sem_init);
-__strong_reference(__rr_sem_destroy, sem_destroy);
-__strong_reference(__rr_sem_open, sem_open);
-__strong_reference(__rr_sem_close, sem_close);
-__strong_reference(__rr_sem_unlink, sem_unlink);
-__strong_reference(__rr_sem_post, sem_post);
-__strong_reference(__rr_sem_wait, sem_wait);
-__strong_reference(__rr_sem_trywait, sem_trywait);
-__strong_reference(__rr_sem_timedwait, sem_timedwait);
-__strong_reference(__rr_sem_getvalue, sem_getvalue);
-
+BIND_REF(sem_init);
+BIND_REF(sem_destroy);
+BIND_REF(sem_open);
+BIND_REF(sem_close);
+BIND_REF(sem_unlink);
+BIND_REF(sem_post);
+BIND_REF(sem_wait);
+BIND_REF(sem_trywait);
+BIND_REF(sem_timedwait);
+BIND_REF(sem_getvalue);

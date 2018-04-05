@@ -58,7 +58,7 @@ call_pipe(int callnum, int fildes[2], int flags)
     if (callnum == SYS_pipe) {
 	return __sys_pipe(fildes);
     } else {
-	return syscall(SYS_pipe2, fildes, flags);
+	return rr_syscall(SYS_pipe2, fildes, flags);
     }
 }
 
@@ -147,9 +147,9 @@ __rr_open(const char *path, int flags, ...)
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-	    return syscall(SYS_open, path, flags, mode);
+	    return rr_syscall(SYS_open, path, flags, mode);
 	case RRMODE_RECORD:
-	    result = syscall(SYS_open, path, flags, mode);
+	    result = rr_syscall(SYS_open, path, flags, mode);
 	    RRRecordI(RREVENT_OPEN, result);
 	    break;
 	case RRMODE_REPLAY:
@@ -176,9 +176,9 @@ __rr_openat(int fd, const char *path, int flags, ...)
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-	    return syscall(SYS_openat, fd, path, flags, mode);
+	    return rr_syscall(SYS_openat, fd, path, flags, mode);
 	case RRMODE_RECORD:
-	    result = syscall(SYS_openat, fd, path, flags, mode);
+	    result = rr_syscall(SYS_openat, fd, path, flags, mode);
 	    RRRecordOI(RREVENT_OPENAT, fd, result);
 	    break;
 	case RRMODE_REPLAY:
@@ -199,9 +199,9 @@ __rr_close(int fd)
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-	    return syscall(SYS_close, fd);
+	    return rr_syscall(SYS_close, fd);
 	case RRMODE_RECORD:
-	    result = syscall(SYS_close, fd);
+	    result = rr_syscall(SYS_close, fd);
 	    RRRecordOI(RREVENT_CLOSE, fd, result);
 	    break;
 	case RRMODE_REPLAY:
@@ -219,9 +219,9 @@ __rr_readv(int fd, const struct iovec *iov, int iovcnt)
     ssize_t result;
     switch (rrMode) {
         case RRMODE_NORMAL:
-            return syscall(SYS_readv, fd, iov, iovcnt);
+            return rr_syscall(SYS_readv, fd, iov, iovcnt);
         case RRMODE_RECORD:
-            result = syscall(SYS_readv, fd, iov, iovcnt);
+            result = rr_syscall(SYS_readv, fd, iov, iovcnt);
             RRRecordOS(RREVENT_READV, fd, result);
             if (result != -1) {
               logData((uint8_t*)iov, (size_t) iovcnt * sizeof(struct iovec)); 
@@ -250,9 +250,9 @@ __rr_preadv(int fd, const struct iovec *iov, int iovcnt, off_t offset)
     ssize_t result;
     switch (rrMode) {
         case RRMODE_NORMAL:
-            return syscall(SYS_preadv, fd, iov, iovcnt, offset);
+            return rr_syscall(SYS_preadv, fd, iov, iovcnt, offset);
         case RRMODE_RECORD:
-            result = syscall(SYS_preadv, fd, iov, iovcnt, offset);
+            result = rr_syscall(SYS_preadv, fd, iov, iovcnt, offset);
             RRRecordOS(RREVENT_PREADV, fd, result);
             if (result != -1) {
               logData((uint8_t*)iov, (size_t) iovcnt * sizeof(struct iovec)); 
@@ -276,15 +276,15 @@ __rr_preadv(int fd, const struct iovec *iov, int iovcnt, off_t offset)
 }
 
 int
-__rr_getcwd(char * buf, size_t size)
+__rr___getcwd(char * buf, size_t size)
 {
     int result;
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-	    return syscall(SYS___getcwd, buf, size);
+	    return rr_syscall(SYS___getcwd, buf, size);
 	case RRMODE_RECORD:
-	    result = syscall(SYS___getcwd, buf, size);
+	    result = rr_syscall(SYS___getcwd, buf, size);
 	    RRRecordI(RREVENT_GETCWD, result);
 	    if (result == 0) {
 		logData((uint8_t*)buf, size);
@@ -308,11 +308,11 @@ __rr_write(int fd, const void *buf, size_t nbytes)
     RRLogEntry *e;
 
     if (rrMode == RRMODE_NORMAL) {
-	return syscall(SYS_write, fd, buf, nbytes);
+	return rr_syscall(SYS_write, fd, buf, nbytes);
     }
 
     if (rrMode == RRMODE_RECORD) {
-	result = syscall(SYS_write, fd, buf, nbytes);
+	result = rr_syscall(SYS_write, fd, buf, nbytes);
 
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_WRITE;
@@ -332,7 +332,7 @@ __rr_write(int fd, const void *buf, size_t nbytes)
 	 */
 	if (fd == STDOUT_FILENO || fd == STDERR_FILENO) {
 	    // Print console output
-	    syscall(SYS_write, fd, buf, nbytes);
+	    rr_syscall(SYS_write, fd, buf, nbytes);
 	}
 
 	e = RRPlay_Dequeue(rrlog, threadId);
@@ -356,11 +356,11 @@ __rr_writev(int fd, const struct iovec *iov, int iovcnt)
     RRLogEntry *e;
 
     if (rrMode == RRMODE_NORMAL) {
-	return syscall(SYS_writev, fd, iov, iovcnt);
+	return rr_syscall(SYS_writev, fd, iov, iovcnt);
     }
 
     if (rrMode == RRMODE_RECORD) {
-	result = syscall(SYS_writev, fd, iov, iovcnt);
+	result = rr_syscall(SYS_writev, fd, iov, iovcnt);
 
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_WRITEV;
@@ -380,7 +380,7 @@ __rr_writev(int fd, const struct iovec *iov, int iovcnt)
 	 */
 	if (fd == STDOUT_FILENO || fd == STDERR_FILENO) {
 	    // Print console output
-	    syscall(SYS_writev, fd, iov, iovcnt);
+	    rr_syscall(SYS_writev, fd, iov, iovcnt);
 	}
 
 	e = RRPlay_Dequeue(rrlog, threadId);
@@ -404,11 +404,11 @@ __rr_pwrite(int fd, const void *buf, size_t nbytes, off_t offset)
     RRLogEntry *e;
 
     if (rrMode == RRMODE_NORMAL) {
-	return syscall(SYS_pwrite, fd, buf, nbytes, offset);
+	return rr_syscall(SYS_pwrite, fd, buf, nbytes, offset);
     }
 
     if (rrMode == RRMODE_RECORD) {
-	result = syscall(SYS_pwrite, fd, buf, nbytes, offset);
+	result = rr_syscall(SYS_pwrite, fd, buf, nbytes, offset);
 
 	e = RRLog_Alloc(rrlog, threadId);
 	e->event = RREVENT_PWRITE;
@@ -428,7 +428,7 @@ __rr_pwrite(int fd, const void *buf, size_t nbytes, off_t offset)
 	 */
 	if (fd == STDOUT_FILENO || fd == STDERR_FILENO) {
 	    // Print console output
-	    syscall(SYS_write, fd, buf, nbytes);
+	    rr_syscall(SYS_write, fd, buf, nbytes);
 	}
 
 	e = RRPlay_Dequeue(rrlog, threadId);
@@ -460,9 +460,9 @@ __rr_ioctl(int fd, unsigned long request, ...)
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-	    return syscall(SYS_ioctl, fd, request, argp);
+	    return rr_syscall(SYS_ioctl, fd, request, argp);
 	case RRMODE_RECORD:
-	    result = syscall(SYS_ioctl, fd, request, argp);
+	    result = rr_syscall(SYS_ioctl, fd, request, argp);
 	    RRRecordOI(RREVENT_IOCTL, fd, result);
 	    if ((result == 0) && output) {
 		logData((uint8_t *)argp, (size_t)datalen);
@@ -492,7 +492,7 @@ __rr_fcntl(int fd, int cmd, ...)
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-	    return syscall(SYS_fcntl, fd, cmd, arg);
+	    return rr_syscall(SYS_fcntl, fd, cmd, arg);
 	case RRMODE_RECORD:
 	// XXX: a big switch statement should take care of separate flags first
 	// categorize flags into normal case or other cases
@@ -505,7 +505,7 @@ __rr_fcntl(int fd, int cmd, ...)
 			               (cmd == F_RDAHEAD)|| (cmd == F_READAHEAD) ||
 	    //XXX: neither of these are correctly implemented yet, but probably won't break often.
 			               (cmd == F_GETLK)  || (cmd == F_SETLK));
-	    result = syscall(SYS_fcntl, fd, cmd, arg);
+	    result = rr_syscall(SYS_fcntl, fd, cmd, arg);
 	    RRRecordOI(RREVENT_FCNTL, fd, result);
 	    break;
 	case RRMODE_REPLAY:
@@ -543,9 +543,9 @@ __rr_recvmsg(int s, struct msghdr *msg, int flags)
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-	    return syscall(SYS_recvmsg, s, msg, flags);
+	    return rr_syscall(SYS_recvmsg, s, msg, flags);
 	case RRMODE_RECORD:
-	    result = syscall(SYS_recvmsg, s, msg, flags);
+	    result = rr_syscall(SYS_recvmsg, s, msg, flags);
 	    RRRecordOS(RREVENT_RECVMSG, s, result);
 	    if (result != -1) {
 		log_msg(msg);
@@ -572,9 +572,9 @@ __rr_recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-        return syscall(SYS_recvfrom, s, buf, len, flags, from, fromlen);
+        return rr_syscall(SYS_recvfrom, s, buf, len, flags, from, fromlen);
 	case RRMODE_RECORD:
-	    result = syscall(SYS_recvfrom, s, buf, len, flags, from, fromlen);
+	    result = rr_syscall(SYS_recvfrom, s, buf, len, flags, from, fromlen);
 	    RRRecordOS(RREVENT_RECVFROM, s, result);
 	    if (result != -1) {
 		logData((uint8_t*)buf, len);
@@ -618,12 +618,11 @@ Events_Init()
     Add_Interposer(INTERPOS_writev,  (interpos_func_t)&__rr_writev);
 }
 
-__strong_reference(__rr_write, _write);
-__strong_reference(__rr_close, _close);
-__strong_reference(__rr_fcntl, _fcntl);
-
-__strong_reference(__rr_getcwd, __getcwd);
-
+BIND_REF(write);
+BIND_REF(close);
+BIND_REF(fcntl);
+BIND_REF(__getcwd); //do this funny trick with name to avoid conflicting
+		    //with libc definition.
 BIND_REF(openat);
 BIND_REF(recvmsg);
 BIND_REF(recvfrom);
