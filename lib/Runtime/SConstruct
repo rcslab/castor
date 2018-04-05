@@ -9,7 +9,9 @@ src = [
     "events.c",
     "events_freebsd.c",
     "events_mem.c",
-    "events_posix.c",
+    #XXX "events_posix.c",
+    #XXX disabled semaphor support as we need to do some book keep
+    #XXX previously done by libc when switching to libsys
     "events_proc.c",
     "events_sysv.c",
     "events_llvm.c",
