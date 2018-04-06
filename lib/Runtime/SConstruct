@@ -23,7 +23,7 @@ src = [
     "__error.c",
 ]
 
-for o in Glob("string/*.c"):
+for o in Glob("lib/*.c"):
     src.append(str(o))
 
 env_libsys = env.Clone()

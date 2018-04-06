@@ -1,2 +1,5 @@
 -we should have a script that will pull in the newest versions of errlist.c/errlist.h from
-usr/src.
+usr/src, probably that will pull any unmodified files from there.
+
+-we should just turn off certain compiler warnings and get rid of pragma's added to files.
+

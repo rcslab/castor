@@ -102,7 +102,7 @@ __rr_exit(int status)
     RRLogEntry *e;
 
     if (rrMode == RRMODE_NORMAL) {
-	syscall(SYS_exit, status);
+	__rr_syscall(SYS_exit, status);
 	__builtin_unreachable();
     }
 
