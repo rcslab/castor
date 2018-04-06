@@ -127,7 +127,7 @@ logData(uint8_t *buf, size_t len)
 	    e->threadId = threadId;
 	    e->event = RREVENT_DATA;
 	    uint8_t *dst = ((uint8_t *)e) + RREVENT_DATA_OFFSET;
-	    rr_memcpy(dst, buf, RREVENT_DATA_LEN);
+	    memcpy(dst, buf, RREVENT_DATA_LEN);
 	    RRLog_Append(rrlog, e);
 	    buf += RREVENT_DATA_LEN;
 	}
@@ -136,7 +136,7 @@ logData(uint8_t *buf, size_t len)
 	    e->threadId = threadId;
 	    e->event = RREVENT_DATA;
 	    uint8_t *dst = ((uint8_t *)e) + RREVENT_DATA_OFFSET;
-	    rr_memcpy(dst, buf, rlen);
+	    memcpy(dst, buf, rlen);
 	    RRLog_Append(rrlog, e);
 	}
     } else {
@@ -144,7 +144,7 @@ logData(uint8_t *buf, size_t len)
 	    e = RRPlay_Dequeue(rrlog, threadId);
 	    AssertEvent(e, RREVENT_DATA);
 	    uint8_t *src = ((uint8_t *)e) + RREVENT_DATA_OFFSET;
-	    rr_memcpy(buf, src, RREVENT_DATA_LEN);
+	    memcpy(buf, src, RREVENT_DATA_LEN);
 	    RRPlay_Free(rrlog, e);
 	    buf += RREVENT_DATA_LEN;
 	}
@@ -152,7 +152,7 @@ logData(uint8_t *buf, size_t len)
 	    e = RRPlay_Dequeue(rrlog, threadId);
 	    AssertEvent(e, RREVENT_DATA);
 	    uint8_t *src = ((uint8_t *)e) + RREVENT_DATA_OFFSET;
-	    rr_memcpy(buf, src, rlen);
+	    memcpy(buf, src, rlen);
 	    RRPlay_Free(rrlog, e);
 	}
     }

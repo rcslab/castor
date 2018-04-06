@@ -1,6 +1,7 @@
 
 #include <unistd.h>
 #include <sys/syscall.h>
+#include <sys/cdefs.h>
 
 #include <castor/debug.h>
 #include <castor/rrlog.h>
@@ -30,3 +31,8 @@ SystemGetpid()
     return __rr_syscall(SYS_getpid);
 }
 
+_Noreturn void abort(void)
+{
+    __rr_syscall(SYS_kill, -1, SIGABRT);
+    __unreachable();
+}

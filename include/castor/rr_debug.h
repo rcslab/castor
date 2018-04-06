@@ -7,7 +7,6 @@
 #include <sys/cdefs.h>
 
 #include <castor/archconfig.h>
-#include <castor/rrshared.h>
 #include <castor/rr_fdprintf.h>
 
 extern enum RRMODE rrMode;

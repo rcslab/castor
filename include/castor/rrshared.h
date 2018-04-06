@@ -3,6 +3,13 @@
 #define __CASTOR_RRSHARED_H__
 
 #include <assert.h>
+
+#ifdef CASTOR_RUNTIME
+#include <castor/rr_debug.h>
+#undef assert
+#define assert rr_assert
+#endif
+
 #include <stdalign.h>
 #include <stdbool.h>
 #include <stdint.h>

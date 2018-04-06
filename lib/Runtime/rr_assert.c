@@ -30,12 +30,14 @@
 #include <stdbool.h>
 
 #include <stdlib.h>
+#include <signal.h>
 
 #include <sys/cdefs.h>
 #include <unistd.h>
 
 #include <castor/rr_fdprintf.h>
 #include <castor/rr_debug.h>
+#include "system.h"
 
 void
 __rr_assert(const char *func, const char *file, int line, const char *failedexpr)
@@ -50,6 +52,5 @@ __rr_assert(const char *func, const char *file, int line, const char *failedexpr
 		file, line);
     }
 
-    rrMode = RRMODE_NORMAL;
     abort();
 }

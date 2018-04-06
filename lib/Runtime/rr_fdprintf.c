@@ -39,13 +39,13 @@
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stddef.h>
+#include <string.h>
 #include <unistd.h>
 #include <sys/syscall.h>
 
 #include <castor/rr_fdprintf.h>
 
 #include "system.h"
-#include "string.h"
 
 #define MAXNBUF	(sizeof(intmax_t) * NBBY + 1)
 
@@ -300,7 +300,7 @@ reswitch:	switch (ch = (u_char)*fmt++) {
 			if (p == NULL)
 				p = "(null)";
 			if (!dot)
-				n = rr_strlen (p);
+				n = strlen(p);
 			else
 				for (n = 0; n < dwidth && p[n]; n++)
 					continue;

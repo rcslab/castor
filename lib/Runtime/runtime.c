@@ -29,9 +29,6 @@
 #include "system.h"
 #include "util.h"
 
-extern void Events_Init();
-extern void Time_Init();
-
 RRLog *rrlog;
 enum RRMODE rrMode = RRMODE_NORMAL;
 thread_local uint32_t threadId = 0; //-1;
@@ -41,11 +38,8 @@ log_init()
 {
     int status;
 
-    Time_Init();
-
     char *shmpath = getenv("CASTOR_SHMPATH");
     if (shmpath == NULL) {
-	//OldInit();
 	return;
     }
 

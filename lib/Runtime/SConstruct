@@ -1,4 +1,4 @@
-
+import glob
 Import('env')
 
 src = [
@@ -17,20 +17,21 @@ src = [
     "events_llvm.c",
     "rr_assert.c",
     "rr_fdprintf.c",
-    "rr_memcpy.c",
-    "rr_memset.c",
-    "rr_strlen.c",
     "system.c",
     "syscall.S",
     "cerror.S",
     "__error.c",
 ]
 
+for o in Glob("string/*.c"):
+    src.append(str(o))
+
 env_libsys = env.Clone()
 
 # Made global to make compilation_db work
 env_libsys["CPPPATH"].append("#sysroot-src/lib/libc/include")
 
+env_libsys["CFLAGS"].append("-DCASTOR_RUNTIME")
 env_libsys["ASFLAGS"].append("-DPIC")
 env_libsys["LINKFLAGS"].append("-nodefaultlibs")
 
