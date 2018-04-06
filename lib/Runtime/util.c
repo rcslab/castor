@@ -1,4 +1,5 @@
 
+#include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -15,7 +16,6 @@
 #include <castor/events.h>
 
 #include "util.h"
-#include "string.h"
 
 #define XXH_PRIVATE_API
 #include "xxhash.h"
