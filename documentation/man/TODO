@@ -1,3 +1,4 @@
+-add castor overview.
 -explain compiler pass (i.e. show how to do this)
 -explain advanced options for performance/debugging, segregate these out.
 -add documentation for rr_assert, rr_printf.
