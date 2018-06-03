@@ -12,6 +12,9 @@ HEADER_PATH = "./events_gen.h"
 INCLUDES_PATH = "./autogenerate_includes.h"
 MISSING_CALLS_PATH = "./missing_syscalls.out"
 
+TYPE_SIZES_C_PATH = "./type_sizes.c"
+TYPE_SIZES_OUT_PATH = "./type_sizes.out"
+
 #In order of precendence -- we will prefer the STD declaration over COMPAT, and so forth.
 SUPPORTED_DECL_TYPES = ['STD', 'NOSTD']
 
@@ -79,7 +82,33 @@ def gen_log_data(spec):
                     c_output("\t\t\t }")
         c_output("\t\t}")
 
-def generate_handler(spec):
+def log_values(spec, type_size_map, last_value, mode):
+    result_checked = False
+    value_stored = False
+    for arg in spec['args_spec']:
+        if arg['log_spec'] != None and last_value < 5:
+            base_type = arg['type'].split('*')[0].strip()
+            if not 'void' in base_type and type_size_map[base_type] <= 8:
+                if not result_checked:
+                    c_output("if (result != -1) {")
+
+                null_check = arg['log_spec']['null_check']
+                if null_check:
+                    c_output("\t\t\t if (%s != NULL) {" % (arg['name']))
+
+                c_output("e->value[%d] = (uint64_t)%s;" % (last_value, arg['name']))
+                last_value += 1
+                value_stored = True
+                arg['log_spec'] = None
+#XXX MESSSS!!!!
+                if null_check:
+                    c_output("\t\t\t }")
+        if not result_checked and value_stored:
+            c_output("\t\t\t }")
+            result_checked = True
+    return spec
+
+def generate_handler(spec, type_size_map):
     debug("handler_desc:", spec)
     name = spec['name']
     return_type = spec['return_type']
@@ -118,11 +147,13 @@ def generate_handler(spec):
     if leading_object:
         c_output("e->objectId = (uint64_t)%s;" % arg_names[0])
     c_output("e->value[0] = (uint64_t)result;")
+    last_value = 1
     if not name in ALWAYS_SUCCESSFUL_SYSCALLS:
         c_output("if (result == -1) {")
-        c_output("e->value[1] = (uint64_t)errno;")
+        c_output("e->value[%d] = (uint64_t)errno;" % last_value)
         c_output("}")
-
+        last_value += 1
+    spec = log_values(spec, type_size_map, last_value, 'record')
     c_output("RRLog_Append(rrlog, e);")
     gen_log_data(spec)
     c_output("break;")
@@ -148,7 +179,6 @@ def generate_handler(spec):
     c_output("return result;")
     c_output("}")
 
-
 def parse_logspec(sal, type, syscall_name):
     debug("parse_logspec(%s, %s)" % (str(sal), type))
     sal_tag = sal['tag']
@@ -162,6 +192,7 @@ def parse_logspec(sal, type, syscall_name):
        pass
     elif sal_tag in ['_Out_', '_Inout_']:
         size_type = type.split('*')[0].strip()
+        debug("appending: " + size_type)
         log_spec = { 'size' : "sizeof(%s)" % size_type }
     elif sal_tag in ['_Out_writes_bytes_', '_Out_writes_z_', \
                      '_Inout_updates_bytes_', '_Inout_updates_z_']:
@@ -213,7 +244,8 @@ def parse_args(args_string, handler_spec):
         arg_spec['sal'] = sal
 
         #type is whats left
-        arg_spec['type'] = arg.strip()
+        type = arg.strip()
+        arg_spec['type'] = type
         debug("arg_type:" + arg_spec['type'])
         args_spec = args_spec + [arg_spec]
 
@@ -498,7 +530,7 @@ def add_logspec(desc):
             arg_spec['log_spec'] = None
     return logged_desc
 
-def resolve_types(desc, type_signatures):
+def resolve_types(desc, type_signatures, type_list):
     resolved_desc = copy.deepcopy(desc)
     name = desc['name']
     libc_name = re.sub("^__", "", name)
@@ -524,6 +556,7 @@ def resolve_types(desc, type_signatures):
                 debug("type_mismatch in %s, in arg %s, %s != %s: resolving to %s" %
                         (name, i, spec_arg_type, sig_arg_type, sig_arg_type))
                 resolved_desc['args_spec'][i]['type'] = sig_arg_type
+            type_list.append(sig_arg_type)
 
     if sig['return_type'] != desc['return_type']:
         debug("type_mismatch in %s, return type %s != %s: resolving to %s" %
@@ -539,6 +572,27 @@ def output_missing_calls(missing_list):
         f.write(opening)
         f.write('\n'.join(missing_list))
     print("\n...Updated missing calls list written to \'%s\' ..." % MISSING_CALLS_PATH)
+
+def build_type_size_map(type_list):
+    type_size_map = {}
+    base_types = map(lambda x: x.split('*')[0].strip(), type_list)
+    base_types = list(set(base_types)) #remove duplicates
+    base_types  = filter(lambda x: 'void' not in x, base_types)
+    with open(TYPE_SIZES_C_PATH, "w" ) as f:
+        f.write('#include \"autogenerate_includes.h\"\n')
+        f.write('int main() {\n')
+        for type in base_types:
+            f.write('printf(\"%s,%%lu\\n\",sizeof(%s));\n' % (type,type))
+        f.write('return 0; \n }')
+    exec_path = TYPE_SIZES_C_PATH[:-2]
+    subprocess.check_call(["cc", "-DGEN_SAL", TYPE_SIZES_C_PATH, "-o", exec_path])
+    os.system("%s > %s" % (exec_path, TYPE_SIZES_OUT_PATH))
+    with open(TYPE_SIZES_OUT_PATH, "r" ) as f:
+        for line in f:
+            type, size = line.split(',')
+            size = size.strip()
+            type_size_map[type] = int(size)
+    return type_size_map
 
 if __name__ == '__main__':
     generated = []
@@ -568,12 +622,20 @@ if __name__ == '__main__':
     generate_includes()
     print("Generating syscall handlers...")
     debug("syscall_description_list:", syscall_description_list)
+    processed_descriptions = []
+    type_list = []
     for desc in syscall_description_list:
         if desc['name'] in autogenerate_list:
-            desc = resolve_types(desc, type_signatures)
+            desc = resolve_types(desc, type_signatures, type_list)
             desc = add_logspec(desc)
-            generate_handler(desc)
+            processed_descriptions.append(desc)
+    debug("type_list:", type_list)
+    type_size_map = build_type_size_map(type_list)
+    debug("type_size_map:", type_size_map)
+    for desc in processed_descriptions:
+            generate_handler(desc, type_size_map)
             generated = generated + [desc['name']]
+
     generate_bindings(generated)
     generate_header_file(builtin_list, generated)
     cout.close()
