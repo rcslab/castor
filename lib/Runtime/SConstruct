@@ -34,6 +34,7 @@ env_libsys["CPPPATH"].append("#sysroot-src/lib/libc/include")
 env_libsys["CFLAGS"].append("-DCASTOR_RUNTIME")
 env_libsys["ASFLAGS"].append("-DPIC")
 env_libsys["LINKFLAGS"].append("-nodefaultlibs")
+env_libsys["LINKFLAGS"].append("-Wl,--version-script=lib/Runtime/Version.map")
 
 env_libsys.SharedLibrary("libsys_castor.so", src, LIBS = ["compiler_rt"])
 

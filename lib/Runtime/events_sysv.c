@@ -12,6 +12,7 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#define _WANT_SEMUN
 #include <sys/sem.h>
 #include <errno.h>
 #include <fcntl.h>
