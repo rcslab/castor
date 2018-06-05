@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdatomic.h>
 
+#define _WANT_SEMUN
 #include <sys/sem.h>
 #include <sys/wait.h>
 

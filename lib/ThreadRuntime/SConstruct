@@ -8,9 +8,9 @@ src = [
 # Made global to make compilation_db work
 env["CPPPATH"].append("#sysroot-src/lib/libc/include")
 
-env.SharedLibrary("libcastor-thr.so", src)
+rt = env.SharedLibrary("libcastor-thr.so", src)
 
 #rt = env.CopyFile("$SYSROOT/usr/lib/libCastorThreadRuntime.a",
 #                  "#build/lib/ThreadRuntime/libCastorThreadRuntime.a")
-#env.Alias("CastorThreadRuntime", rt)
+env.Alias("CastorThreadRuntime", rt)
 

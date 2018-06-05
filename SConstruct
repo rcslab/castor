@@ -147,7 +147,8 @@ env.Append(CPPPATH = ["#include",
                       "#include/" + env["RR"],
                       "#include/" + env["ARCH"]])
 
-env["SYSROOT"] = os.getcwd() + "/sysroot/usr/amd64-freebsd/"
+#env["SYSROOT"] = os.getcwd() + "/sysroot/usr/amd64-freebsd/"
+env["BUILDROOT"] = os.getcwd() + "/lib/"
 
 Export('env')
 
@@ -172,8 +173,8 @@ SConscript("#build/tools/rrtool/SConstruct")
 #            "cd lib/Pass && cmake . && cmake --build .")
 #env.Alias("CastorPass", "#lib/Pass/libCastorPass.so")
 
-#VariantDir("build/unit-tests", "unit-tests")
-#SConscript("#build/unit-tests/SConstruct")
+VariantDir("build/unit-tests", "unit-tests")
+SConscript("#build/unit-tests/SConstruct")
 
 #VariantDir("build/perf", "perf")
 #SConscript("#build/perf/SConstruct")

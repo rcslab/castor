@@ -35,12 +35,14 @@ __FBSDID("$FreeBSD: releng/11.1/lib/libc/gen/ftok.c 288029 2015-09-20 20:23:16Z 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-conversion"
 
+int __castor_stat(const char * restrict path, struct stat * restrict sb);
+
 key_t
 ftok(const char *path, int id)
 {
 	struct stat st;
 
-	if (stat(path, &st) < 0)
+	if (__castor_stat(path, &st) < 0)
 		return (key_t)-1;
 
 	return (key_t) (id << 24 | (st.st_dev & 0xff) << 16 | (st.st_ino & 0xffff));

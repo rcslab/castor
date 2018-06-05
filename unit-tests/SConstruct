@@ -15,18 +15,19 @@ for f in Glob('#unit-tests/*.c'):
 
 testbench_deps = [ "CastorRuntime",
                    "CastorThreadRuntime",
-                   "CastorPass",
+                   #"CastorPass",
                    Glob("#unit-tests/*.c") ]
 
-test_env.Append(CPPFLAGS = ["--sysroot=$SYSROOT",
-                            "-Xclang", "-load", "-Xclang", "$CASTORPASS"])
-test_env.Append(LINKFLAGS = ["--sysroot=$SYSROOT",
-                             "-Wl,-rpath=${SYSROOT}usr/lib"])
+#test_env.Append(CPPFLAGS = ["--sysroot=$SYSROOT",
+#                            "-Xclang", "-load", "-Xclang", "$CASTORPASS"])
+#test_env.Append(LINKFLAGS = ["--sysroot=$SYSROOT",
+#                             "-Wl,-rpath=${SYSROOT}usr/lib"])
+test_env.Append(LINKFLAGS = ["-Wl,-rpath=${BUILDROOT}lib/Runtime"])
 test_env.Append(LIBS = ["thr", "c"])
 
 for t in tests:
     test_env.Depends(t+".o",
-                     ["CastorRuntime", "CastorThreadRuntime", "CastorPass"])
+                     ["CastorRuntime", "CastorThreadRuntime"])
     t = test_env.Program(t, [t+".c"])
     testbench_deps.append(t)
 
