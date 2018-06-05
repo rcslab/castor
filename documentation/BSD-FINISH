@@ -1,5 +1,0 @@
--Libsyscall: (Ali/November 13th)
-    -Modify record/replay to load our libsyscall. (??/??)
-    -Submit changes to FreeBSD/get accepted. (??/??)
-    -Transition to working off freebsd head (developing in Jails). (??/??)
-    -Rewrite event handlers (handler/generators) to work with libsyscall. (??/??)
