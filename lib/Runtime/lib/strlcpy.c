@@ -17,13 +17,10 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD: releng/11.1/lib/libc/string/strlcpy.c 281135 2015-04-06 03:21:22Z pfg $");
+__FBSDID("$FreeBSD$");
 
 #include <sys/types.h>
 #include <string.h>
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-conversion"
-
 
 /*
  * Copy string src to buffer dst of size dsize.  At most dsize-1
@@ -54,5 +51,3 @@ strlcpy(char * __restrict dst, const char * __restrict src, size_t dsize)
 
 	return(src - osrc - 1);	/* count does not include NUL */
 }
-
-#pragma clang diagnostic pop

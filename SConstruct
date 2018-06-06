@@ -111,6 +111,7 @@ env.SetOption('num_jobs', GetNumCPUs(env))
 
 env.Append(CXXFLAGS = ["-std=c++11"])
 env.Append(CFLAGS = ["-std=c11"])
+#XXX we should only be disabling these warnings for Runtime/lib
 env.Append(CPPFLAGS = ["-Wall", "-Wsign-compare", # "-Wsign-conversion",
                        "-Wcast-align", "-Werror", "-g", "-O2", "-fPIC"])
 
