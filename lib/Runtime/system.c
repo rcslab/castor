@@ -31,3 +31,10 @@ SystemGetpid()
     return __rr_syscall(SYS_getpid);
 }
 
+void *
+__tls_get_addr(void *ti __unused)
+{
+
+	return (0);
+}
+

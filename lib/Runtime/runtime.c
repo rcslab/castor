@@ -33,7 +33,7 @@ extern char * __castor_getenv(const char * name);
 
 RRLog *rrlog;
 enum RRMODE rrMode = RRMODE_NORMAL;
-thread_local uint32_t threadId = 0; //-1;
+/* XXX: RENABLE thread_local */ uint32_t threadId = 0; //-1;
 
 __attribute__((constructor)) void
 log_init()
@@ -53,10 +53,15 @@ log_init()
 
     Debug_Init("castor.log");
 
+    LOG("shmpath = %s", shmpath);
+    LOG("mode = %s", mode);
+
     key_t shmkey = __castor_ftok(shmpath, 0);
     if (shmkey == -1) {
 	PERROR("ftok");
     }
+
+    LOG("shmkey = %ld", shmkey);
 
     int shmid = __rr_syscall(SYS_shmget, shmkey, RRLOG_DEFAULT_REGIONSZ, 0);
     if (shmid == -1) {
@@ -69,7 +74,7 @@ log_init()
     }
 
     RRShared_SetupThread(rrlog, 0);
-    threadId = 0;
+    //threadId = 0;
 
     // XXX: Need to remap the region again to the right size
     rr_assert(RRLOG_DEFAULT_REGIONSZ == rrlog->regionSz);

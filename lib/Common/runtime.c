@@ -475,6 +475,8 @@ OpenLog(const char *logfile, uintptr_t regionSz, uint32_t numEvents, bool forRec
 	PERROR("ftok");
     }
 
+    LOG("shmkey = %ld", shmkey);
+
     shmid = shmget(shmkey, RRLOG_DEFAULT_REGIONSZ, IPC_CREAT | S_IRUSR | S_IWUSR);
     if (shmid == -1) {
 	PERROR("shmget");
