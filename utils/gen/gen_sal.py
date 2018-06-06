@@ -7,14 +7,6 @@ import re
 import subprocess
 import copy
 
-HANDLER_PATH = "./events_gen.c"
-HEADER_PATH = "./events_gen.h"
-INCLUDES_PATH = "./autogenerate_includes.h"
-MISSING_CALLS_PATH = "./missing_syscalls.out"
-
-TYPE_SIZES_C_PATH = "./type_sizes.c"
-TYPE_SIZES_OUT_PATH = "./type_sizes.out"
-
 #In order of precendence -- we will prefer the STD declaration over COMPAT, and so forth.
 SUPPORTED_DECL_TYPES = ['STD', 'NOSTD']
 
@@ -24,8 +16,19 @@ ALWAYS_SUCCESSFUL_SYSCALLS = [ 'getegid', 'geteuid', 'getgid', 'getpgid', \
         'getpgrp', 'getpid', 'getppid', 'getuid', 'issetugid', 'umask']
 CAST_SYSCALL_RETURN_TYPE = ['uid_t', 'gid_t']
 
+INCLUDES_PATH = "./autogenerate_includes.h"
+MISSING_CALLS_PATH = "./missing_syscalls.out"
+
+TYPE_SIZES_C_PATH = "./type_sizes.c"
+TYPE_SIZES_OUT_PATH = "./type_sizes.out"
+
+HANDLER_PATH =  "./events_gen.c"
+HEADER_PATH  =  "./events_gen.h"
+PRINTER_PATH =  "./events_pretty_printer_gen.c"
+
 cout = open(HANDLER_PATH, "w")
 hout = open(HEADER_PATH, "w")
+ppout = open(PRINTER_PATH, "w")
 
 debug_flag = False
 
@@ -64,6 +67,11 @@ def h_output(line):
     line = line + '\n'
     hout.write(line)
 
+def pp_output(line):
+    if debug_flag:
+        debug("pout", line)
+    line = line + '\n'
+    ppout.write(line)
 
 def scalar_arg_p(arg):
     result = arg['log_spec'] != None and arg['log_spec']['scalar'] == True
@@ -162,7 +170,7 @@ def gen_log_data(spec):
         c_output("}")
 
 def generate_handler(spec, type_size_map):
-    debug("handler_desc:", spec)
+    debug("generating_handler(%s) with spec:%s", (spec['name'], str(spec)))
     name = spec['name']
     return_type = spec['return_type']
     arg_list = [arg['type'] + ' ' + arg['name'] for arg in spec['args_spec']]
@@ -215,6 +223,14 @@ def generate_handler(spec, type_size_map):
     c_output("return result;")
     c_output("}") #end function
     return spec
+
+def generate_pretty_printer(spec):
+    debug("generating_handler(%s) with spec:%s", (spec['name'], str(spec)))
+    name = spec['name']
+    return_type = spec['return_type']
+    pp_output("void")
+    pp_output("pretty_print_%s(void) {" % name)
+    pp_output("}\n")
 
 def parse_logspec(sal, type, syscall_name):
     debug("parse_logspec(%s, %s)" % (str(sal), type))
@@ -427,6 +443,7 @@ def generate_preambles():
 """
     c_output(preamble)
     h_output(preamble)
+    pp_output(preamble)
 
 def padding(str):
     return (20 - len(str)) * ' '
@@ -465,6 +482,10 @@ def generate_includes():
             includes_list = f.read().splitlines()
     for include in includes_list:
         c_output(include)
+        pp_output(include)
+
+def generate_boilerplate():
+    pass
 
 def generate_bindings(generated):
     c_output("")
@@ -658,6 +679,7 @@ if __name__ == '__main__':
 
     generate_preambles()
     generate_includes()
+    generate_boilerplate()
     print("Generating syscall handlers...")
     debug("syscall_description_list:", syscall_description_list)
     processed_descriptions = []
@@ -672,6 +694,7 @@ if __name__ == '__main__':
     debug("type_size_map:", type_size_map)
     for desc in processed_descriptions:
             desc = generate_handler(desc, type_size_map)
+            generate_pretty_printer(desc)
             generated = generated + [desc['name']]
 
     generate_bindings(generated)
