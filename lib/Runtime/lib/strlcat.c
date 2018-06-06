@@ -17,14 +17,10 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD: releng/11.1/lib/libc/string/strlcat.c 281135 2015-04-06 03:21:22Z pfg $");
+__FBSDID("$FreeBSD$");
 
 #include <sys/types.h>
 #include <string.h>
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-conversion"
-
 
 /*
  * Appends src to string dst of size dsize (unlike strncat, dsize is the
@@ -60,5 +56,3 @@ strlcat(char * __restrict dst, const char * __restrict src, size_t dsize)
 
 	return(dlen + (src - osrc));	/* count does not include NUL */
 }
-
-#pragma clang diagnostic pop

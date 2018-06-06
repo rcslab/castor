@@ -1,4 +1,6 @@
 /*-
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
  * Copyright (c) 1988, 1993
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -31,7 +33,7 @@
 static char sccsid[] = "@(#)strerror.c	8.1 (Berkeley) 6/4/93";
 #endif /* LIBC_SCCS and not lint */
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD: releng/11.1/lib/libc/string/strerror.c 255108 2013-08-31 22:32:42Z jilles $");
+__FBSDID("$FreeBSD$");
 
 #if defined(NLS)
 #include <nl_types.h>
@@ -67,10 +69,7 @@ errstr(int num, char *uprefix, char *buf, size_t len)
 
 	t = tmp + sizeof(tmp);
 	*--t = '\0';
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-conversion"
 	uerr = (num >= 0) ? num : -num;
-#pragma clang diagnostic pop
 	do {
 		*--t = "0123456789"[uerr % 10];
 	} while (uerr /= 10);

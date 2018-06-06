@@ -1,6 +1,7 @@
 /*-
+ * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+ *
  * Copyright (c) 2009, 2010 Xin LI <delphij@FreeBSD.org>
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,10 +26,11 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD: releng/11.1/lib/libc/string/strlen.c 205108 2010-03-13 00:15:06Z delphij $");
+__FBSDID("$FreeBSD$");
 
 #include <sys/limits.h>
 #include <sys/types.h>
+#include <string.h>
 
 /*
  * Portable strlen() for 32-bit and 64-bit systems.
@@ -77,9 +79,6 @@ static const unsigned long mask80 = 0x8080808080808080;
 		if (p[x] == '\0')		\
 		    return (p - str + x);	\
 	} while (0)
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-conversion"
 
 size_t
 strlen(const char *str)
@@ -130,5 +129,3 @@ strlen(const char *str)
 	/* NOTREACHED */
 	return (0);
 }
-
-#pragma clang diagnostic pop
