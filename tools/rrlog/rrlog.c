@@ -13,6 +13,7 @@
 #include <castor/archconfig.h>
 #include <castor/rrshared.h>
 #include <castor/events.h>
+#include <castor/file_format.h>
 
 static int logfd;
 static RRLogEntry entry;

@@ -26,6 +26,7 @@
 #include <castor/rrgq.h>
 
 #include <castor/events.h>
+#include <castor/file_format.h>
 #include <castor/Common/runtime.h>
 #include <castor/Common/ft.h>
 
