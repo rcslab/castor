@@ -29,6 +29,8 @@
 #include "system.h"
 #include "util.h"
 
+extern char * __castor_getenv(const char * name);
+
 RRLog *rrlog;
 enum RRMODE rrMode = RRMODE_NORMAL;
 thread_local uint32_t threadId = 0; //-1;
@@ -38,12 +40,12 @@ log_init()
 {
     int status;
 
-    char *shmpath = getenv("CASTOR_SHMPATH");
+    char *shmpath = __castor_getenv("CASTOR_SHMPATH");
     if (shmpath == NULL) {
 	return;
     }
 
-    char *mode = getenv("CASTOR_MODE");
+    char *mode = __castor_getenv("CASTOR_MODE");
     if (mode == NULL) {
 	rrMode = RRMODE_NORMAL;
 	return;
@@ -72,7 +74,7 @@ log_init()
     // XXX: Need to remap the region again to the right size
     rr_assert(RRLOG_DEFAULT_REGIONSZ == rrlog->regionSz);
 
-    char *sandbox = getenv("CASTOR_SANDBOX");
+    char *sandbox = __castor_getenv("CASTOR_SANDBOX");
     if (sandbox) {
 	status = __rr_syscall(SYS_cap_enter);
 	if (status != 0) {
