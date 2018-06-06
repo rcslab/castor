@@ -101,7 +101,7 @@ sysv_lookup(int key)
  */
 
 int
-shmget(key_t key, size_t size, int flag)
+__rr_shmget(key_t key, size_t size, int flag)
 {
     int result = 0;
     RRLogEntry *e;
@@ -140,7 +140,7 @@ shmget(key_t key, size_t size, int flag)
  * XXX: Need to prevent randomization of the address on replay
  */
 void *
-shmat(int shmid, const void *addr, int flag)
+__rr_shmat(int shmid, const void *addr, int flag)
 {
     switch (rrMode) {
 	case RRMODE_NORMAL:
@@ -154,7 +154,7 @@ shmat(int shmid, const void *addr, int flag)
 }
 
 int
-semget(key_t key, int nsems, int flag)
+__rr_semget(key_t key, int nsems, int flag)
 {
     int result = 0;
     RRLogEntry *e;
@@ -190,7 +190,7 @@ semget(key_t key, int nsems, int flag)
 }
 
 int
-semop(int semid, struct sembuf *array, size_t nops)
+__rr_semop(int semid, struct sembuf *array, size_t nops)
 {
     switch (rrMode) {
 	case RRMODE_NORMAL:
@@ -264,3 +264,7 @@ __rr_semctl(int semid, int semnum, int cmd, ...)
 }
 
 BIND_REF(semctl);
+BIND_REF(semop);
+BIND_REF(shmat);
+BIND_REF(shmget);
+BIND_REF(semget);
