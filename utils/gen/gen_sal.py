@@ -467,6 +467,7 @@ def generate_header_file(builtin, generated):
     index = generate_event_table("BUILTIN", builtin, index)
     h_output("\n")
     index = generate_event_table("GENERATED", generated, index)
+    h_output("\n#define RREVENTS_MAX %s" % index)
 
 
     h_output("\n#define RREVENT_TABLE RREVENT_TABLE_%s RREVENT_TABLE_%s" %

@@ -32,23 +32,49 @@ struct {
 
 uint64_t eventsPerThread[RRLOG_MAX_THREADS];
 
-void dumpEntry()
-{
-    int i;
-    const char *evtStr = "UNKNOWN";
+int openLog(const char * logfile) {
+    castor_magic_t magic;
+    castor_version_t version;
+    const int flags = O_RDWR;
 
-    for (i = 0; rreventTable[i].str != 0; i++) {
-	if (rreventTable[i].evtid == entry.event) {
-	    evtStr = rreventTable[i].str;
-	    rreventTable[i].count++;
-	    break;
-	}
+    int logfd = open(logfile, flags, 0600);
+
+    if (logfd < 0) {
+	fprintf(stderr, "Could not open record/replay log '%s'", logfile);
+	perror("open");
+	exit(1);
     }
 
+    read(logfd, &magic, sizeof(magic));
+    read(logfd, &version, sizeof(version));
+    if (magic != CASTOR_MAGIC_NUMBER) {
+	fprintf(stderr, "OpenLog failed: %s does not appear to be a log file, invalid "\
+			"magic number at file start.\n", logfile);
+	exit(1);
+    }
+    if (version != CASTOR_VERSION_NUMBER) {
+	fprintf(stderr, "OpenLog failed: %s recorded with version %d,"\
+			"current version is %d.\n",
+			logfile, version, CASTOR_VERSION_NUMBER);
+	exit(1);
+    }
+
+    return logfd;
+}
+
+void dumpEntry()
+{
+    if (entry.event > RREVENTS_MAX) {
+	fprintf(stderr, "invalid event number %u\n", entry.event);
+	exit(1);
+    }
+
+    const char * event_name = rreventTable[entry.event].str;
+    rreventTable[entry.event].count++;
     eventsPerThread[entry.threadId] += 1;
 
     printf("%016ld  %08x  %-16s  %016lx  %016lx  %016lx  %016lx  %016lx  %016lx\n",
-	    entry.eventId, entry.threadId, evtStr, entry.objectId,
+	    entry.eventId, entry.threadId, event_name, entry.objectId,
 	    entry.value[0], entry.value[1], entry.value[2],
 	    entry.value[3], entry.value[4]);
 }
@@ -56,7 +82,6 @@ void dumpEntry()
 int main(int argc, const char *argv[])
 {
     int i;
-    int flags = O_RDWR;
 
     if (argc != 2) {
 	fprintf(stderr, "Usage: %s [-h] [LOGFILE]\n", argv[0]);
@@ -67,12 +92,7 @@ int main(int argc, const char *argv[])
 	fprintf(stdout, "Usage: %s [-h] [LOGFILE]\n", argv[0]);
 	return 0;
     }
-
-    logfd = open(argv[1], flags, 0600);
-    if (logfd < 0) {
-	perror("open");
-	return 1;
-    }
+    logfd = openLog(argv[1]);
 
     uint64_t foo;
     read(logfd, (void *)&foo, 8);
