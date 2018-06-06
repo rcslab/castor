@@ -5,10 +5,8 @@
 #include <signal.h>
 #include "../system.h"
 
-
-
-_Noreturn void abort(void)
+_Noreturn void __castor_abort(void)
 {
-    __rr_syscall(SYS_kill, -1, SIGABRT);
+    __rr_syscall(SYS_kill, __rr_syscall(SYS_getpid), SIGABRT);
     __unreachable();
 }

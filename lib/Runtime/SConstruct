@@ -29,7 +29,7 @@ for o in Glob("lib/*.c"):
 env_libsys = env.Clone()
 
 # Made global to make compilation_db work
-env_libsys["CPPPATH"].append("#sysroot-src/lib/libc/include")
+env_libsys["CPPPATH"].append("/usr/src/lib/libc/include")
 
 env_libsys["CFLAGS"].append("-DCASTOR_RUNTIME")
 env_libsys["ASFLAGS"].append("-DPIC")

@@ -87,9 +87,4 @@ log_init()
 	rr_fdprintf(STDERR_FILENO, "REPLAY\n");
 	rrMode = RRMODE_REPLAY;
     }
-
-    if (getenv("CASTOR_STOPCHILD")) {
-        unsetenv("CASTOR_STOPCHILD");
-        __rr_syscall(SYS_kill, -1, SIGSTOP);
-    }
 }
