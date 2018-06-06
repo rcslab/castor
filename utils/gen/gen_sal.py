@@ -363,18 +363,34 @@ def generate_preambles():
 def padding(str):
     return (20 - len(str)) * ' '
 
-def generate_header_file(generated):
-    index = 0x10000000
-    h_output("#ifndef __EVENTS_GEN_H")
-    h_output("#define __EVENTS_GEN_H\n\n")
-    h_output("#define RREVENT_TABLE_GEN\\")
-    last = generated[-1]
-    for name in generated[:-1]:
-        h_output("\tRREVENT(%s,%s0x%X)\\" % (name.upper(), padding(name), index))
+def generate_event_table(table_name, event_list, index):
+    h_output("#define RREVENT_TABLE_%s\\" % table_name)
+    last = event_list[-1]
+    for name in event_list[:-1]:
+        h_output("\tRREVENT(%s,%s%u)\\" % (name.upper(), padding(name), index))
         index += 1
-    h_output("\tRREVENT(%s,%s0x%X)" % (last.upper(), padding(name), index))
+    h_output("\tRREVENT(%s,%s%u)" % (last.upper(), padding(name), index))
+    return index + 1
 
-    h_output("#endif")
+def generate_header_file(builtin, generated):
+    index = 0
+    h_output("#ifndef __EVENTS_GEN_H")
+    h_output("#define __EVENTS_GEN_H\n")
+
+    h_output("\n#define RREVENT(_a, _b) RREVENT_##_a = _b,\n")
+
+    index = generate_event_table("BUILTIN", builtin, index)
+    h_output("\n")
+    index = generate_event_table("GENERATED", generated, index)
+
+
+    h_output("\n#define RREVENT_TABLE RREVENT_TABLE_%s RREVENT_TABLE_%s" %
+            ("BUILTIN", "GENERATED"))
+
+    h_output("\nenum { RREVENT_TABLE };")
+    h_output("\n#undef RREVENT")
+
+    h_output("\n#endif")
 
 def generate_includes():
     with open(INCLUDES_PATH) as f:
@@ -537,6 +553,7 @@ if __name__ == '__main__':
     passthrough_list = read_syscall_list('passthrough_syscalls')
     unimplemented_list = read_syscall_list('unimplemented_syscalls')
     unsupported_list = read_syscall_list('unsupported_syscalls')
+    builtin_list = read_syscall_list('builtin_events')
     core_runtime_list = subprocess.check_output('./core_runtime_syscalls.sh').split()
     duplicates = find_duplicates(autogenerate_list + passthrough_list +\
             unimplemented_list + unsupported_list + core_runtime_list)
@@ -558,7 +575,7 @@ if __name__ == '__main__':
             generate_handler(desc)
             generated = generated + [desc['name']]
     generate_bindings(generated)
-    generate_header_file(generated)
+    generate_header_file(builtin_list, generated)
     cout.close()
     hout.close()
 
