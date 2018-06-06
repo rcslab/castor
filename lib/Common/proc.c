@@ -70,6 +70,16 @@ Spawn(bool pinned, int maxcpus, char *const argv[])
 	PinProcess(maxcpus);
     }
 
+    // Setup LD_LIBMAP
+    char *cdir = getenv("CASTORDIR");
+    if (cdir == NULL) {
+	Debug_Log(LEVEL_SYS, "Please set CASTORDIR to point to the directory containing libsys_castor.so\n");
+	abort();
+    }
+    char libsyspath[512];
+    snprintf(libsyspath, 512, "libsys.so.7=%s/libsys_castor.so", cdir);
+    setenv("LD_LIBMAP", libsyspath, 0);
+
     execvp(*argv, argv);
 
     // PERROR("execv");
