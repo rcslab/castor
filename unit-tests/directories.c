@@ -19,7 +19,7 @@ void dump_entries(char * buf, int size)
 
     for (i = 0; i < size; i += dp.dent->d_reclen) {
 	dp.cp = buf + i;
-	printf("fileno: %d, name: %s\n", dp.dent->d_fileno, dp.dent->d_name);
+	printf("fileno: %lu, name: %s\n", dp.dent->d_fileno, dp.dent->d_name);
     }
 }
 

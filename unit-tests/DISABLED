@@ -2,3 +2,6 @@
 thread_cond_broadcast
 ;flakey will get into state where always fails
 mmap_shared_shm
+;Fix rrmode global
+;read
+hellodebug
