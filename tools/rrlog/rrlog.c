@@ -73,6 +73,10 @@ int main(int argc, const char *argv[])
 	return 1;
     }
 
+    uint64_t foo;
+    read(logfd, (void *)&foo, 8);
+    read(logfd, (void *)&foo, 2);
+
     for (i = 0; i < RRLOG_MAX_THREADS; i++) {
 	eventsPerThread[i] = 0;
     }
