@@ -14,6 +14,12 @@
 #define MAX_LOG         512
 
 void
+__castor_abort()
+{
+    abort();
+}
+
+void
 Debug_LogBacktrace()
 {
     const size_t MAX_FRAMES = 128;

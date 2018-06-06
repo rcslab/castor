@@ -52,5 +52,5 @@ __rr_assert(const char *func, const char *file, int line, const char *failedexpr
 		file, line);
     }
 
-    abort();
+    __castor_abort();
 }

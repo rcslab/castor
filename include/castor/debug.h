@@ -12,6 +12,7 @@ void Debug_Log(int level, const char *fmt, ...)
     __attribute__((format(printf, 2, 3)));
 void Debug_LogHex(char *buf, size_t len);
 int Debug_Init(const char *logPath);
+_Noreturn void __castor_abort(void);
 
 #ifdef __cplusplus
 };
@@ -46,7 +47,7 @@ int Debug_Init(const char *logPath);
 	    Debug_Log(LEVEL_SYS, "ASSERT(%s): %s %s:%d\n", \
 		  #_x, __FUNCTION__, __FILE__, __LINE__); \
 	    Debug_LogBacktrace(); \
-	    abort(); \
+	    __castor_abort(); \
 	} \
     } while (0)
 #else
@@ -62,7 +63,7 @@ int Debug_Init(const char *logPath);
 	strerror_r(errno, &pstr[0], sizeof(pstr)); \
 	Debug_Log(LEVEL_SYS, "%s: %s\n", _str, pstr); \
 	Debug_LogBacktrace(); \
-	abort(); \
+	__castor_abort(); \
     } while (0)
         
 #define PANIC() \
@@ -71,7 +72,7 @@ int Debug_Init(const char *logPath);
 		"function %s, file %s, line %d\n", \
 		__func__, __FILE__, __LINE__); \
 	Debug_LogBacktrace(); \
-	abort(); \
+	__castor_abort(); \
     } while (0)
 
 #define ASSERT_IMPLEMENTED(_x) \
@@ -80,7 +81,7 @@ int Debug_Init(const char *logPath);
 		"ASSERT_IMPLEMENTED(" #_x "): %s %s:%d\n", \
 		__func__, __FILE__, __LINE__); \
 	    Debug_LogBacktrace(); \
-	    abort(); \
+	    __castor_abort(); \
 	} \
     } while (0)
 #define NOT_IMPLEMENTED() ASSERT_IMPLEMENTED(false)

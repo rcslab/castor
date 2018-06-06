@@ -51,7 +51,7 @@ log_init()
 
     Debug_Init("castor.log");
 
-    key_t shmkey = ftok(shmpath, 0);
+    key_t shmkey = __castor_ftok(shmpath, 0);
     if (shmkey == -1) {
 	PERROR("ftok");
     }

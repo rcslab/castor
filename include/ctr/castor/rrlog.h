@@ -47,7 +47,7 @@ RRLog_Alloc(RRLog *rrlog, uint32_t threadId)
 
 #ifdef RRLOG_DEBUG
     if (rrthr->status == 1) {
-	abort();
+	__castor_abort();
     }
     rrthr->status = 1;
 #endif /* RRLOG_DEBUG */

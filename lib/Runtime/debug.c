@@ -157,7 +157,7 @@ void Debug_Sighandler(int signum)
     }
     free(names);*/
 
-    abort();
+    __castor_abort();
 }
 
 int Debug_Init(const char *logPath) {

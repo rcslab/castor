@@ -38,7 +38,7 @@ __FBSDID("$FreeBSD: releng/11.1/lib/libc/gen/ftok.c 288029 2015-09-20 20:23:16Z 
 int __castor_stat(const char * restrict path, struct stat * restrict sb);
 
 key_t
-ftok(const char *path, int id)
+__castor_ftok(const char *path, int id)
 {
 	struct stat st;
 
