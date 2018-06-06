@@ -64,49 +64,102 @@ def h_output(line):
     line = line + '\n'
     hout.write(line)
 
+
+def scalar_arg_p(arg):
+    result = arg['log_spec'] != None and arg['log_spec']['scalar'] == True
+    debug("scalar?:" + str(result) + ":" + str(arg))
+    return result
+
+def gen_log_values(spec, type_size_map, mode):
+    assert(mode in ['record','replay'])
+
+    name = spec['name']
+    return_type = spec['return_type']
+    arg_names = [arg['name'] for arg in spec['args_spec']]
+    arg_types =  [arg['type'] for arg in spec['args_spec']]
+
+    #objectid
+    leading_object = arg_types and (arg_types[0] == 'int')
+    if leading_object and mode == 'record':
+        c_output("e->objectId = (uint64_t)%s;" % arg_names[0])
+    elif leading_object and mode == 'replay':
+        c_output("AssertObject(e, (uint64_t)%s);" % arg_names[0])
+
+    #result
+    if mode == 'record':
+        c_output("e->value[0] = (uint64_t)result;")
+    else:
+        c_output("result = (%s)e->value[0];" % return_type)
+    next_value = 1
+
+    #errno
+    store_errno = False
+    if not name in ALWAYS_SUCCESSFUL_SYSCALLS:
+        store_errno = True
+        c_output("if (result == -1) {")
+        if mode == 'record':
+            c_output("e->value[%d] = (uint64_t)errno;" % next_value)
+        else:
+            c_output("errno = e->value[%d];" % next_value)
+        next_value += 1
+
+
+    #store scalar params with side effects?
+    SIZEOF_VALUE_FIELD = 8
+    values_to_store = False
+    for arg in spec['args_spec']:
+        if scalar_arg_p(arg):
+            base_type = arg['type'].split('*')[0].strip()
+            if not 'void' in base_type and type_size_map[base_type] <= SIZEOF_VALUE_FIELD:
+                values_to_store = True
+                break
+
+    if values_to_store:
+        c_output("} else {")
+    elif store_errno:
+        c_output("}") #close errno braces
+
+    #scalar args
+    for arg in spec['args_spec']:
+        if scalar_arg_p(arg) and next_value < 5:
+            base_type = arg['type'].split('*')[0].strip()
+            if not 'void' in base_type and type_size_map[base_type] <= SIZEOF_VALUE_FIELD:
+                null_check = arg['log_spec']['null_check']
+                if null_check:
+                    c_output("if (%s != NULL) {" % arg['name'])
+                if mode == 'record':
+                    c_output("e->value[%d] = (uint64_t)(*%s);" % (next_value, arg['name']))
+                else:
+                    c_output("(*%s) = (%s)e->value[%d];" % (arg['name'], base_type, next_value))
+                if null_check:
+                    c_output("}")
+                arg['log_spec']['logged'] = True
+                next_value += 1
+
+    if values_to_store:
+        c_output("}") #close else braces
+
+    return spec
+
+def log_aggregate_p(arg):
+    return arg['log_spec'] != None and not arg['log_spec']['logged']
+
 def gen_log_data(spec):
     gen_log = False
     for arg in spec['args_spec']:
-        if arg['log_spec'] != None:
+        if log_aggregate_p(arg):
             gen_log = True
     if gen_log:
-        c_output("\t\tif (result != -1) {")
+        c_output("if (result != -1) {")
         for arg in spec['args_spec']:
-            if arg['log_spec'] != None:
-                #XXX formatting ugly
+            if log_aggregate_p(arg):
                 if arg['log_spec']['null_check']:
-                    c_output("\t\t\t if (%s != NULL) {" % (arg['name']))
-                c_output("\t\t\tlogData((uint8_t *)%s, (unsigned long) %s);" %
+                    c_output("if (%s != NULL) {" % (arg['name']))
+                c_output("logData((uint8_t *)%s, (unsigned long) %s);" %
                             (arg['name'], arg['log_spec']['size']))
                 if arg['log_spec']['null_check']:
-                    c_output("\t\t\t }")
-        c_output("\t\t}")
-
-def log_values(spec, type_size_map, last_value, mode):
-    result_checked = False
-    value_stored = False
-    for arg in spec['args_spec']:
-        if arg['log_spec'] != None and last_value < 5:
-            base_type = arg['type'].split('*')[0].strip()
-            if not 'void' in base_type and type_size_map[base_type] <= 8:
-                if not result_checked:
-                    c_output("if (result != -1) {")
-
-                null_check = arg['log_spec']['null_check']
-                if null_check:
-                    c_output("\t\t\t if (%s != NULL) {" % (arg['name']))
-
-                c_output("e->value[%d] = (uint64_t)%s;" % (last_value, arg['name']))
-                last_value += 1
-                value_stored = True
-                arg['log_spec'] = None
-#XXX MESSSS!!!!
-                if null_check:
-                    c_output("\t\t\t }")
-        if not result_checked and value_stored:
-            c_output("\t\t\t }")
-            result_checked = True
-    return spec
+                    c_output("}")
+        c_output("}")
 
 def generate_handler(spec, type_size_map):
     debug("handler_desc:", spec)
@@ -144,16 +197,7 @@ def generate_handler(spec, type_size_map):
     c_output("result = %s;" % syscall_str)
     c_output("e = RRLog_Alloc(rrlog, getThreadId());")
     c_output("e->event = %s;" % event_number)
-    if leading_object:
-        c_output("e->objectId = (uint64_t)%s;" % arg_names[0])
-    c_output("e->value[0] = (uint64_t)result;")
-    last_value = 1
-    if not name in ALWAYS_SUCCESSFUL_SYSCALLS:
-        c_output("if (result == -1) {")
-        c_output("e->value[%d] = (uint64_t)errno;" % last_value)
-        c_output("}")
-        last_value += 1
-    spec = log_values(spec, type_size_map, last_value, 'record')
+    spec = gen_log_values(spec, type_size_map, 'record')
     c_output("RRLog_Append(rrlog, e);")
     gen_log_data(spec)
     c_output("break;")
@@ -162,51 +206,43 @@ def generate_handler(spec, type_size_map):
     c_output("case RRMODE_REPLAY:")
     c_output("e = RRPlay_Dequeue(rrlog, getThreadId());")
     c_output("AssertEvent(e, %s);" % event_number)
-    if leading_object:
-        c_output("AssertObject(e, (uint64_t)%s);" % arg_names[0])
-    c_output("result = (%s)e->value[0];" % return_type)
-    if not name in ALWAYS_SUCCESSFUL_SYSCALLS:
-        c_output("if (result == -1) {")
-        c_output("errno = e->value[1];")
-        c_output("}")
-
+    spec = gen_log_values(spec, type_size_map, 'replay')
     c_output("RRPlay_Free(rrlog, e);")
     gen_log_data(spec)
-    c_output("\t    break;")
+    c_output("break;")
 
-    c_output("    }") #end switch
-
+    c_output("}") #end switch
     c_output("return result;")
-    c_output("}")
+    c_output("}") #end function
+    return spec
 
 def parse_logspec(sal, type, syscall_name):
     debug("parse_logspec(%s, %s)" % (str(sal), type))
     sal_tag = sal['tag']
     sal_arg = sal['arg']
 
-    log_spec = None
-    null_check = '_opt_' in sal_tag
+    if sal_tag.startswith('_In_'):
+       return None
+
+    log_spec = {'sal_tag' : sal_tag, 'scalar': False, 'logged': False}
+    log_spec['null_check'] = '_opt_' in sal_tag
     sal_tag = re.sub("opt_","",sal_tag)
 
-    if sal_tag.startswith('_In_'):
-       pass
-    elif sal_tag in ['_Out_', '_Inout_']:
+    if sal_tag in ['_Out_', '_Inout_']:
         size_type = type.split('*')[0].strip()
         debug("appending: " + size_type)
-        log_spec = { 'size' : "sizeof(%s)" % size_type }
+        log_spec['size'] = "sizeof(%s)" % size_type
+        log_spec['scalar'] = True
     elif sal_tag in ['_Out_writes_bytes_', '_Out_writes_z_', \
-                     '_Inout_updates_bytes_', '_Inout_updates_z_']:
+                        '_Inout_updates_bytes_', '_Inout_updates_z_']:
         bytes_out = 'result' if syscall_name in RETURNS_BYTES_OUT else sal_arg
-        log_spec = { 'size': bytes_out}
+        log_spec['size'] = bytes_out
     elif sal_tag in ['_Out_writes_', '_Inout_updates_']:
         elements_out = 'result' if syscall_name in RETURNS_ELEMENTS_OUT else sal_arg
         base_type = type.split('*')[0].strip()
-        log_spec = { 'size': "%s * sizeof(%s)" % (elements_out, base_type) }
+        log_spec['size'] = "%s * sizeof(%s)" % (elements_out, base_type)
     else:
         error("Unknown SAL annotation:" + str(sal))
-
-    if log_spec != None:
-        log_spec['null_check'] = null_check
 
     return log_spec
 
@@ -608,6 +644,8 @@ if __name__ == '__main__':
     unimplemented_list = read_syscall_list('unimplemented_syscalls')
     unsupported_list = read_syscall_list('unsupported_syscalls')
     builtin_list = read_syscall_list('builtin_events')
+    #XXX need to do something more sensible with this since
+    #we now have builtin list
     core_runtime_list = subprocess.check_output('./core_runtime_syscalls.sh').split()
     duplicates = find_duplicates(autogenerate_list + passthrough_list +\
             unimplemented_list + unsupported_list + core_runtime_list)
@@ -633,7 +671,7 @@ if __name__ == '__main__':
     type_size_map = build_type_size_map(type_list)
     debug("type_size_map:", type_size_map)
     for desc in processed_descriptions:
-            generate_handler(desc, type_size_map)
+            desc = generate_handler(desc, type_size_map)
             generated = generated + [desc['name']]
 
     generate_bindings(generated)
