@@ -10,6 +10,14 @@
 #include <castor/archconfig.h>
 #include <castor/rrshared.h>
 
+#define CASTOR_MAGIC_NUMBER 0xDABADABA
+typedef uint64_t castor_magic_t;
+
+#define CASTOR_VERSION_NUMBER 1
+typedef uint16_t castor_version_t;
+
+
+
 #ifdef CASTOR_DEBUG
 #define RRLOG_DEBUG		1
 #endif

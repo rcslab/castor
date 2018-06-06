@@ -430,10 +430,9 @@ SignalCloseLog(int sig)
 void
 OpenLog(const char *logfile, uintptr_t regionSz, uint32_t numEvents, bool forRecord)
 {
-    const uint64_t castor_magic_number = 0xDABADABA;
-    const uint16_t castor_version_number = 1;
+    castor_magic_t magic;
+    castor_version_t version;
 
-    // Open log file
     int flags = O_RDWR;
     if (forRecord) {
 	flags |= O_CREAT|O_TRUNC;
@@ -446,22 +445,22 @@ OpenLog(const char *logfile, uintptr_t regionSz, uint32_t numEvents, bool forRec
     }
 
     if (forRecord) {
-	write(logfd, &castor_magic_number, sizeof(castor_magic_number));
-	write(logfd, &castor_version_number, sizeof(castor_version_number));
+	magic = CASTOR_MAGIC_NUMBER;
+	version = CASTOR_VERSION_NUMBER;
+	write(logfd, &magic, sizeof(magic));
+	write(logfd, &version, sizeof(version));
     } else {
-	uint64_t magic_number;
-	uint16_t version_number;
-	read(logfd, &magic_number, sizeof(magic_number));
-	read(logfd, &version_number, sizeof(version_number));
-	if (magic_number != castor_magic_number) {
+	read(logfd, &magic, sizeof(magic));
+	read(logfd, &version, sizeof(version));
+	if (magic != CASTOR_MAGIC_NUMBER) {
 	    fprintf(stderr, "OpenLog failed: %s does not appear to be a log file, invalid "\
 			    "magic number at file start.\n", logfile);
 	    exit(1);
 	}
-	if (version_number != castor_version_number) {
+	if (version != CASTOR_VERSION_NUMBER) {
 	    fprintf(stderr, "OpenLog failed: %s recorded with version %d,"\
 			    "current version is %d.\n",
-			    logfile, version_number, castor_version_number);
+			    logfile, version, CASTOR_VERSION_NUMBER);
 	    exit(1);
 	}
     }
