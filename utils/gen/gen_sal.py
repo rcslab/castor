@@ -246,7 +246,7 @@ def generate_builtin_printers(builtins):
     for name in builtins:
         ppc_output("void")
         ppc_output("pretty_print_%s(RRLogEntry entry) {" % name.upper())
-        ppc_output('printf("<BUILTIN %s>\\n");' % name)
+        ppc_output('printf("[builtin] %s()\\n");' % name)
         ppc_output("}\n")
 
 def parse_logspec(sal, type, syscall_name):

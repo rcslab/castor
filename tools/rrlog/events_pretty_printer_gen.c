@@ -1239,319 +1239,383 @@ pretty_print_KEVENT(RRLogEntry entry)
 void
 pretty_print_NULL_EVENT(RRLogEntry entry)
 {
+    printf("[builtin] null_event()\n");
 }
 
 void
 pretty_print_EXIT(RRLogEntry entry)
 {
+    printf("[builtin] exit()\n");
 }
 
 void
 pretty_print_DATA(RRLogEntry entry)
 {
+    printf("[builtin] data()\n");
 }
 
 void
 pretty_print_LOCKED_EVENT(RRLogEntry entry)
 {
+    printf("[builtin] locked_event()\n");
 }
 
 void
 pretty_print_MUTEX_INIT(RRLogEntry entry)
 {
+    printf("[builtin] mutex_init()\n");
 }
 
 void
 pretty_print_MUTEX_DESTROY(RRLogEntry entry)
 {
+    printf("[builtin] mutex_destroy()\n");
 }
 
 void
 pretty_print_MUTEX_LOCK(RRLogEntry entry)
 {
+    printf("[builtin] mutex_lock()\n");
 }
 
 void
 pretty_print_MUTEX_TRYLOCK(RRLogEntry entry)
 {
+    printf("[builtin] mutex_trylock()\n");
 }
 
 void
 pretty_print_MUTEX_UNLOCK(RRLogEntry entry)
 {
+    printf("[builtin] mutex_unlock()\n");
 }
 
 void
 pretty_print_THREAD_CREATE(RRLogEntry entry)
 {
+    printf("[builtin] thread_create()\n");
 }
 
 void
 pretty_print_FORKEND(RRLogEntry entry)
 {
+    printf("[builtin] forkend()\n");
 }
 
 void
 pretty_print_COND_INIT(RRLogEntry entry)
 {
+    printf("[builtin] cond_init()\n");
 }
 
 void
 pretty_print_COND_DESTROY(RRLogEntry entry)
 {
+    printf("[builtin] cond_destroy()\n");
 }
 
 void
 pretty_print_COND_WAIT(RRLogEntry entry)
 {
+    printf("[builtin] cond_wait()\n");
 }
 
 void
 pretty_print_COND_SIGNAL(RRLogEntry entry)
 {
+    printf("[builtin] cond_signal()\n");
 }
 
 void
 pretty_print_COND_BROADCAST(RRLogEntry entry)
 {
+    printf("[builtin] cond_broadcast()\n");
 }
 
 void
 pretty_print_THREAD_ONCE(RRLogEntry entry)
 {
+    printf("[builtin] thread_once()\n");
 }
 
 void
 pretty_print_BARRIER_INIT(RRLogEntry entry)
 {
+    printf("[builtin] barrier_init()\n");
 }
 
 void
 pretty_print_BARRIER_DESTROY(RRLogEntry entry)
 {
+    printf("[builtin] barrier_destroy()\n");
 }
 
 void
 pretty_print_BARRIER_WAIT(RRLogEntry entry)
 {
+    printf("[builtin] barrier_wait()\n");
 }
 
 void
 pretty_print_SPIN_INIT(RRLogEntry entry)
 {
+    printf("[builtin] spin_init()\n");
 }
 
 void
 pretty_print_SPIN_DESTROY(RRLogEntry entry)
 {
+    printf("[builtin] spin_destroy()\n");
 }
 
 void
 pretty_print_SPIN_TRYLOCK(RRLogEntry entry)
 {
+    printf("[builtin] spin_trylock()\n");
 }
 
 void
 pretty_print_SPIN_LOCK(RRLogEntry entry)
 {
+    printf("[builtin] spin_lock()\n");
 }
 
 void
 pretty_print_SPIN_UNLOCK(RRLogEntry entry)
 {
+    printf("[builtin] spin_unlock()\n");
 }
 
 void
 pretty_print_RWLOCK_INIT(RRLogEntry entry)
 {
+    printf("[builtin] rwlock_init()\n");
 }
 
 void
 pretty_print_RWLOCK_DESTROY(RRLogEntry entry)
 {
+    printf("[builtin] rwlock_destroy()\n");
 }
 
 void
 pretty_print_RWLOCK_UNLOCK(RRLogEntry entry)
 {
+    printf("[builtin] rwlock_unlock()\n");
 }
 
 void
 pretty_print_RWLOCK_RDLOCK(RRLogEntry entry)
 {
+    printf("[builtin] rwlock_rdlock()\n");
 }
 
 void
 pretty_print_RWLOCK_TRYRDLOCK(RRLogEntry entry)
 {
+    printf("[builtin] rwlock_tryrdlock()\n");
 }
 
 void
 pretty_print_RWLOCK_WRLOCK(RRLogEntry entry)
 {
+    printf("[builtin] rwlock_wrlock()\n");
 }
 
 void
 pretty_print_RWLOCK_TRYWRLOCK(RRLogEntry entry)
 {
+    printf("[builtin] rwlock_trywrlock()\n");
 }
 
 void
 pretty_print_RWLOCK_TIMEDRDLOCK(RRLogEntry entry)
 {
+    printf("[builtin] rwlock_timedrdlock()\n");
 }
 
 void
 pretty_print_RWLOCK_TIMEDWRLOCK(RRLogEntry entry)
 {
+    printf("[builtin] rwlock_timedwrlock()\n");
 }
 
 void
 pretty_print_MUTEX_TIMEDLOCK(RRLogEntry entry)
 {
+    printf("[builtin] mutex_timedlock()\n");
 }
 
 void
 pretty_print_THREAD_EXIT(RRLogEntry entry)
 {
+    printf("[builtin] thread_exit()\n");
 }
 
 void
 pretty_print_THREAD_DETACH(RRLogEntry entry)
 {
+    printf("[builtin] thread_detach()\n");
 }
 
 void
 pretty_print_THREAD_JOIN(RRLogEntry entry)
 {
+    printf("[builtin] thread_join()\n");
 }
 
 void
 pretty_print_THREAD_KILL(RRLogEntry entry)
 {
+    printf("[builtin] thread_kill()\n");
 }
 
 void
 pretty_print_THREAD_TIMEDJOIN(RRLogEntry entry)
 {
+    printf("[builtin] thread_timedjoin()\n");
 }
 
 void
 pretty_print_RDTSC(RRLogEntry entry)
 {
+    printf("[builtin] rdtsc()\n");
 }
 
 void
 pretty_print_ATOMIC_LOAD(RRLogEntry entry)
 {
+    printf("[builtin] atomic_load()\n");
 }
 
 void
 pretty_print_ATOMIC_STORE(RRLogEntry entry)
 {
+    printf("[builtin] atomic_store()\n");
 }
 
 void
 pretty_print_ATOMIC_RMW(RRLogEntry entry)
 {
+    printf("[builtin] atomic_rmw()\n");
 }
 
 void
 pretty_print_ATOMIC_XCHG(RRLogEntry entry)
 {
+    printf("[builtin] atomic_xchg()\n");
 }
 
 void
 pretty_print_INLINE_ASM(RRLogEntry entry)
 {
+    printf("[builtin] inline_asm()\n");
 }
 
 void
 pretty_print_WAIT(RRLogEntry entry)
 {
+    printf("[builtin] wait()\n");
 }
 
 void
 pretty_print_SEMCTL(RRLogEntry entry)
 {
+    printf("[builtin] semctl()\n");
 }
 
 void
 pretty_print_SEM_OPEN(RRLogEntry entry)
 {
+    printf("[builtin] sem_open()\n");
 }
 
 void
 pretty_print_SEM_CLOSE(RRLogEntry entry)
 {
+    printf("[builtin] sem_close()\n");
 }
 
 void
 pretty_print_SEM_UNLINK(RRLogEntry entry)
 {
+    printf("[builtin] sem_unlink()\n");
 }
 
 void
 pretty_print_SEM_POST_START(RRLogEntry entry)
 {
+    printf("[builtin] sem_post_start()\n");
 }
 
 void
 pretty_print_SEM_POST_END(RRLogEntry entry)
 {
+    printf("[builtin] sem_post_end()\n");
 }
 
 void
 pretty_print_SEM_WAIT(RRLogEntry entry)
 {
+    printf("[builtin] sem_wait()\n");
 }
 
 void
 pretty_print_SEM_TRYWAIT(RRLogEntry entry)
 {
+    printf("[builtin] sem_trywait()\n");
 }
 
 void
 pretty_print_SEM_TIMEDWAIT(RRLogEntry entry)
 {
+    printf("[builtin] sem_timedwait()\n");
 }
 
 void
 pretty_print_SEM_GETVALUE(RRLogEntry entry)
 {
+    printf("[builtin] sem_getvalue()\n");
 }
 
 void
 pretty_print_SEM_INIT(RRLogEntry entry)
 {
+    printf("[builtin] sem_init()\n");
 }
 
 void
 pretty_print_SEM_DESTROY(RRLogEntry entry)
 {
+    printf("[builtin] sem_destroy()\n");
 }
 
 void
 pretty_print_MMAPFD(RRLogEntry entry)
 {
+    printf("[builtin] mmapfd()\n");
 }
 
 void
 pretty_print_PIPE(RRLogEntry entry)
 {
+    printf("[builtin] pipe()\n");
 }
 
 void
 pretty_print_GETTIME(RRLogEntry entry)
 {
+    printf("[builtin] gettime()\n");
 }
 
 void
 pretty_print_SYSCTL(RRLogEntry entry)
 {
+    printf("[builtin] sysctl()\n");
 }
 
 void
 pretty_print_GETCWD(RRLogEntry entry)
 {
+    printf("[builtin] getcwd()\n");
 }
