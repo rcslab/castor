@@ -40,8 +40,6 @@
 #include <castor/mtx.h>
 #include <castor/events.h>
 
-#include "util.h"
-
 #endif
 
 //XXX add an ifdef for this

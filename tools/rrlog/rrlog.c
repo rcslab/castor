@@ -15,16 +15,18 @@
 #include <castor/events.h>
 #include <castor/file_format.h>
 
+#include "events_pretty_printer_gen.h"
+
 static int logfd;
-static RRLogEntry entry;
 
 struct {
     uint32_t	evtid;
     const char* str;
+    void (*pretty_print)(RRLogEntry entry);
     uint64_t	count;
 } rreventTable[] =
 {
-#define RREVENT(_a, _b) { RREVENT_##_a, #_a, 0 },
+#define RREVENT(_a, _b) { RREVENT_##_a, #_a, pretty_print_##_a, 0 },
     RREVENT_TABLE
 #undef RREVENT
     { 0, 0 }
@@ -62,16 +64,37 @@ int openLog(const char * logfile) {
     return logfd;
 }
 
-void dumpEntry()
+void initStats()
+{
+    for (int i = 0; i < RRLOG_MAX_THREADS; i++) {
+	eventsPerThread[i] = 0;
+    }
+}
+
+void updateStats(RRLogEntry entry) {
+    rreventTable[entry.event].count++;
+    eventsPerThread[entry.threadId] += 1;
+}
+
+int readEntry(RRLogEntry * entry){
+    int result = read(logfd, (void *)entry, sizeof(RRLogEntry));
+    if (result < 0) {
+	perror("read");
+	return 0;
+    }
+    if (result != sizeof(*entry)) {
+	return 0;
+    }
+    return 1;
+}
+
+void dumpEntry(RRLogEntry entry)
 {
     if (entry.event > RREVENTS_MAX) {
 	fprintf(stderr, "invalid event number %u\n", entry.event);
 	exit(1);
     }
-
     const char * event_name = rreventTable[entry.event].str;
-    rreventTable[entry.event].count++;
-    eventsPerThread[entry.threadId] += 1;
 
     printf("%016ld  %08x  %-16s  %016lx  %016lx  %016lx  %016lx  %016lx  %016lx\n",
 	    entry.eventId, entry.threadId, event_name, entry.objectId,
@@ -79,42 +102,50 @@ void dumpEntry()
 	    entry.value[3], entry.value[4]);
 }
 
+void printEntry(RRLogEntry entry)
+{
+    if (entry.event > RREVENTS_MAX) {
+	fprintf(stderr, "invalid event number %u\n", entry.event);
+	exit(1);
+    }
+
+    rreventTable[entry.event].pretty_print(entry);
+}
+
+enum display_modes {TRUSS_MODE, DUMP_MODE};
+
 int main(int argc, const char *argv[])
 {
     int i;
+    int mode = TRUSS_MODE;
 
     if (argc != 2) {
 	fprintf(stderr, "Usage: %s [-h] [LOGFILE]\n", argv[0]);
 	return 1;
     }
 
-    if (!strcmp(argv[1],"-h")) {
-	fprintf(stdout, "Usage: %s [-h] [LOGFILE]\n", argv[0]);
-	return 0;
-    }
+    initStats();
     logfd = openLog(argv[1]);
 
-    uint64_t foo;
-    read(logfd, (void *)&foo, 8);
-    read(logfd, (void *)&foo, 2);
-
-    for (i = 0; i < RRLOG_MAX_THREADS; i++) {
+   for (i = 0; i < RRLOG_MAX_THREADS; i++) {
 	eventsPerThread[i] = 0;
     }
 
-    printf("%-16s  %-8s  %-16s  %-16s  %-16s  %-16s  %-16s  %-16s  %-16s\n",
-	    "Event #", "Thread #", "Event", "Object ID",
-	    "Value[0]", "Value[1]", "Value[2]", "Value[3]", "Value[4]");
-    while (1) {
-	int result = read(logfd, (void *)&entry, sizeof(entry));
-	if (result < 0) {
-	    perror("read");
-	    return 1;
-	}
-	if (result != sizeof(entry))
-	    break;
+    RRLogEntry entry;
+    if (mode == DUMP_MODE) {
+	printf("%-16s  %-8s  %-16s  %-16s  %-16s  %-16s  %-16s  %-16s  %-16s\n",
+		"Event #", "Thread #", "Event", "Object ID",
+		"Value[0]", "Value[1]", "Value[2]", "Value[3]", "Value[4]");
 
-	dumpEntry();
+	while (readEntry(&entry)) {
+	    updateStats(entry);
+	    dumpEntry(entry);
+	}
+    } else if (mode == TRUSS_MODE) {
+	while (readEntry(&entry)) {
+	    updateStats(entry);
+	    printEntry(entry);
+	}
     }
 
     printf("\n%-16s      %s\n", "Event", "Count");

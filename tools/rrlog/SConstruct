@@ -2,7 +2,8 @@
 Import('env')
 
 src = [
-    "rrlog.c"
+    "rrlog.c",
+    "events_pretty_printer_gen.c"
 ]
 
 env.Program("rrlog", src)

@@ -24,11 +24,13 @@ TYPE_SIZES_OUT_PATH = "./type_sizes.out"
 
 HANDLER_PATH =  "./events_gen.c"
 HEADER_PATH  =  "./events_gen.h"
-PRINTER_PATH =  "./events_pretty_printer_gen.c"
+PRINTER_CPATH =  "./events_pretty_printer_gen.c"
+PRINTER_HPATH =  "./events_pretty_printer_gen.h"
 
 cout = open(HANDLER_PATH, "w")
 hout = open(HEADER_PATH, "w")
-ppout = open(PRINTER_PATH, "w")
+ppc_out = open(PRINTER_CPATH, "w")
+pph_out = open(PRINTER_HPATH, "w")
 
 debug_flag = False
 
@@ -67,11 +69,17 @@ def h_output(line):
     line = line + '\n'
     hout.write(line)
 
-def pp_output(line):
+def ppc_output(line):
     if debug_flag:
-        debug("pout", line)
+        debug("ppc_out", line)
     line = line + '\n'
-    ppout.write(line)
+    ppc_out.write(line)
+
+def pph_output(line):
+    if debug_flag:
+        debug("pph_out", line)
+    line = line + '\n'
+    pph_out.write(line)
 
 def scalar_arg_p(arg):
     result = arg['log_spec'] != None and arg['log_spec']['scalar'] == True
@@ -228,9 +236,18 @@ def generate_pretty_printer(spec):
     debug("generating_handler(%s) with spec:%s", (spec['name'], str(spec)))
     name = spec['name']
     return_type = spec['return_type']
-    pp_output("void")
-    pp_output("pretty_print_%s(void) {" % name)
-    pp_output("}\n")
+
+    ppc_output("void")
+    ppc_output("pretty_print_%s(RRLogEntry entry) {" % name.upper())
+    ppc_output('printf("<GENERATED %s>\\n");' % name)
+    ppc_output("}\n")
+
+def generate_builtin_printers(builtins):
+    for name in builtins:
+        ppc_output("void")
+        ppc_output("pretty_print_%s(RRLogEntry entry) {" % name.upper())
+        ppc_output('printf("<BUILTIN %s>\\n");' % name)
+        ppc_output("}\n")
 
 def parse_logspec(sal, type, syscall_name):
     debug("parse_logspec(%s, %s)" % (str(sal), type))
@@ -443,7 +460,8 @@ def generate_preambles():
 """
     c_output(preamble)
     h_output(preamble)
-    pp_output(preamble)
+    ppc_output(preamble)
+    pph_output(preamble)
 
 def padding(str):
     return (20 - len(str)) * ' '
@@ -478,12 +496,21 @@ def generate_header_file(builtin, generated):
 
     h_output("\n#endif")
 
+def generate_pretty_print_header_file(builtin, generated):
+    pph_output("#ifndef __CASTOR_PRETTY_PRINT__")
+    pph_output("#define __CASTOR_PRETTY_PRINT__")
+
+    for name in generated + builtin:
+        pph_output("extern void pretty_print_%s(RRLogEntry entry);" % name.upper())
+
+    pph_output("#endif")
+
 def generate_includes():
     with open(INCLUDES_PATH) as f:
             includes_list = f.read().splitlines()
     for include in includes_list:
         c_output(include)
-        pp_output(include)
+        ppc_output(include)
 
 def generate_boilerplate():
     pass
@@ -524,7 +551,13 @@ def format_handlers():
     subprocess.check_call(["indent","-i4", HANDLER_PATH])
     backup_path = HANDLER_PATH + ".BAK"
     os.unlink(backup_path)
-    print("...formatting complete...")
+    print("...formatted handlers...")
+
+def format_pretty_printers():
+    subprocess.check_call(["indent","-i4", PRINTER_CPATH])
+    backup_path = PRINTER_CPATH + ".BAK"
+    os.unlink(backup_path)
+    print("...formated pretty printers...")
 
 def clean_types(arg):
     #get replace array signatures with pointers
@@ -693,15 +726,21 @@ if __name__ == '__main__':
     debug("type_list:", type_list)
     type_size_map = build_type_size_map(type_list)
     debug("type_size_map:", type_size_map)
+
     for desc in processed_descriptions:
             desc = generate_handler(desc, type_size_map)
             generate_pretty_printer(desc)
             generated = generated + [desc['name']]
 
+    generate_builtin_printers(builtin_list)
     generate_bindings(generated)
     generate_header_file(builtin_list, generated)
+    generate_pretty_print_header_file(builtin_list, generated)
+
     cout.close()
     hout.close()
+    ppc_out.close()
+    pph_out.close()
 
     missing = set(autogenerate_list) - set(generated)
     if len(missing) != 0:
@@ -711,6 +750,7 @@ if __name__ == '__main__':
         sys.exit("\n... Generation failed due to errors...\n")
 
     format_handlers()
+    format_pretty_printers()
 
     print("==Summary==")
     print("System calls of type %s : (%s)" % \
