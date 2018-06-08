@@ -9,17 +9,20 @@ hellodebug
 atomics
 inlineasm
 rdtsc
-; Turning on one-by-one
-thread_basic
-thread_barrier
-thread_cond_broaast
-thread_cond_signal
-thread_mutex
-thread_once
+; Config issue
+mmap_shared_anon
+; Some thread hooks missing
+semaphore_producer_consumer
 thread_print
-thread_rwlock
+thread_barrier
+thread_mutex
 thread_spin
+thread_rwlock
+; Turning on one-by-one
+sysv_sem
 udp
 network_basic
 sendfile
-pthread_producer_consumer
+time
+truncate
+directories
