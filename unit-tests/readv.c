@@ -11,8 +11,7 @@ int main()
     char buf0[40];
     char buf1[40];
 
-    int fd = open("readv-test.c", O_RDONLY);
-
+    int fd = open("readv.c", O_RDONLY);
     if (fd == -1) {
 	perror("open failed");
     }

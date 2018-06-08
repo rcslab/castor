@@ -22,12 +22,10 @@ thread_print
 thread_rwlk
 thread_spin
 time
-truncate
 udp
 fork_basic
 network_basic
 pipe
-readv
 sendfile
 sysv_sem
 semaphore_producer_consumer
