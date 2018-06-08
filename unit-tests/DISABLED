@@ -5,3 +5,29 @@ mmap_shared_shm
 ;Fix rrmode global
 ;read
 hellodebug
+;Turning off compiler stuff
+atomics
+inlineasm
+rdtsc
+; Turning on one-by-one
+directories
+dup
+thread_barrier
+thread_bas
+threadond_broaast
+threadond_signal
+thread_mutex
+thread_oe
+thread_print
+thread_rwlk
+thread_spin
+time
+truncate
+udp
+fork_basic
+network_basic
+pipe
+readv
+sendfile
+sysv_sem
+semaphore_producer_consumer

@@ -18,6 +18,7 @@ TFORMAT = "%-32s [ %s%-9s"+ NORMAL + " ] %-10.6f %-10.6f %-10.6f"
 
 recordtool = "../build/tools/record/record"
 replaytool = "../build/tools/replay/replay"
+os.environ["CASTORDIR"] = "../build/lib/Runtime"
 
 all_tests = []
 for f in sorted(os.listdir('unit-tests/')):
@@ -76,7 +77,7 @@ def ReportDisabled(name):
     write(FORMAT % (name, RED, "Disabled") + "\n")
     disabled.append(name)
 
-def Run(tool, name, output):
+def Run(tool, sname, name, output):
     outfile = open(output, "w+")
     start = time.time()
     t = subprocess.Popen(tool + ["./" + name],
@@ -87,11 +88,11 @@ def Run(tool, name, output):
         if t.returncode == 0:
             return (time.time() - start)
         if t.returncode != None:
-            ReportError(name)
+            ReportError(sname)
             return None
         if (time.time() - start) > TIMEOUT:
             t.kill()
-            ReportTimeout(name)
+            ReportTimeout(sname)
             return None
 
 def read_disabled_list():
@@ -107,17 +108,17 @@ def RunTest(name):
     pname = "../build/unit-tests/" + name
 
     # Normal
-    norm_time = Run([], pname, name + ".normal")
+    norm_time = Run([], name, pname, name + ".normal")
     if norm_time is None:
         return
 
     # Record
-    rec_time = Run([recordtool, "-o", name + ".rr"], pname, name + ".record")
+    rec_time = Run([recordtool, "-o", name + ".rr"], name, pname, name + ".record")
     if rec_time is None:
         return
 
     # Replay
-    rep_time = Run([replaytool, "-o", name + ".rr"], pname, name + ".replay")
+    rep_time = Run([replaytool, "-o", name + ".rr"], name, pname, name + ".replay")
     if rep_time is None:
         return
 
