@@ -2853,45 +2853,6 @@ __rr_lchown(const char *path, uid_t uid, gid_t gid)
     return result;
 }
 
-ssize_t
-__rr_getdents(int fd, char *buf, size_t count){
-    ssize_t	    result;
-    RRLogEntry	   *e;
-
-    switch (rrMode) {
-    case RRMODE_NORMAL:
-	return __rr_syscall(SYS_freebsd11_getdents, fd, buf, count);
-    case RRMODE_RECORD:
-	result = __rr_syscall(SYS_freebsd11_getdents, fd, buf, count);
-	e = RRLog_Alloc(rrlog, threadId);
-	e->event = RREVENT_GETDENTS;
-	e->objectId = (uint64_t) fd;
-	e->value[0] = (uint64_t) result;
-	if (result == -1) {
-	    e->value[1] = (uint64_t) errno;
-	}
-	RRLog_Append(rrlog, e);
-	if (result != -1) {
-	    logData((uint8_t *) buf, (unsigned long)result);
-	}
-	break;
-    case RRMODE_REPLAY:
-	e = RRPlay_Dequeue(rrlog, threadId);
-	AssertEvent(e, RREVENT_GETDENTS);
-	AssertObject(e, (uint64_t) fd);
-	result = (ssize_t) e->value[0];
-	if (result == -1) {
-	    errno = e->value[1];
-	}
-	RRPlay_Free(rrlog, e);
-	if (result != -1) {
-	    logData((uint8_t *) buf, (unsigned long)result);
-	}
-	break;
-    }
-    return result;
-}
-
 int
 __rr_lchmod(const char *path, mode_t mode)
 {
@@ -5633,7 +5594,8 @@ __rr_getdirentries(int fd, char *buf, size_t count, off_t * basep){
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
 	    logData((uint8_t *) buf, (unsigned long)result);
-	    logData((uint8_t *) basep, (unsigned long)sizeof(off_t));
+	    if (basep)
+		logData((uint8_t *) basep, (unsigned long)sizeof(off_t));
 	}
 	break;
     case RRMODE_REPLAY:
@@ -5647,7 +5609,8 @@ __rr_getdirentries(int fd, char *buf, size_t count, off_t * basep){
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
 	    logData((uint8_t *) buf, (unsigned long)result);
-	    logData((uint8_t *) basep, (unsigned long)sizeof(off_t));
+	    if (basep)
+		logData((uint8_t *) basep, (unsigned long)sizeof(off_t));
 	}
 	break;
     }
@@ -5681,44 +5644,6 @@ __rr_truncate(const char *path, __off_t length)
 	    errno = e->value[1];
 	}
 	RRPlay_Free(rrlog, e);
-	break;
-    }
-    return result;
-}
-
-int
-__rr_lstat(const char *path, struct stat *ub)
-{
-    int		    result;
-    RRLogEntry	   *e;
-
-    switch (rrMode) {
-    case RRMODE_NORMAL:
-	return __rr_syscall(SYS_freebsd11_lstat, path, ub);
-    case RRMODE_RECORD:
-	result = __rr_syscall(SYS_freebsd11_lstat, path, ub);
-	e = RRLog_Alloc(rrlog, threadId);
-	e->event = RREVENT_LSTAT;
-	e->value[0] = (uint64_t) result;
-	if (result == -1) {
-	    e->value[1] = (uint64_t) errno;
-	}
-	RRLog_Append(rrlog, e);
-	if (result != -1) {
-	    logData((uint8_t *) ub, (unsigned long)sizeof(struct stat));
-	}
-	break;
-    case RRMODE_REPLAY:
-	e = RRPlay_Dequeue(rrlog, threadId);
-	AssertEvent(e, RREVENT_LSTAT);
-	result = (int)e->value[0];
-	if (result == -1) {
-	    errno = e->value[1];
-	}
-	RRPlay_Free(rrlog, e);
-	if (result != -1) {
-	    logData((uint8_t *) ub, (unsigned long)sizeof(struct stat));
-	}
 	break;
     }
     return result;
@@ -6347,7 +6272,6 @@ BIND_REF(ffclock_getestimate);
 BIND_REF(ntp_gettime);
 BIND_REF(issetugid);
 BIND_REF(lchown);
-BIND_REF(getdents);
 BIND_REF(lchmod);
 BIND_REF(lutimes);
 BIND_REF(fhopen);
@@ -6426,7 +6350,6 @@ BIND_REF(fdatasync);
 BIND_REF(lseek);
 BIND_REF(getdirentries);
 BIND_REF(truncate);
-BIND_REF(lstat);
 BIND_REF(fhstat);
 BIND_REF(getfsstat);
 BIND_REF(getpeername);

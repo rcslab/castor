@@ -574,43 +574,28 @@ __rr_recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *
     return result;
 }
 
+int __rr_fstatat(int fd, const char *path, struct stat *buf, int flag);
+
 int
 __rr_stat(const char *path, struct stat *ub)
 {
-    int		    result;
-    RRLogEntry	   *e;
-
-    switch (rrMode) {
-    case RRMODE_NORMAL:
-	return __rr_syscall(SYS_fstatat, path, ub);
-    case RRMODE_RECORD:
-	result = __rr_syscall(SYS_fstatat, AT_FDCWD, path, ub, 0);
-	e = RRLog_Alloc(rrlog, threadId);
-	e->event = RREVENT_STAT;
-	e->value[0] = (uint64_t) result;
-	if (result == -1) {
-	    e->value[1] = (uint64_t) errno;
-	}
-	RRLog_Append(rrlog, e);
-	if (result != -1) {
-	    logData((uint8_t *) ub, (unsigned long)sizeof(struct stat));
-	}
-	break;
-    case RRMODE_REPLAY:
-	e = RRPlay_Dequeue(rrlog, threadId);
-	AssertEvent(e, RREVENT_STAT);
-	result = (int)e->value[0];
-	if (result == -1) {
-	    errno = e->value[1];
-	}
-	RRPlay_Free(rrlog, e);
-	if (result != -1) {
-	    logData((uint8_t *) ub, (unsigned long)sizeof(struct stat));
-	}
-	break;
-    }
-    return result;
+    return __rr_fstatat(AT_FDCWD, path, ub, 0);
 }
+
+int
+__rr_lstat(const char *path, struct stat *ub)
+{
+    return __rr_fstatat(AT_FDCWD, path, ub, AT_SYMLINK_NOFOLLOW);
+}
+
+ssize_t __rr_getdirentries(int fd, char *buf, size_t count, off_t *basep);
+
+ssize_t
+__rr_getdents(int fd, char *buf, size_t count)
+{
+    return __rr_getdirentries(fd, buf, count, NULL);
+}
+
 
 BIND_REF(write);
 BIND_REF(close);
@@ -629,6 +614,8 @@ BIND_REF(readv);
 BIND_REF(preadv);
 BIND_REF(writev);
 BIND_REF(stat);
+BIND_REF(lstat);
+BIND_REF(getdents);
 
 //XXX: This is ugly, for some reason things sometimes break strangely when this lives in
 //its own object fil.

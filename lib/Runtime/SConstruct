@@ -3,6 +3,7 @@ Import('env')
 
 src = [
     "runtime.c",
+    "threadid.c",
     "debug.c",
     "util.c",
     "fdinfo.c",

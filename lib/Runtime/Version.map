@@ -147,6 +147,7 @@ global:
 	link;
 	lio_listio;
 	listen;
+	lstat;
 	lutimes;
 	mac_syscall;
 	madvise;
@@ -339,6 +340,7 @@ global:
 	fchmodat;
 	fchownat;
 	fexecve;
+	fstatat;
 	futimesat;
 	jail_get;
 	jail_set;
@@ -415,14 +417,12 @@ global:
 	fhstat;
 	fhstatfs;
 	fstat;
-	fstatat;
 	fstatfs;
 	getdents;
 	getdirentries;
 	getfsstat;
 	getrandom;
 	kevent;
-	lstat;
 	mknod;
 	mknodat;
 	stat;
