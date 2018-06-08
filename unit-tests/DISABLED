@@ -10,21 +10,16 @@ atomics
 inlineasm
 rdtsc
 ; Turning on one-by-one
-directories
+thread_basic
 thread_barrier
-thread_bas
-threadond_broaast
-threadond_signal
+thread_cond_broaast
+thread_cond_signal
 thread_mutex
-thread_oe
+thread_once
 thread_print
-thread_rwlk
+thread_rwlock
 thread_spin
-time
 udp
-fork_basic
 network_basic
 sendfile
-sysv_sem
-semaphore_producer_consumer
-truncate
+pthread_producer_consumer
