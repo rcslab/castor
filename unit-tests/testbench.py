@@ -12,6 +12,7 @@ CLEAR = "\r\033[K"
 RED = "\033[0;31m"
 GREEN = "\033[0;32m"
 NORMAL = "\033[0;39m"
+YELLOW = "\033[0;33m"
 
 FORMAT = "%-32s [ %s%-9s"+ NORMAL + " ]"
 TFORMAT = "%-32s [ %s%-9s"+ NORMAL + " ] %-10.6f %-10.6f %-10.6f"
@@ -74,7 +75,7 @@ def ReportTimeout(name):
 
 def ReportDisabled(name):
     write(CLEAR)
-    write(FORMAT % (name, RED, "Disabled") + "\n")
+    write(FORMAT % (name, YELLOW, "Disabled") + "\n")
     disabled.append(name)
 
 def Run(tool, sname, name, output):
