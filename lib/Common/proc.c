@@ -77,8 +77,11 @@ Spawn(bool pinned, int maxcpus, char *const argv[])
 	abort();
     }
     char libsyspath[512];
-    snprintf(libsyspath, 512, "libsys.so.7=%s/libsys_castor.so", cdir);
+    char ldpreload[512];
+    snprintf(libsyspath, 512, "libsys.so.7=%s/libsys_castor.so,libsys_castor.so=%s/libsys_castor.so", cdir, cdir);
+    snprintf(ldpreload, 512, "%s/../ThreadRuntime/libcastor_thr.so", cdir);
     setenv("LD_LIBMAP", libsyspath, 0);
+    setenv("LD_PRELOAD", ldpreload, 0);
 
     execvp(*argv, argv);
 

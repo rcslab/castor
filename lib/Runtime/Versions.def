@@ -40,3 +40,6 @@ FBSD_1.5 {
 # Please do NOT increment the version of this namespace.
 FBSDprivate_1.0 {
 } FBSD_1.5;
+
+CASTORprivate {
+};

@@ -291,6 +291,7 @@ FBSD_1.0 {
 	utrace;
 	uuidgen;
 	vadvise;
+	wait; /* XXX: Should not need */
 	wait4;
 	write;
 	writev;
@@ -1106,3 +1107,17 @@ FBSDprivate_1.0 {
 	__sys_vfork;
 	_vfork;
 };
+
+CASTORprivate {
+	getThreadId;
+	setThreadId;
+	setThreadFunction;
+	AssertEvent;
+	Debug_Log;
+	Debug_LogBacktrace;
+	__castor_abort;
+	lockTable;
+	rrMode;
+	rrlog;
+};
+

@@ -1,3 +1,17 @@
+CASTORprivate {
+global:
+	getThreadId;
+	setThreadId;
+	setThreadFunction;
+	AssertEvent;
+	Debug_Log;
+	Debug_LogBacktrace;
+	__castor_abort;
+	lockTable;
+	rrMode;
+	rrlog;
+};
+
 FBSD_1.0 {
 global:
 	__acl_aclcheck_fd;
@@ -283,6 +297,7 @@ global:
 	utrace;
 	uuidgen;
 	vadvise;
+	wait;
 	wait4;
 	write;
 	writev;
