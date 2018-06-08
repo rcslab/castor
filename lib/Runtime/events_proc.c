@@ -48,7 +48,7 @@ __rr_fork(void)
     if (rrMode == RRMODE_RECORD) {
 	thrNo = RRShared_AllocThread(rrlog);
 
-	e = RRLog_Alloc(rrlog, threadId);
+	e = RRLog_Alloc(rrlog, getThreadId());
 	e->event = RREVENT_FORK;
 	e->value[1] = thrNo;
 	RRLog_Append(rrlog, e);
@@ -56,9 +56,9 @@ __rr_fork(void)
 	result = __rr_syscall(SYS_fork);
 
 	if (result == 0) {
-	    threadId = thrNo;
+	    setThreadId(thrNo);
 	} else {
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_FORKEND;
 	    e->value[0] = (uint64_t)result;
 	    if (result == -1) {
@@ -67,7 +67,7 @@ __rr_fork(void)
 	    RRLog_Append(rrlog, e);
 	}
     } else {
-	e = RRPlay_Dequeue(rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, getThreadId());
 	AssertEvent(e, RREVENT_FORK);
 	thrNo = e->value[1];
 	RRPlay_Free(rrlog, e);
@@ -80,7 +80,7 @@ __rr_fork(void)
 	}
 
 	if (rstatus != 0) {
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_FORKEND);
 	    result = (int)e->value[0];
 	    if (result == -1) {
@@ -88,7 +88,7 @@ __rr_fork(void)
 	    }
 	    RRPlay_Free(rrlog, e);
 	} else {
-	    threadId = thrNo;
+	    setThreadId(thrNo);
 	    result = 0;
 	}
     }
@@ -107,11 +107,11 @@ __rr_exit(int status)
     }
 
     if (rrMode == RRMODE_RECORD) {
-	e = RRLog_Alloc(rrlog, threadId);
+	e = RRLog_Alloc(rrlog, getThreadId());
 	e->event = RREVENT_EXIT;
 	RRLog_Append(rrlog, e);
     } else {
-	e = RRPlay_Dequeue(rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, getThreadId());
 	AssertEvent(e, RREVENT_EXIT);
 	RRPlay_Free(rrlog, e);
     }
@@ -135,7 +135,7 @@ __rr_wait(int *status)
 
     if (rrMode == RRMODE_RECORD) {
 	pid = __rr_syscall(SYS_wait4, WAIT_ANY, status, 0, NULL);
-	e = RRLog_Alloc(rrlog, threadId);
+	e = RRLog_Alloc(rrlog, getThreadId());
 	e->event = RREVENT_WAIT;
 	e->value[0] = (uint64_t)pid;
 	if (pid == -1) {
@@ -148,7 +148,7 @@ __rr_wait(int *status)
     } else {
 	// XXX: Use waitpid to wait for the correct child
 	__rr_syscall(SYS_wait4, WAIT_ANY, NULL, 0, NULL);
-	e = RRPlay_Dequeue(rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, getThreadId());
 	AssertEvent(e, RREVENT_WAIT);
 	pid = (int)e->value[0];
 	if (pid == -1) {

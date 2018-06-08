@@ -56,7 +56,7 @@ __rr_pipe2(int fildes[2], int flags)
 
     if (rrMode == RRMODE_RECORD) {
 	result =  __rr_syscall(SYS_pipe2, fildes, flags);
-	e = RRLog_Alloc(rrlog, threadId);
+	e = RRLog_Alloc(rrlog, getThreadId());
 	e->event = RREVENT_PIPE2;
 	e->value[0] = (uint64_t)result;
 
@@ -69,7 +69,7 @@ __rr_pipe2(int fildes[2], int flags)
 
 	RRLog_Append(rrlog, e);
     } else {
-	e = RRPlay_Dequeue(rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, getThreadId());
 	AssertEvent(e, RREVENT_PIPE2);
 	result = (int)e->value[0];
 
@@ -289,7 +289,7 @@ __rr_write(int fd, const void *buf, size_t nbytes)
     if (rrMode == RRMODE_RECORD) {
 	result = __rr_syscall(SYS_write, fd, buf, nbytes);
 
-	e = RRLog_Alloc(rrlog, threadId);
+	e = RRLog_Alloc(rrlog, getThreadId());
 	e->event = RREVENT_WRITE;
 	e->objectId = (uint64_t)fd;
 	e->value[0] = (uint64_t)result;
@@ -310,7 +310,7 @@ __rr_write(int fd, const void *buf, size_t nbytes)
 	    __rr_syscall(SYS_write, fd, buf, nbytes);
 	}
 
-	e = RRPlay_Dequeue(rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, getThreadId());
 	AssertEvent(e, RREVENT_WRITE);
 	result = (ssize_t)e->value[0];
 	if (result != -1) {
@@ -337,7 +337,7 @@ __rr_writev(int fd, const struct iovec *iov, int iovcnt)
     if (rrMode == RRMODE_RECORD) {
 	result = __rr_syscall(SYS_writev, fd, iov, iovcnt);
 
-	e = RRLog_Alloc(rrlog, threadId);
+	e = RRLog_Alloc(rrlog, getThreadId());
 	e->event = RREVENT_WRITEV;
 	e->objectId = (uint64_t)fd;
 	e->value[0] = (uint64_t)result;
@@ -358,7 +358,7 @@ __rr_writev(int fd, const struct iovec *iov, int iovcnt)
 	    __rr_syscall(SYS_writev, fd, iov, iovcnt);
 	}
 
-	e = RRPlay_Dequeue(rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, getThreadId());
 	AssertEvent(e, RREVENT_WRITEV);
 	result = (ssize_t)e->value[0];
 	if (result != -1) {
@@ -385,7 +385,7 @@ __rr_pwrite(int fd, const void *buf, size_t nbytes, off_t offset)
     if (rrMode == RRMODE_RECORD) {
 	result = __rr_syscall(SYS_pwrite, fd, buf, nbytes, offset);
 
-	e = RRLog_Alloc(rrlog, threadId);
+	e = RRLog_Alloc(rrlog, getThreadId());
 	e->event = RREVENT_PWRITE;
 	e->objectId = (uint64_t)fd;
 	e->value[0] = (uint64_t)result;
@@ -406,7 +406,7 @@ __rr_pwrite(int fd, const void *buf, size_t nbytes, off_t offset)
 	    __rr_syscall(SYS_write, fd, buf, nbytes);
 	}
 
-	e = RRPlay_Dequeue(rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, getThreadId());
 	AssertEvent(e, RREVENT_PWRITE);
 	result = (ssize_t)e->value[0];
 	if (result == -1) {

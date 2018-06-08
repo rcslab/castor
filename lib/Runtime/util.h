@@ -9,7 +9,6 @@
 
 extern enum RRMODE rrMode;
 extern RRLog *rrlog;
-extern /* XXX: REENABLE thread_local*/ uint32_t threadId;
 extern Mutex lockTable[LOCKTABLE_SIZE];
 
 #define BIND_REF(_name)\
@@ -39,7 +38,7 @@ uint64_t hashData(uint8_t *buf, size_t len);
 static inline void
 RRLog_LEnter(uint32_t threadId, uint64_t objId)
 {
-    RRLogEntry *e = RRLog_Alloc(rrlog, threadId);
+    RRLogEntry *e = RRLog_Alloc(rrlog, getThreadId());
     e->event = RREVENT_LOCKED_EVENT;
     e->objectId = objId;
     e->value[4] = __builtin_readcyclecounter();
@@ -50,7 +49,7 @@ RRLog_LEnter(uint32_t threadId, uint64_t objId)
 static inline RRLogEntry *
 RRLog_LAlloc(uint32_t threadId)
 {
-    return RRLog_Alloc(rrlog, threadId);
+    return RRLog_Alloc(rrlog, getThreadId());
 }
 
 static inline void
@@ -65,7 +64,7 @@ RRLog_LAppend(RRLogEntry *entry)
 static inline void
 RRPlay_LEnter(uint32_t threadId, uint64_t objId)
 {
-    RRLogEntry *e = RRPlay_Dequeue(rrlog, threadId);
+    RRLogEntry *e = RRPlay_Dequeue(rrlog, getThreadId());
     AssertEvent(e, RREVENT_LOCKED_EVENT);
     Mutex_Lock(GETLOCK(objId));
     RRPlay_Free(rrlog, e);
@@ -74,7 +73,7 @@ RRPlay_LEnter(uint32_t threadId, uint64_t objId)
 static inline RRLogEntry *
 RRPlay_LDequeue(uint32_t threadId)
 {
-    return RRPlay_Dequeue(rrlog, threadId);
+    return RRPlay_Dequeue(rrlog, getThreadId());
 }
 
 static inline void
@@ -91,7 +90,7 @@ RRRecordI(uint32_t eventNum, int32_t result)
 {
     RRLogEntry *e;
 
-    e = RRLog_Alloc(rrlog, threadId);
+    e = RRLog_Alloc(rrlog, getThreadId());
     e->event = eventNum;
     e->objectId = 0;
     e->value[0] = (uint64_t)result;
@@ -106,7 +105,7 @@ RRRecordOI(uint32_t eventNum, int od, int32_t result)
 {
     RRLogEntry *e;
 
-    e = RRLog_Alloc(rrlog, threadId);
+    e = RRLog_Alloc(rrlog, getThreadId());
     e->event = eventNum;
     e->objectId = (uint64_t)od;
     e->value[0] = (uint64_t)result;
@@ -121,7 +120,7 @@ RRReplayI(uint32_t eventNum, int32_t *result)
 {
     RRLogEntry *e;
 
-    e = RRPlay_Dequeue(rrlog, threadId);
+    e = RRPlay_Dequeue(rrlog, getThreadId());
     AssertEvent(e, eventNum);
     if (result != NULL) {
 	*result =  e->value[0];
@@ -137,7 +136,7 @@ RRReplayOI(uint32_t eventNum, int od, int32_t *result)
 {
     RRLogEntry *e;
 
-    e = RRPlay_Dequeue(rrlog, threadId);
+    e = RRPlay_Dequeue(rrlog, getThreadId());
     AssertEvent(e, eventNum);
     AssertObject(e, (uint64_t)od);
     if (result != NULL) {
@@ -155,7 +154,7 @@ RRRecordOU(uint32_t eventNum, int od, uint64_t result)
 {
     RRLogEntry *e;
 
-    e = RRLog_Alloc(rrlog, threadId);
+    e = RRLog_Alloc(rrlog, getThreadId());
     e->event = eventNum;
     e->objectId = (uint64_t)od;
     e->value[0] = (uint64_t)result;
@@ -167,7 +166,7 @@ RRReplayOU(uint32_t eventNum, int od, uint64_t *result)
 {
     RRLogEntry *e;
 
-    e = RRPlay_Dequeue(rrlog, threadId);
+    e = RRPlay_Dequeue(rrlog, getThreadId());
     AssertEvent(e, eventNum);
     AssertObject(e, (uint64_t)od);
     if (result != NULL) {
@@ -181,7 +180,7 @@ RRRecordS(uint32_t eventNum, int64_t result)
 {
     RRLogEntry *e;
 
-    e = RRLog_Alloc(rrlog, threadId);
+    e = RRLog_Alloc(rrlog, getThreadId());
     e->event = eventNum;
     e->value[0] = (uint64_t)result;
     if (result == -1) {
@@ -195,7 +194,7 @@ RRReplayS(uint32_t eventNum, int64_t * result)
 {
     RRLogEntry *e;
 
-    e = RRPlay_Dequeue(rrlog, threadId);
+    e = RRPlay_Dequeue(rrlog, getThreadId());
     AssertEvent(e, eventNum);
     if (result != NULL) {
 	*result = (int64_t)e->value[0];
@@ -211,7 +210,7 @@ RRRecordOS(uint32_t eventNum, int od, int64_t result)
 {
     RRLogEntry *e;
 
-    e = RRLog_Alloc(rrlog, threadId);
+    e = RRLog_Alloc(rrlog, getThreadId());
     e->event = eventNum;
     e->objectId = (uint64_t)od;
     e->value[0] = (uint64_t)result;
@@ -226,7 +225,7 @@ RRReplayOS(uint32_t eventNum, int od, int64_t * result)
 {
     RRLogEntry *e;
 
-    e = RRPlay_Dequeue(rrlog, threadId);
+    e = RRPlay_Dequeue(rrlog, getThreadId());
     AssertEvent(e, eventNum);
     AssertObject(e, (uint64_t)od);
     if (result != NULL) {

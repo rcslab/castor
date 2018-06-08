@@ -111,7 +111,7 @@ __rr_shmget(key_t key, size_t size, int flag)
 	    return __rr_syscall(SYS_shmget, key, size, flag);
 	case RRMODE_RECORD:
 	    result = __rr_syscall(SYS_shmget, key, size, flag);
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_SHMGET;
 	    e->objectId = (uint64_t)result;
 	    if (result == -1) {
@@ -120,7 +120,7 @@ __rr_shmget(key_t key, size_t size, int flag)
 	    RRLog_Append(rrlog, e);
 	    break;
 	case RRMODE_REPLAY:
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_SHMGET);
 	    if ((int)e->objectId == -1) {
 		errno = e->value[1];
@@ -164,7 +164,7 @@ __rr_semget(key_t key, int nsems, int flag)
 	    return __rr_syscall(SYS_semget, key, nsems, flag);
 	case RRMODE_RECORD:
 	    result = __rr_syscall(SYS_semget, key, nsems, flag);
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_SEMGET;
 	    e->objectId = (uint64_t)result;
 	    if (result == -1) {
@@ -173,7 +173,7 @@ __rr_semget(key_t key, int nsems, int flag)
 	    RRLog_Append(rrlog, e);
 	    break;
 	case RRMODE_REPLAY:
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_SEMGET);
 	    if ((int)e->objectId == -1) {
 		errno = e->value[1];
@@ -214,7 +214,7 @@ __rr___semctl(int semid, int semnum, int cmd, union semun *arg)
 	    return __rr_syscall(SYS___semctl, semid, semnum, cmd, arg);
 	case RRMODE_RECORD:
 	    Mutex_Lock(&rrlog->sysvlck);
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    result = __rr_syscall(SYS___semctl, semid, semnum, cmd, arg);
 	    e->event = RREVENT_SEMCTL;
 	    e->objectId = (uint64_t)semid;
@@ -226,7 +226,7 @@ __rr___semctl(int semid, int semnum, int cmd, union semun *arg)
 	    break;
 	case RRMODE_REPLAY: {
 	    Mutex_Lock(&rrlog->sysvlck);
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    int rSemid = sysv_lookup(semid);
 	    if (cmd == GETPID) {
 		result = (int) e->value[0];

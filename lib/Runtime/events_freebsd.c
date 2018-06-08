@@ -41,7 +41,7 @@ int __rr___sysctl(const int *name, u_int namelen, void *oldp,
     if (rrMode == RRMODE_RECORD) {
 	result = __rr_syscall(SYS___sysctl, name, namelen, oldp, oldlenp, newp, newlen);
 
-	e = RRLog_Alloc(rrlog, threadId);
+	e = RRLog_Alloc(rrlog, getThreadId());
 	e->event = RREVENT_SYSCTL;
 	e->value[0] = (uint64_t)result;
 	if (oldp) {
@@ -56,7 +56,7 @@ int __rr___sysctl(const int *name, u_int namelen, void *oldp,
 	    logData(oldp, *oldlenp);
 	}
     } else {
-	e = RRPlay_Dequeue(rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, getThreadId());
 	result = (int)e->value[0];
 	if (oldp) {
 	    *oldlenp = e->value[1];

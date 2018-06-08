@@ -39,7 +39,7 @@ __rr_mmap_log(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 
     if (rrMode == RRMODE_RECORD) {
         result = (void *)__rr_syscall_long(SYS_mmap, addr, len, prot, flags, fd, offset);
-        e = RRLog_Alloc(rrlog, threadId);
+        e = RRLog_Alloc(rrlog, getThreadId());
         e->event = RREVENT_MMAPFD;
         e->value[0] = (uint64_t)result;
         if (result == MAP_FAILED) {
@@ -54,7 +54,7 @@ __rr_mmap_log(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
             logData((uint8_t *)result, len);
         }
     } else {
-        e = RRPlay_Dequeue(rrlog, threadId);
+        e = RRPlay_Dequeue(rrlog, getThreadId());
         AssertEvent(e, RREVENT_MMAPFD);
         result = (void *)e->value[0];
         if (result == MAP_FAILED) {
@@ -91,7 +91,7 @@ __rr_mmap_shared(void *addr, size_t len, int prot, int flags, int fd, off_t offs
 
     if (rrMode == RRMODE_RECORD) {
         result = (void *)__rr_syscall_long(SYS_mmap, addr, len, prot, flags, fd, offset);
-        e = RRLog_Alloc(rrlog, threadId);
+        e = RRLog_Alloc(rrlog, getThreadId());
         e->event = RREVENT_MMAPFD;
         e->value[0] = (uint64_t)result;
         if (result == MAP_FAILED) {
@@ -110,7 +110,7 @@ __rr_mmap_shared(void *addr, size_t len, int prot, int flags, int fd, off_t offs
         }
         int realFd = FDInfo_GetFD(fd);
 
-        e = RRPlay_Dequeue(rrlog, threadId);
+        e = RRPlay_Dequeue(rrlog, getThreadId());
         AssertEvent(e, RREVENT_MMAPFD);
         result = (void *)e->value[0];
         if (result == MAP_FAILED) {

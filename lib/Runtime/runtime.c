@@ -33,7 +33,6 @@ extern char * __castor_getenv(const char * name);
 
 RRLog *rrlog;
 enum RRMODE rrMode = RRMODE_NORMAL;
-/* XXX: RENABLE thread_local */ uint32_t threadId = 0; //-1;
 
 __attribute__((constructor)) void
 log_init()
@@ -74,7 +73,7 @@ log_init()
     }
 
     RRShared_SetupThread(rrlog, 0);
-    //threadId = 0;
+    setThreadId(0);
 
     // XXX: Need to remap the region again to the right size
     rr_assert(RRLOG_DEFAULT_REGIONSZ == rrlog->regionSz);

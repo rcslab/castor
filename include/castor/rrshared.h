@@ -79,6 +79,9 @@ typedef struct RRLog {
     Mutex sysvlck;
 } RRLog;
 
+extern uint64_t (*getThreadId)();
+extern void (*setThreadId)();
+
 #define ROUNDUP(_x, _n) ((_x + _n - 1) & ~(_n - 1))
 
 static inline uintptr_t

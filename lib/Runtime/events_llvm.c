@@ -30,14 +30,14 @@ __castor_rdtsc()
 	    break;
 	case RRMODE_RECORD:
 	    val = __builtin_readcyclecounter();
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_RDTSC;
 	    e->objectId = 0;
 	    e->value[0] = val;
 	    RRLog_Append(rrlog, e);
 	    break;
 	case RRMODE_REPLAY:
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_RDTSC);
 	    val = e->value[0];
 	    RRPlay_Free(rrlog, e);
@@ -53,10 +53,10 @@ __castor_load_begin(void *ptr)
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    RRLog_LEnter(threadId, (uint64_t)ptr);
+	    RRLog_LEnter(getThreadId(), (uint64_t)ptr);
 	    break;
 	case RRMODE_REPLAY:
-	    RRPlay_LEnter(threadId, (uint64_t)ptr);
+	    RRPlay_LEnter(getThreadId(), (uint64_t)ptr);
 	    break;
     }
     return;
@@ -71,13 +71,13 @@ __castor_load_end(void *ptr)
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    e = RRLog_LAlloc(threadId);
+	    e = RRLog_LAlloc(getThreadId());
 	    e->event = RREVENT_ATOMIC_LOAD;
 	    e->objectId = (uint64_t)ptr;
 	    RRLog_LAppend(e);
 	    break;
 	case RRMODE_REPLAY:
-	    e = RRPlay_LDequeue(threadId);
+	    e = RRPlay_LDequeue(getThreadId());
 	    AssertEvent(e, RREVENT_ATOMIC_LOAD);
 	    RRPlay_LFree(e);
 	    break;
@@ -92,10 +92,10 @@ __castor_store_begin(void *ptr)
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    RRLog_LEnter(threadId, (uint64_t)ptr);
+	    RRLog_LEnter(getThreadId(), (uint64_t)ptr);
 	    break;
 	case RRMODE_REPLAY:
-	    RRPlay_LEnter(threadId, (uint64_t)ptr);
+	    RRPlay_LEnter(getThreadId(), (uint64_t)ptr);
 	    break;
     }
     return;
@@ -110,13 +110,13 @@ __castor_store_end(void *ptr)
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    e = RRLog_LAlloc(threadId);
+	    e = RRLog_LAlloc(getThreadId());
 	    e->event = RREVENT_ATOMIC_STORE;
 	    e->objectId = (uint64_t)ptr;
 	    RRLog_LAppend(e);
 	    break;
 	case RRMODE_REPLAY:
-	    e = RRPlay_LDequeue(threadId);
+	    e = RRPlay_LDequeue(getThreadId());
 	    AssertEvent(e, RREVENT_ATOMIC_STORE);
 	    RRPlay_LFree(e);
 	    break;
@@ -131,10 +131,10 @@ __castor_cmpxchg_begin(void *ptr)
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    RRLog_LEnter(threadId, (uint64_t)ptr);
+	    RRLog_LEnter(getThreadId(), (uint64_t)ptr);
 	    break;
 	case RRMODE_REPLAY:
-	    RRPlay_LEnter(threadId, (uint64_t)ptr);
+	    RRPlay_LEnter(getThreadId(), (uint64_t)ptr);
 	    break;
     }
     return;
@@ -149,13 +149,13 @@ __castor_cmpxchg_end(void *ptr)
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    e = RRLog_LAlloc(threadId);
+	    e = RRLog_LAlloc(getThreadId());
 	    e->event = RREVENT_ATOMIC_XCHG;
 	    e->objectId = (uint64_t)ptr;
 	    RRLog_LAppend(e);
 	    break;
 	case RRMODE_REPLAY:
-	    e = RRPlay_LDequeue(threadId);
+	    e = RRPlay_LDequeue(getThreadId());
 	    AssertEvent(e, RREVENT_ATOMIC_XCHG);
 	    RRPlay_LFree(e);
 	    break;
@@ -170,10 +170,10 @@ __castor_rmw_begin(void *ptr)
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    RRLog_LEnter(threadId, (uint64_t)ptr);
+	    RRLog_LEnter(getThreadId(), (uint64_t)ptr);
 	    break;
 	case RRMODE_REPLAY:
-	    RRPlay_LEnter(threadId, (uint64_t)ptr);
+	    RRPlay_LEnter(getThreadId(), (uint64_t)ptr);
 	    break;
     }
     return;
@@ -188,13 +188,13 @@ __castor_rmw_end(void *ptr)
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    e = RRLog_LAlloc(threadId);
+	    e = RRLog_LAlloc(getThreadId());
 	    e->event = RREVENT_ATOMIC_RMW;
 	    e->objectId = (uint64_t)ptr;
 	    RRLog_LAppend(e);
 	    break;
 	case RRMODE_REPLAY:
-	    e = RRPlay_LDequeue(threadId);
+	    e = RRPlay_LDequeue(getThreadId());
 	    AssertEvent(e, RREVENT_ATOMIC_RMW);
 	    RRPlay_LFree(e);
 	    break;
@@ -209,10 +209,10 @@ __castor_asm_begin()
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    RRLog_LEnter(threadId, (uint64_t)0);
+	    RRLog_LEnter(getThreadId(), (uint64_t)0);
 	    break;
 	case RRMODE_REPLAY:
-	    RRPlay_LEnter(threadId, (uint64_t)0);
+	    RRPlay_LEnter(getThreadId(), (uint64_t)0);
 	    break;
     }
     return;
@@ -227,13 +227,13 @@ __castor_asm_end()
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    e = RRLog_LAlloc(threadId);
+	    e = RRLog_LAlloc(getThreadId());
 	    e->event = RREVENT_INLINE_ASM;
 	    e->objectId = (uint64_t)0;
 	    RRLog_LAppend(e);
 	    break;
 	case RRMODE_REPLAY:
-	    e = RRPlay_LDequeue(threadId);
+	    e = RRPlay_LDequeue(getThreadId());
 	    AssertEvent(e, RREVENT_INLINE_ASM);
 	    RRPlay_LFree(e);
 	    break;

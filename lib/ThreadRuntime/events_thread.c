@@ -91,7 +91,7 @@ thrwrapper(void *arg)
 {
     uintptr_t thrNo = (uintptr_t)arg;
 
-    threadId = thrNo;
+    setThreadId(thrNo);
 
     return (threadState[thrNo].start)(threadState[thrNo].arg);
 }
@@ -114,13 +114,13 @@ pthread_create(pthread_t * thread, const pthread_attr_t * attr,
     }
 
     if (rrMode == RRMODE_RECORD) {
-	e = RRLog_Alloc(rrlog, threadId);
+	e = RRLog_Alloc(rrlog, getThreadId());
 	e->event = RREVENT_THREAD_CREATE;
 	thrNo = RRShared_AllocThread(rrlog);
 	e->value[1] = thrNo;
 	RRLog_Append(rrlog, e);
     } else {
-	e = RRPlay_Dequeue(rrlog, threadId);
+	e = RRPlay_Dequeue(rrlog, getThreadId());
 	thrNo = e->value[1];
 	AssertEvent(e, RREVENT_THREAD_CREATE);
 	RRPlay_Free(rrlog, e);
@@ -144,13 +144,13 @@ pthread_cond_init(pthread_cond_t *cond, const pthread_condattr_t *attr)
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_COND_INIT;
 	    e->objectId = (uint64_t)cond;
 	    RRLog_Append(rrlog, e);
 	    break;
 	case RRMODE_REPLAY:
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_COND_INIT);
 	    RRPlay_Free(rrlog, e);
 	    break;
@@ -167,13 +167,13 @@ pthread_cond_destroy(pthread_cond_t *cond)
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_COND_DESTROY;
 	    e->objectId = (uint64_t)cond;
 	    RRLog_Append(rrlog, e);
 	    break;
 	case RRMODE_REPLAY:
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_COND_DESTROY);
 	    RRPlay_Free(rrlog, e);
 	    break;
@@ -193,14 +193,14 @@ pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_COND_WAIT;
 	    e->objectId = (uint64_t)cond;
 	    RRLog_Append(rrlog, e);
       
 	    result = _pthread_cond_wait(cond, mutex);
 	    
-      e = RRLog_Alloc(rrlog, threadId);
+      e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_COND_WAIT;
 	    e->objectId = (uint64_t)cond;
 	    e->value[0] = (uint64_t)result;
@@ -208,12 +208,12 @@ pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_COND_WAIT);
 	    _pthread_mutex_unlock(mutex);
 	    RRPlay_Free(rrlog, e);
       
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    result = (int)e->value[0];
 	    AssertEvent(e, RREVENT_COND_WAIT);
 	    __pthread_mutex_lock(mutex);
@@ -238,7 +238,7 @@ pthread_cond_signal(pthread_cond_t *cond)
 	}
 	case RRMODE_RECORD: {
 	    result = _pthread_cond_signal(cond);
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_COND_SIGNAL;
 	    e->objectId = (uint64_t)cond;
 	    e->value[0] = (uint64_t)result;
@@ -246,7 +246,7 @@ pthread_cond_signal(pthread_cond_t *cond)
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_COND_SIGNAL);
 	    result = (int)e->value[0];
 	    RRPlay_Free(rrlog, e);
@@ -270,7 +270,7 @@ pthread_cond_broadcast(pthread_cond_t *cond)
 	}
 	case RRMODE_RECORD: {
 	    result = _pthread_cond_broadcast(cond);
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_COND_BROADCAST;
 	    e->objectId = (uint64_t)cond;
 	    e->value[0] = (uint64_t)result;
@@ -278,7 +278,7 @@ pthread_cond_broadcast(pthread_cond_t *cond)
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_COND_BROADCAST);
 	    result = (int)e->value[0];
 	    RRPlay_Free(rrlog, e);
@@ -298,13 +298,13 @@ pthread_barrier_destroy(pthread_barrier_t *barrier)
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_BARRIER_DESTROY;
 	    e->objectId = (uint64_t)barrier;
 	    RRLog_Append(rrlog, e);
 	    break;
 	case RRMODE_REPLAY:
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_BARRIER_DESTROY);
 	    RRPlay_Free(rrlog, e);
 	    break;
@@ -322,13 +322,13 @@ pthread_barrier_init(pthread_barrier_t *barrier, const pthread_barrierattr_t *at
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_BARRIER_INIT;
 	    e->objectId = (uint64_t)barrier;
 	    RRLog_Append(rrlog, e);
 	    break;
 	case RRMODE_REPLAY:
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_BARRIER_INIT);
 	    RRPlay_Free(rrlog, e);
 	    break;
@@ -348,12 +348,12 @@ pthread_barrier_wait(pthread_barrier_t *barrier)
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_BARRIER_WAIT;
 	    e->objectId = (uint64_t)barrier;
 	    RRLog_Append(rrlog, e);
 	    result = _pthread_barrier_wait(barrier);
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_BARRIER_WAIT;
 	    e->objectId = (uint64_t)barrier;
 	    e->value[0] = (uint64_t)result;
@@ -361,10 +361,10 @@ pthread_barrier_wait(pthread_barrier_t *barrier)
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_BARRIER_WAIT);
 	    RRPlay_Free(rrlog, e);
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    result = (int)e->value[0];
 	    AssertEvent(e, RREVENT_BARRIER_WAIT);
       RRPlay_Free(rrlog, e);
@@ -384,13 +384,13 @@ pthread_mutex_init(pthread_mutex_t *mtx, const pthread_mutexattr_t *attr)
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_MUTEX_INIT;
 	    e->objectId = (uint64_t)mtx;
 	    RRLog_Append(rrlog, e);
 	    break;
 	case RRMODE_REPLAY:
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_MUTEX_INIT);
 	    RRPlay_Free(rrlog, e);
 	    break;
@@ -407,13 +407,13 @@ pthread_mutex_destroy(pthread_mutex_t *mtx)
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_MUTEX_DESTROY;
 	    e->objectId = (uint64_t)mtx;
 	    RRLog_Append(rrlog, e);
 	    break;
 	case RRMODE_REPLAY:
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_MUTEX_DESTROY);
 	    RRPlay_Free(rrlog, e);
 	    break;
@@ -434,11 +434,11 @@ _pthread_mutex_lock(pthread_mutex_t *mtx)
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    RRLog_LEnter(threadId, (uint64_t)mtx);
+	    RRLog_LEnter(getThreadId(), (uint64_t)mtx);
 
 	    result = __pthread_mutex_lock(mtx);
 
-	    e = RRLog_LAlloc(threadId);
+	    e = RRLog_LAlloc(getThreadId());
 	    e->event = RREVENT_MUTEX_LOCK;
 	    e->objectId = (uint64_t)mtx;
 	    e->value[0] = (uint64_t)result;
@@ -447,11 +447,11 @@ _pthread_mutex_lock(pthread_mutex_t *mtx)
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    RRPlay_LEnter(threadId, (uint64_t)mtx);
+	    RRPlay_LEnter(getThreadId(), (uint64_t)mtx);
 
 	    result = __pthread_mutex_lock(mtx);
 
-	    e = RRPlay_LDequeue(threadId);
+	    e = RRPlay_LDequeue(getThreadId());
 	    AssertEvent(e, RREVENT_MUTEX_LOCK);
 	    // ASSERT result = e->value[0];
 	    RRPlay_LFree(e);
@@ -459,14 +459,14 @@ _pthread_mutex_lock(pthread_mutex_t *mtx)
 	}
 	/*
 	 * case RRMODE_FDREPLAY: {
-	 *     e = RRLog_Alloc(rrlog, threadId);
+	 *     e = RRLog_Alloc(rrlog, getThreadId());
 	 *     e->objectId = 1;
 	 *     result = _pthread_mutex_lock(mtx);
 	 *     RRLog_Append(rrlog, e);
 	 *     break;
 	 * }
 	 * case RRMODE_FTREPLAY: {
-	 *     e = RRPlay_Dequeue(rrlog, threadId);
+	 *     e = RRPlay_Dequeue(rrlog, getThreadId());
 	 *     result = _pthread_mutex_lock(mtx);
 	 *     RRPlay_Free(rrlog, e);
 	 *     break;
@@ -489,7 +489,7 @@ pthread_mutex_trylock(pthread_mutex_t *mtx)
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_MUTEX_TRYLOCK;
 	    e->objectId = (uint64_t)mtx;
 	    result = _pthread_mutex_trylock(mtx);
@@ -498,7 +498,7 @@ pthread_mutex_trylock(pthread_mutex_t *mtx)
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
       AssertEvent(e, RREVENT_MUTEX_TRYLOCK);
 	    result = (int)e->value[0];
 	    RRPlay_Free(rrlog, e);
@@ -507,14 +507,14 @@ pthread_mutex_trylock(pthread_mutex_t *mtx)
   /* XXX: remove cruft */
 	/*
 	 * case RRMODE_FDREPLAY: {
-	 *     e = RRLog_Alloc(rrlog, threadId);
+	 *     e = RRLog_Alloc(rrlog, getThreadId());
 	 *     e->objectId = 1;
 	 *     result = _pthread_mutex_trylock(mtx);
 	 *     RRLog_Append(rrlog, e);
 	 *     break;
 	 * }
 	 * case RRMODE_FTREPLAY: {
-	 *     e = RRPlay_Dequeue(rrlog, threadId);
+	 *     e = RRPlay_Dequeue(rrlog, getThreadId());
 	 *     result = _pthread_mutex_trylock(mtx);
 	 *     RRPlay_Free(rrlog, e);
 	 *     break;
@@ -538,7 +538,7 @@ pthread_mutex_unlock(pthread_mutex_t *mtx)
 	}
 	case RRMODE_RECORD: {
 	    result = _pthread_mutex_unlock(mtx);
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_MUTEX_UNLOCK;
 	    e->objectId = (uint64_t)mtx;
 	    e->value[0] = (uint64_t)result;
@@ -548,7 +548,7 @@ pthread_mutex_unlock(pthread_mutex_t *mtx)
 	}
 	case RRMODE_REPLAY: {
 	    result = _pthread_mutex_unlock(mtx);
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_MUTEX_UNLOCK);
 	    // ASSERT result = e->value[0];
 	    RRPlay_Free(rrlog, e);
@@ -581,11 +581,11 @@ pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct timespec *abs_timeo
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    RRLog_LEnter(threadId, (uint64_t)mutex);
+	    RRLog_LEnter(getThreadId(), (uint64_t)mutex);
 
 	    result = _pthread_mutex_timedlock(mutex, abs_timeout);
 
-	    e = RRLog_LAlloc(threadId);
+	    e = RRLog_LAlloc(getThreadId());
 	    e->event = RREVENT_MUTEX_TIMEDLOCK;
 	    e->objectId = (uint64_t)mutex;
 	    e->value[0] = (uint64_t)result;
@@ -594,8 +594,8 @@ pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct timespec *abs_timeo
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    RRPlay_LEnter(threadId, (uint64_t)mutex);
-	    e = RRPlay_LDequeue(threadId);
+	    RRPlay_LEnter(getThreadId(), (uint64_t)mutex);
+	    e = RRPlay_LDequeue(getThreadId());
 	    AssertEvent(e, RREVENT_MUTEX_TIMEDLOCK);
       
       /* Record call was successful, wait until replay call matches */
@@ -624,13 +624,13 @@ pthread_spin_init(pthread_spinlock_t *lock, int pshared)
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_SPIN_INIT;
 	    e->objectId = (uint64_t)lock;
 	    RRLog_Append(rrlog, e);
 	    break;
 	case RRMODE_REPLAY:
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_SPIN_INIT);
 	    RRPlay_Free(rrlog, e);
 	    break;
@@ -647,13 +647,13 @@ pthread_spin_destroy(pthread_spinlock_t *lock)
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_SPIN_DESTROY;
 	    e->objectId = (uint64_t)lock;
 	    RRLog_Append(rrlog, e);
 	    break;
 	case RRMODE_REPLAY:
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_SPIN_DESTROY);
 	    RRPlay_Free(rrlog, e);
 	    break;
@@ -674,11 +674,11 @@ pthread_spin_lock(pthread_spinlock_t *lock)
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    RRLog_LEnter(threadId, (uint64_t)lock);
+	    RRLog_LEnter(getThreadId(), (uint64_t)lock);
 
 	    result = _pthread_spin_lock(lock);
 
-	    e = RRLog_LAlloc(threadId);
+	    e = RRLog_LAlloc(getThreadId());
 	    e->event = RREVENT_SPIN_LOCK;
 	    e->objectId = (uint64_t)lock;
 	    e->value[0] = (uint64_t)result;
@@ -687,11 +687,11 @@ pthread_spin_lock(pthread_spinlock_t *lock)
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    RRPlay_LEnter(threadId, (uint64_t)lock);
+	    RRPlay_LEnter(getThreadId(), (uint64_t)lock);
 
 	    result = _pthread_spin_lock(lock);
 
-	    e = RRPlay_LDequeue(threadId);
+	    e = RRPlay_LDequeue(getThreadId());
 	    AssertEvent(e, RREVENT_SPIN_LOCK);
 	    // ASSERT result = e->value[0];
 	    RRPlay_LFree(e);
@@ -714,7 +714,7 @@ pthread_spin_trylock(pthread_spinlock_t *lock)
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_SPIN_TRYLOCK;
 	    e->objectId = (uint64_t)lock;
 	    result = _pthread_spin_trylock(lock);
@@ -723,7 +723,7 @@ pthread_spin_trylock(pthread_spinlock_t *lock)
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
       AssertEvent(e, RREVENT_SPIN_TRYLOCK);
 	    result = (int)e->value[0];
 	    RRPlay_Free(rrlog, e);
@@ -747,7 +747,7 @@ pthread_spin_unlock(pthread_spinlock_t *lock)
 	}
 	case RRMODE_RECORD: {
 	    result = _pthread_spin_unlock(lock);
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_SPIN_UNLOCK;
 	    e->objectId = (uint64_t)lock;
 	    e->value[0] = (uint64_t)result;
@@ -757,7 +757,7 @@ pthread_spin_unlock(pthread_spinlock_t *lock)
 	}
 	case RRMODE_REPLAY: {
 	    result = _pthread_spin_unlock(lock);
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_SPIN_UNLOCK);
 	    // ASSERT result = e->value[0];
 	    RRPlay_Free(rrlog, e);
@@ -777,13 +777,13 @@ pthread_rwlock_init(pthread_rwlock_t *lock, const pthread_rwlockattr_t *attr)
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_RWLOCK_INIT;
 	    e->objectId = (uint64_t)lock;
 	    RRLog_Append(rrlog, e);
 	    break;
 	case RRMODE_REPLAY:
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_RWLOCK_INIT);
 	    RRPlay_Free(rrlog, e);
 	    break;
@@ -800,13 +800,13 @@ pthread_rwlock_destroy(pthread_rwlock_t *lock)
 	case RRMODE_NORMAL:
 	    break;
 	case RRMODE_RECORD:
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_RWLOCK_DESTROY;
 	    e->objectId = (uint64_t)lock;
 	    RRLog_Append(rrlog, e);
 	    break;
 	case RRMODE_REPLAY:
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_RWLOCK_DESTROY);
 	    RRPlay_Free(rrlog, e);
 	    break;
@@ -827,11 +827,11 @@ pthread_rwlock_rdlock(pthread_rwlock_t *lock)
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    RRLog_LEnter(threadId, (uint64_t)lock);
+	    RRLog_LEnter(getThreadId(), (uint64_t)lock);
 
 	    result = _pthread_rwlock_rdlock(lock);
 
-	    e = RRLog_LAlloc(threadId);
+	    e = RRLog_LAlloc(getThreadId());
 	    e->event = RREVENT_RWLOCK_RDLOCK;
 	    e->objectId = (uint64_t)lock;
 	    e->value[0] = (uint64_t)result;
@@ -840,11 +840,11 @@ pthread_rwlock_rdlock(pthread_rwlock_t *lock)
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    RRPlay_LEnter(threadId, (uint64_t)lock);
+	    RRPlay_LEnter(getThreadId(), (uint64_t)lock);
 
 	    result = _pthread_rwlock_rdlock(lock);
 
-	    e = RRPlay_LDequeue(threadId);
+	    e = RRPlay_LDequeue(getThreadId());
 	    AssertEvent(e, RREVENT_RWLOCK_RDLOCK);
 	    // ASSERT result = e->value[0];
 	    RRPlay_LFree(e);
@@ -867,11 +867,11 @@ pthread_rwlock_timedrdlock(pthread_rwlock_t *lock, const struct timespec *abs_ti
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    RRLog_LEnter(threadId, (uint64_t)lock);
+	    RRLog_LEnter(getThreadId(), (uint64_t)lock);
 
 	    result = _pthread_rwlock_timedrdlock(lock, abs_timeout);
 
-	    e = RRLog_LAlloc(threadId);
+	    e = RRLog_LAlloc(getThreadId());
 	    e->event = RREVENT_RWLOCK_TIMEDRDLOCK;
 	    e->objectId = (uint64_t)lock;
 	    e->value[0] = (uint64_t)result;
@@ -880,8 +880,8 @@ pthread_rwlock_timedrdlock(pthread_rwlock_t *lock, const struct timespec *abs_ti
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    RRPlay_LEnter(threadId, (uint64_t)lock);
-	    e = RRPlay_LDequeue(threadId);
+	    RRPlay_LEnter(getThreadId(), (uint64_t)lock);
+	    e = RRPlay_LDequeue(getThreadId());
 	    AssertEvent(e, RREVENT_RWLOCK_TIMEDRDLOCK);
 
       /* Record call was successful, wait until replay call matches */
@@ -913,7 +913,7 @@ pthread_rwlock_tryrdlock(pthread_rwlock_t *lock)
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_RWLOCK_TRYRDLOCK;
 	    e->objectId = (uint64_t)lock;
 	    result = _pthread_rwlock_tryrdlock(lock);
@@ -922,7 +922,7 @@ pthread_rwlock_tryrdlock(pthread_rwlock_t *lock)
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
       AssertEvent(e, RREVENT_RWLOCK_TRYRDLOCK);
 	    result = (int)e->value[0];
 	    RRPlay_Free(rrlog, e);
@@ -945,11 +945,11 @@ pthread_rwlock_wrlock(pthread_rwlock_t *lock)
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    RRLog_LEnter(threadId, (uint64_t)lock);
+	    RRLog_LEnter(getThreadId(), (uint64_t)lock);
 
 	    result = _pthread_rwlock_wrlock(lock);
 
-	    e = RRLog_LAlloc(threadId);
+	    e = RRLog_LAlloc(getThreadId());
 	    e->event = RREVENT_RWLOCK_WRLOCK;
 	    e->objectId = (uint64_t)lock;
 	    e->value[0] = (uint64_t)result;
@@ -958,11 +958,11 @@ pthread_rwlock_wrlock(pthread_rwlock_t *lock)
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    RRPlay_LEnter(threadId, (uint64_t)lock);
+	    RRPlay_LEnter(getThreadId(), (uint64_t)lock);
 
 	    result = _pthread_rwlock_wrlock(lock);
 
-	    e = RRPlay_LDequeue(threadId);
+	    e = RRPlay_LDequeue(getThreadId());
 	    AssertEvent(e, RREVENT_RWLOCK_WRLOCK);
 	    // ASSERT result = e->value[0];
 	    RRPlay_LFree(e);
@@ -985,11 +985,11 @@ pthread_rwlock_timedwrlock(pthread_rwlock_t *lock, const struct timespec *abs_ti
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    RRLog_LEnter(threadId, (uint64_t)lock);
+	    RRLog_LEnter(getThreadId(), (uint64_t)lock);
 
 	    result = _pthread_rwlock_timedwrlock(lock, abs_timeout);
 
-	    e = RRLog_LAlloc(threadId);
+	    e = RRLog_LAlloc(getThreadId());
 	    e->event = RREVENT_RWLOCK_TIMEDWRLOCK;
 	    e->objectId = (uint64_t)lock;
 	    e->value[0] = (uint64_t)result;
@@ -998,8 +998,8 @@ pthread_rwlock_timedwrlock(pthread_rwlock_t *lock, const struct timespec *abs_ti
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    RRPlay_LEnter(threadId, (uint64_t)lock);
-	    e = RRPlay_LDequeue(threadId);
+	    RRPlay_LEnter(getThreadId(), (uint64_t)lock);
+	    e = RRPlay_LDequeue(getThreadId());
 	    AssertEvent(e, RREVENT_RWLOCK_TIMEDWRLOCK);
 
       /* Record call was successful, wait until replay call matches */
@@ -1031,7 +1031,7 @@ pthread_rwlock_trywrlock(pthread_rwlock_t *lock)
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_RWLOCK_TRYWRLOCK;
 	    e->objectId = (uint64_t)lock;
 	    result = _pthread_rwlock_trywrlock(lock);
@@ -1040,7 +1040,7 @@ pthread_rwlock_trywrlock(pthread_rwlock_t *lock)
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_RWLOCK_TRYWRLOCK);
 	    result = (int)e->value[0];
 	    RRPlay_Free(rrlog, e);
@@ -1064,7 +1064,7 @@ pthread_rwlock_unlock(pthread_rwlock_t *lock)
 	}
 	case RRMODE_RECORD: {
 	    result = _pthread_rwlock_unlock(lock);
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_RWLOCK_UNLOCK;
 	    e->objectId = (uint64_t)lock;
 	    e->value[0] = (uint64_t)result;
@@ -1074,7 +1074,7 @@ pthread_rwlock_unlock(pthread_rwlock_t *lock)
 	}
 	case RRMODE_REPLAY: {
 	    result = _pthread_rwlock_unlock(lock);
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_RWLOCK_UNLOCK);
 	    // ASSERT result = e->value[0];
 	    RRPlay_Free(rrlog, e);
@@ -1097,9 +1097,9 @@ pthread_once(pthread_once_t *once_control, void (*init_routine)(void))
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    RRLog_LEnter(threadId, (uint64_t)once_control);
+	    RRLog_LEnter(getThreadId(), (uint64_t)once_control);
 	    result = _pthread_once(once_control, init_routine);
-	    e = RRLog_LAlloc(threadId);
+	    e = RRLog_LAlloc(getThreadId());
 	    e->event = RREVENT_THREAD_ONCE;
 	    e->objectId = (uint64_t)once_control;
 	    e->value[0] = (uint64_t)result;
@@ -1107,11 +1107,11 @@ pthread_once(pthread_once_t *once_control, void (*init_routine)(void))
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    RRPlay_LEnter(threadId, (uint64_t)once_control);
+	    RRPlay_LEnter(getThreadId(), (uint64_t)once_control);
 
 	    result = _pthread_once(once_control, init_routine);
 
-	    e = RRPlay_LDequeue(threadId);
+	    e = RRPlay_LDequeue(getThreadId());
 	    AssertEvent(e, RREVENT_THREAD_ONCE);
 	    // ASSERT result = e->value[0];
 	    RRPlay_LFree(e);
@@ -1135,7 +1135,7 @@ pthread_detach(pthread_t thread)
 	}
 	case RRMODE_RECORD: {
 	    result = _pthread_detach(thread);
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_THREAD_DETACH;
 	    e->value[0] = (uint64_t)result;
 	    e->value[4] = __builtin_readcyclecounter();
@@ -1144,7 +1144,7 @@ pthread_detach(pthread_t thread)
 	}
 	case RRMODE_REPLAY: {
 	    result = _pthread_detach(thread);
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_THREAD_DETACH);
 	    RRPlay_Free(rrlog, e);
 	    break;
@@ -1167,7 +1167,7 @@ pthread_join(pthread_t thread, void **value_ptr)
 	}
 	case RRMODE_RECORD: {
 	    result = _pthread_join(thread, value_ptr);
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_THREAD_JOIN;
 	    e->value[0] = (uint64_t)result;
 	    e->value[4] = __builtin_readcyclecounter();
@@ -1176,7 +1176,7 @@ pthread_join(pthread_t thread, void **value_ptr)
 	}
 	case RRMODE_REPLAY: {
 	    result = _pthread_join(thread, value_ptr);
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_THREAD_JOIN);
 	    RRPlay_Free(rrlog, e);
 	    break;
@@ -1200,7 +1200,7 @@ _pthread_timedjoin_np(pthread_t thread, void **value_ptr,
 	}
 	case RRMODE_RECORD: {
 	    result = _pthread_join(thread, value_ptr);
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_THREAD_TIMEDJOIN;
 	    e->value[0] = (uint64_t)result;
 	    e->value[4] = __builtin_readcyclecounter();
@@ -1208,7 +1208,7 @@ _pthread_timedjoin_np(pthread_t thread, void **value_ptr,
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_THREAD_TIMEDJOIN);
 
       /* Record call was successful, wait until replay call matches */
@@ -1243,7 +1243,7 @@ pthread_kill(pthread_t thread, int sig)
 	}
 	case RRMODE_RECORD: {
 	    result = _pthread_kill(thread, sig);
-	    e = RRLog_Alloc(rrlog, threadId);
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_THREAD_KILL;
 	    e->value[0] = (uint64_t)result;
 	    e->value[4] = __builtin_readcyclecounter(); //XXX: why is this here
@@ -1252,7 +1252,7 @@ pthread_kill(pthread_t thread, int sig)
 	}
 	case RRMODE_REPLAY: {
 	    result = _pthread_kill(thread, sig);
-	    e = RRPlay_Dequeue(rrlog, threadId);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_THREAD_KILL);
 	    RRPlay_Free(rrlog, e);
 	    break;
