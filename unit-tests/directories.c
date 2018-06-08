@@ -25,7 +25,7 @@ void dump_entries(char * buf, int size)
 
 void list_cwd()
 {
-    char buf[BUFF_MAX]; // we use int's so things are aligned, *sigh*
+    char buf[BUFF_MAX];
     long basep;
     int fd;
     int result;
