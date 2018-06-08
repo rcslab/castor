@@ -11,7 +11,6 @@ inlineasm
 rdtsc
 ; Turning on one-by-one
 directories
-dup
 thread_barrier
 thread_bas
 threadond_broaast
@@ -25,7 +24,7 @@ time
 udp
 fork_basic
 network_basic
-pipe
 sendfile
 sysv_sem
 semaphore_producer_consumer
+truncate

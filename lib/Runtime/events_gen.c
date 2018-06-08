@@ -5613,44 +5613,6 @@ __rr_lseek(int fd, __off_t offset, int whence){
     return result;
 }
 
-int
-__rr_stat(const char *path, struct stat *ub)
-{
-    int		    result;
-    RRLogEntry	   *e;
-
-    switch (rrMode) {
-    case RRMODE_NORMAL:
-	return __rr_syscall(SYS_freebsd11_stat, path, ub);
-    case RRMODE_RECORD:
-	result = __rr_syscall(SYS_freebsd11_stat, path, ub);
-	e = RRLog_Alloc(rrlog, threadId);
-	e->event = RREVENT_STAT;
-	e->value[0] = (uint64_t) result;
-	if (result == -1) {
-	    e->value[1] = (uint64_t) errno;
-	}
-	RRLog_Append(rrlog, e);
-	if (result != -1) {
-	    logData((uint8_t *) ub, (unsigned long)sizeof(struct stat));
-	}
-	break;
-    case RRMODE_REPLAY:
-	e = RRPlay_Dequeue(rrlog, threadId);
-	AssertEvent(e, RREVENT_STAT);
-	result = (int)e->value[0];
-	if (result == -1) {
-	    errno = e->value[1];
-	}
-	RRPlay_Free(rrlog, e);
-	if (result != -1) {
-	    logData((uint8_t *) ub, (unsigned long)sizeof(struct stat));
-	}
-	break;
-    }
-    return result;
-}
-
 ssize_t
 __rr_getdirentries(int fd, char *buf, size_t count, off_t * basep){
     ssize_t	    result;
@@ -6462,7 +6424,6 @@ BIND_REF(chflagsat);
 BIND_REF(accept4);
 BIND_REF(fdatasync);
 BIND_REF(lseek);
-BIND_REF(stat);
 BIND_REF(getdirentries);
 BIND_REF(truncate);
 BIND_REF(lstat);

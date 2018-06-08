@@ -44,33 +44,20 @@
 #include "system.h"
 #include "util.h"
 
-#define SYS_pipe SYS_freebsd10_pipe
-
 static inline int
-call_pipe(int callnum, int fildes[2], int flags)
-{
-    if (callnum == SYS_pipe) {
-	return __rr_syscall(SYS_pipe, fildes);
-    } else {
-	return __rr_syscall(SYS_pipe2, fildes, flags);
-    }
-}
-
-static inline int
-pipe_handler(int callnum, int fildes[2], int flags)
+__rr_pipe2(int fildes[2], int flags)
 {
     int result;
     RRLogEntry *e;
-    uint32_t event_type = (callnum == SYS_pipe) ? RREVENT_PIPE : RREVENT_PIPE2;
 
     if (rrMode == RRMODE_NORMAL) {
-	return call_pipe(callnum, fildes, flags);
+	result = __rr_syscall(SYS_pipe2, fildes, flags);
     }
 
     if (rrMode == RRMODE_RECORD) {
-	result = call_pipe(callnum, fildes, flags);
+	result =  __rr_syscall(SYS_pipe2, fildes, flags);
 	e = RRLog_Alloc(rrlog, threadId);
-	e->event = event_type;
+	e->event = RREVENT_PIPE2;
 	e->value[0] = (uint64_t)result;
 
 	if (result == -1) {
@@ -83,7 +70,7 @@ pipe_handler(int callnum, int fildes[2], int flags)
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, threadId);
-	AssertEvent(e, event_type);
+	AssertEvent(e, RREVENT_PIPE2);
 	result = (int)e->value[0];
 
 	if (result == -1) {
@@ -92,7 +79,7 @@ pipe_handler(int callnum, int fildes[2], int flags)
 	    int status;
 	    int n_fildes[2];
 
-	    status = call_pipe(callnum, n_fildes, flags);
+	    status = __rr_syscall(SYS_pipe2, n_fildes, flags);
 	    ASSERT(status != -1);
 
 	    fildes[0] = (int)e->value[2];
@@ -118,13 +105,7 @@ pipe_handler(int callnum, int fildes[2], int flags)
 int
 __rr_pipe(int fildes[2])
 {
-    return pipe_handler(SYS_pipe, fildes, 0);
-}
-
-int
-__rr_pipe2(int fildes[2], int flags)
-{
-    return pipe_handler(SYS_pipe2, fildes, flags);
+    return __rr_pipe2(fildes, 0);
 }
 
 int
@@ -593,6 +574,44 @@ __rr_recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *
     return result;
 }
 
+int
+__rr_stat(const char *path, struct stat *ub)
+{
+    int		    result;
+    RRLogEntry	   *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return __rr_syscall(SYS_fstatat, path, ub);
+    case RRMODE_RECORD:
+	result = __rr_syscall(SYS_fstatat, AT_FDCWD, path, ub, 0);
+	e = RRLog_Alloc(rrlog, threadId);
+	e->event = RREVENT_STAT;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) ub, (unsigned long)sizeof(struct stat));
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, threadId);
+	AssertEvent(e, RREVENT_STAT);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) ub, (unsigned long)sizeof(struct stat));
+	}
+	break;
+    }
+    return result;
+}
+
 BIND_REF(write);
 BIND_REF(close);
 BIND_REF(fcntl);
@@ -609,6 +628,7 @@ BIND_REF(pwrite);
 BIND_REF(readv);
 BIND_REF(preadv);
 BIND_REF(writev);
+BIND_REF(stat);
 
 //XXX: This is ugly, for some reason things sometimes break strangely when this lives in
 //its own object fil.
