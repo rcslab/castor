@@ -1111,7 +1111,7 @@ FBSDprivate_1.0 {
 CASTORprivate {
 	getThreadId;
 	setThreadId;
-	setThreadFunction;
+	setThreadFunc;
 	AssertEvent;
 	Debug_Log;
 	Debug_LogBacktrace;

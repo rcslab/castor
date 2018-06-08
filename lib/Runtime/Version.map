@@ -2,7 +2,7 @@ CASTORprivate {
 global:
 	getThreadId;
 	setThreadId;
-	setThreadFunction;
+	setThreadFunc;
 	AssertEvent;
 	Debug_Log;
 	Debug_LogBacktrace;
