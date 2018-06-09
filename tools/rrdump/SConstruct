@@ -1,7 +1,0 @@
-
-Import('env')
-
-env.Program("rrdump", ["rrdump.c"],
-            LIBPATH = ["#build/lib/Common"],
-            LIBS = ["CastorCommon", "elf", "execinfo", "edit", "pthread"])
-
