@@ -488,11 +488,14 @@ def padding(str):
 
 def generate_event_table(table_name, event_list, index):
     h_output("#define RREVENT_TABLE_%s\\" % table_name)
+    start = index
     last = event_list[-1]
     for name in event_list[:-1]:
         h_output("\tRREVENT(%s,%s%u)\\" % (name.upper(), padding(name), index))
         index += 1
     h_output("\tRREVENT(%s,%s%u)" % (last.upper(), padding(name), index))
+    end = index
+    h_output("\n#define %s_CONTAINS(x) ((%s < x) && (x < %s))" % (table_name, start, end))
     return index + 1
 
 def generate_header_file(builtin_events, builtin_syscalls, generated):

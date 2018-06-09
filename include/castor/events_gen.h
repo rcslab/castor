@@ -74,6 +74,8 @@
 	RREVENT(SYSCTL,              62)\
 	RREVENT(GETCWD,              63)
 
+#define BUILTIN_EVENTS_CONTAINS(x) ((0 < x) && (x < 63))
+
 
 #define RREVENT_TABLE_BUILTIN_SYSCALLS\
 	RREVENT(SHMGET,              64)\
@@ -96,6 +98,8 @@
 	RREVENT(PIPE2,               81)\
 	RREVENT(GETTIMEOFDAY,        82)\
 	RREVENT(FORK,        83)
+
+#define BUILTIN_SYSCALLS_CONTAINS(x) ((64 < x) && (x < 83))
 
 
 #define RREVENT_TABLE_GENERATED_SYSCALLS\
@@ -272,6 +276,8 @@
 	RREVENT(FHSTATFS,            254)\
 	RREVENT(MKNODAT,             255)\
 	RREVENT(KEVENT,             256)
+
+#define GENERATED_SYSCALLS_CONTAINS(x) ((84 < x) && (x < 256))
 
 #define RREVENTS_MAX 257
 

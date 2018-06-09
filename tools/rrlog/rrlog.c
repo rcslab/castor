@@ -17,7 +17,7 @@
 
 #include "events_pretty_printer_gen.h"
 
-enum display_modes {TRUSS_MODE, DUMP_MODE};
+enum display_modes {ALL_MODE, TRUSS_MODE, DUMP_MODE};
 
 static int logfd;
 
@@ -130,12 +130,26 @@ void prettyPrintEntry(RRLogEntry entry)
     rreventTable[entry.event].pretty_print(entry);
 }
 
+void prettyPrintSyscalls(RRLogEntry entry)
+{
+    if (entry.event > RREVENTS_MAX) {
+	fprintf(stderr, "invalid event number %u\n", entry.event);
+	exit(1);
+    }
+    if (GENERATED_SYSCALLS_CONTAINS(entry.event) ||
+	    BUILTIN_SYSCALLS_CONTAINS(entry.event)) {
+	rreventTable[entry.event].pretty_print(entry);
+    }
+}
+
 
 void
 usage()
 {
     printf("rrlog [options] [logfile]\n");
     printf("  -d	    Dump - display raw log records.\n");
+    printf("  -t            Truss - truss mode, just display system calls.\n");
+    printf("  -a            All -  display all events. (default)\n");
     printf("  -h            Help - display this message.\n");
     printf("  -s            Summary - show summary of total # of events by type and thread.\n");
 }
@@ -143,14 +157,17 @@ usage()
 
 int main(int argc, char * const argv[])
 {
-    int mode = TRUSS_MODE;
+    int mode = ALL_MODE;
     char ch;
     int showStats = 0;
 
-    while ((ch = getopt(argc, argv, "dsh:")) != -1) {
+    while ((ch = getopt(argc, argv, "dtash:")) != -1) {
 	switch (ch) {
 	    case 'd':
 		mode = DUMP_MODE;
+		break;
+	    case 't':
+		mode = TRUSS_MODE;
 		break;
 	    case 's':
 		showStats = 1;
@@ -176,20 +193,28 @@ int main(int argc, char * const argv[])
     initStats();
 
     RRLogEntry entry;
-    if (mode == DUMP_MODE) {
-	printf("%-16s  %-8s  %-16s  %-16s  %-16s  %-16s  %-16s  %-16s  %-16s\n",
-		"Event #", "Thread #", "Event", "Object ID",
-		"Value[0]", "Value[1]", "Value[2]", "Value[3]", "Value[4]");
-
-	while (readEntry(&entry)) {
-	    updateStats(entry);
-	    dumpEntry(entry);
-	}
-    } else if (mode == TRUSS_MODE) {
-	while (readEntry(&entry)) {
-	    updateStats(entry);
-	    prettyPrintEntry(entry);
-	}
+    switch (mode) {
+	case ALL_MODE:
+	    while (readEntry(&entry)) {
+		updateStats(entry);
+		prettyPrintEntry(entry);
+	    }
+	    break;
+	case TRUSS_MODE:
+	    while (readEntry(&entry)) {
+		updateStats(entry);
+		prettyPrintSyscalls(entry);
+	    }
+	    break;
+	case DUMP_MODE:
+	    printf("%-16s  %-8s  %-16s  %-16s  %-16s  %-16s  %-16s  %-16s  %-16s\n",
+		    "Event #", "Thread #", "Event", "Object ID",
+		    "Value[0]", "Value[1]", "Value[2]", "Value[3]", "Value[4]");
+	    while (readEntry(&entry)) {
+		updateStats(entry);
+		dumpEntry(entry);
+	    }
+	    break;
     }
 
     if (showStats) {
