@@ -12,7 +12,5 @@ env["CPPPATH"].append("/usr/src/lib/libc/include")
 rt = env.SharedLibrary("libcastor_thr.so", src,
                        LIBPATH = ["#build/lib/Runtime"], LIBS = ["libsys_castor.so"])
 
-#rt = env.CopyFile("$SYSROOT/usr/lib/libCastorThreadRuntime.a",
-#                  "#build/lib/ThreadRuntime/libCastorThreadRuntime.a")
 env.Alias("CastorThreadRuntime", rt)
 

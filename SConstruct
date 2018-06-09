@@ -162,7 +162,7 @@ VariantDir("build/tools", "tools")
 SConscript("#build/tools/rrlog/SConstruct")
 SConscript("#build/tools/record/SConstruct")
 SConscript("#build/tools/replay/SConstruct")
-SConscript("#build/tools/rrtool/SConstruct")
+#SConscript("#build/tools/rrtool/SConstruct")
 
 
 #cp = env.Command("#lib/Pass/libCastorPass.so",
