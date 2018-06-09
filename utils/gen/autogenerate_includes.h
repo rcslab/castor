@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <time.h>
+#include <signal.h>
 
 
 #include <unistd.h>
@@ -9,7 +10,15 @@
 #include <kenv.h>
 #include <poll.h>
 
+#include <semaphore.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+#include <sys/shm.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
 #include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/ptrace.h>
 #include <sys/event.h>
 #include <sys/socket.h>
 #include <sys/uio.h>
@@ -41,6 +50,3 @@
 #include <castor/events.h>
 
 #endif
-
-//XXX add an ifdef for this
-#define SYS_mknod SYS_freebsd11_mknod

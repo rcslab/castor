@@ -1,5 +1,5 @@
 ;Add anything in the core runtime than needs an event type defined
-;here. e.g. RR_EXIT.
+;here. e.g. RR_EXIT or that we choke on as a syscall for now XXX
 null_event
 exit
 data
@@ -10,9 +10,7 @@ mutex_lock
 mutex_trylock
 mutex_unlock
 thread_create
-fork
 forkend
-wait
 cond_init
 cond_destroy
 cond_wait
@@ -42,37 +40,14 @@ thread_detach
 thread_join
 thread_kill
 thread_timedjoin
-open
-openat
-close
-write
-ioctl
-mmapfd
-fcntl
-pwrite
-getcwd
-readv
-preadv
-writev
-recvmsg
-recvfrom
-pipe
-pipe2
-gettime
-sysctl
-gettimeofday
 rdtsc
 atomic_load
 atomic_store
 atomic_rmw
 atomic_xchg
 inline_asm
-shmget
-semget
+wait
 semctl
-semop
-shm_open
-shm_unlink
 sem_open
 sem_close
 sem_unlink
@@ -84,3 +59,8 @@ sem_timedwait
 sem_getvalue
 sem_init
 sem_destroy
+mmapfd
+pipe
+gettime
+sysctl
+getcwd

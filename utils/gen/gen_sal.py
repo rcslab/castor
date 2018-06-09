@@ -126,7 +126,7 @@ def gen_log_values(spec, type_size_map, mode):
     for arg in spec['args_spec']:
         if scalar_arg_p(arg):
             base_type = arg['type'].split('*')[0].strip()
-            if not 'void' in base_type and type_size_map[base_type] <= SIZEOF_VALUE_FIELD:
+            if not weird_type_p(base_type) and type_size_map[base_type] <= SIZEOF_VALUE_FIELD:
                 values_to_store = True
                 break
 
@@ -139,7 +139,7 @@ def gen_log_values(spec, type_size_map, mode):
     for arg in spec['args_spec']:
         if scalar_arg_p(arg) and next_value < 5:
             base_type = arg['type'].split('*')[0].strip()
-            if not 'void' in base_type and type_size_map[base_type] <= SIZEOF_VALUE_FIELD:
+            if not weird_type_p(base_type) and type_size_map[base_type] <= SIZEOF_VALUE_FIELD:
                 null_check = arg['log_spec']['null_check']
                 if null_check:
                     c_output("if (%s != NULL) {" % arg['name'])
@@ -232,14 +232,34 @@ def generate_handler(spec, type_size_map):
     c_output("}") #end function
     return spec
 
+# typedef struct RRLogEntry {
+#     alignas(CACHELINE) uint64_t		eventId;
+#     uint64_t				objectId;
+#     uint32_t				event;
+#     uint32_t				threadId;
+#     uint64_t				value[5];
+# } RRLogEntry;
+
 def generate_pretty_printer(spec):
     debug("generating_handler(%s) with spec:%s", (spec['name'], str(spec)))
     name = spec['name']
     return_type = spec['return_type']
+    arg_types =  [arg['type'] for arg in spec['args_spec']]
+    leading_object = arg_types and (arg_types[0] == 'int')
+
+    return_format = {'int':'%d', 'ssize_t':'%zd', 'long':'%ld',
+            'pid_t':'%d','uid_t':'%d','gid_t':'%d', 'mode_t':'%d',
+            '__off_t':'%ld'}[return_type]
+    arg_format = '()'
+    arg_values = ''
+    if leading_object:
+        arg_format = '(%d,...)'
+        arg_values = '(int)entry.objectId, '
 
     ppc_output("void")
     ppc_output("pretty_print_%s(RRLogEntry entry) {" % name.upper())
-    ppc_output('printf("<GENERATED %s>\\n");' % name)
+    ppc_output('printf("' + name + arg_format + ' = ' + return_format +  '\\n",' + arg_values +
+            '(' + return_type + ')' + 'entry.value[0]);')
     ppc_output("}\n")
 
 def generate_builtin_printers(builtins):
@@ -475,21 +495,25 @@ def generate_event_table(table_name, event_list, index):
     h_output("\tRREVENT(%s,%s%u)" % (last.upper(), padding(name), index))
     return index + 1
 
-def generate_header_file(builtin, generated):
+def generate_header_file(builtin_events, builtin_syscalls, generated):
     index = 0
     h_output("#ifndef __EVENTS_GEN_H")
     h_output("#define __EVENTS_GEN_H\n")
 
     h_output("\n#define RREVENT(_a, _b) RREVENT_##_a = _b,\n")
 
-    index = generate_event_table("BUILTIN", builtin, index)
+    index = generate_event_table("BUILTIN_EVENTS", builtin_events, index)
     h_output("\n")
-    index = generate_event_table("GENERATED", generated, index)
+
+    index = generate_event_table("BUILTIN_SYSCALLS", builtin_syscalls, index)
+    h_output("\n")
+
+    index = generate_event_table("GENERATED_SYSCALLS", generated, index)
     h_output("\n#define RREVENTS_MAX %s" % index)
 
 
-    h_output("\n#define RREVENT_TABLE RREVENT_TABLE_%s RREVENT_TABLE_%s" %
-            ("BUILTIN", "GENERATED"))
+    h_output("\n#define RREVENT_TABLE RREVENT_TABLE_%s RREVENT_TABLE_%s RREVENT_TABLE_%s" %
+            ("BUILTIN_EVENTS", "BUILTIN_SYSCALLS", "GENERATED_SYSCALLS"))
 
     h_output("\nenum { RREVENT_TABLE };")
     h_output("\n#undef RREVENT")
@@ -535,6 +559,8 @@ def find_duplicates(list):
             seen.add(i)
     return duplicates
 
+def weird_type_p(type):
+    return type in ['void','...']
 
 def read_syscall_list(file_name):
     syscall_list = []
@@ -593,7 +619,7 @@ def read_libc_type_signatures():
     for line in src_lines:
         match = re.search("(?P<return_type>(^[\w\s\*]+))\s"\
                           "(?P<name>(\w+))\("\
-                          "(?P<args>([\w\s\[\],\*^)]+))\)", line)
+                          "(?P<args>([\w\s\.[\],\*^)]+))\)", line)
         if match != None:
             return_type = match.group('return_type').strip()
             name = match.group('name').strip()
@@ -668,7 +694,7 @@ def build_type_size_map(type_list):
     type_size_map = {}
     base_types = map(lambda x: x.split('*')[0].strip(), type_list)
     base_types = list(set(base_types)) #remove duplicates
-    base_types  = filter(lambda x: 'void' not in x, base_types)
+    base_types  = filter(lambda x: not weird_type_p(x), base_types)
     with open(TYPE_SIZES_C_PATH, "w" ) as f:
         f.write('#include \"autogenerate_includes.h\"\n')
         f.write('int main() {\n')
@@ -698,7 +724,8 @@ if __name__ == '__main__':
     passthrough_list = read_syscall_list('passthrough_syscalls')
     unimplemented_list = read_syscall_list('unimplemented_syscalls')
     unsupported_list = read_syscall_list('unsupported_syscalls')
-    builtin_list = read_syscall_list('builtin_events')
+    builtin_syscalls = read_syscall_list('builtin_syscalls')
+    builtin_events = read_syscall_list('builtin_events')
     #XXX need to do something more sensible with this since
     #we now have builtin list
     core_runtime_list = subprocess.check_output('./core_runtime_syscalls.sh').split()
@@ -718,8 +745,10 @@ if __name__ == '__main__':
     debug("syscall_description_list:", syscall_description_list)
     processed_descriptions = []
     type_list = []
+
+    #process builtin_syscalls and declared syscalls
     for desc in syscall_description_list:
-        if desc['name'] in autogenerate_list:
+        if desc['name'] in autogenerate_list + builtin_syscalls:
             desc = resolve_types(desc, type_signatures, type_list)
             desc = add_logspec(desc)
             processed_descriptions.append(desc)
@@ -728,14 +757,15 @@ if __name__ == '__main__':
     debug("type_size_map:", type_size_map)
 
     for desc in processed_descriptions:
+        generate_pretty_printer(desc)
+        if desc['name'] in autogenerate_list:
             desc = generate_handler(desc, type_size_map)
-            generate_pretty_printer(desc)
             generated = generated + [desc['name']]
 
-    generate_builtin_printers(builtin_list)
+    generate_builtin_printers(builtin_events)
     generate_bindings(generated)
-    generate_header_file(builtin_list, generated)
-    generate_pretty_print_header_file(builtin_list, generated)
+    generate_header_file(builtin_events, builtin_syscalls, generated)
+    generate_pretty_print_header_file(builtin_events + builtin_syscalls, generated)
 
     cout.close()
     hout.close()

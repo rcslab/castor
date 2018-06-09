@@ -109,12 +109,6 @@ pretty_print_FCHDIR(RRLogEntry entry)
 }
 
 void
-pretty_print_MKNOD(RRLogEntry entry)
-{
-    printf("mknod() = %d\n", (int)entry.value[0]);
-}
-
-void
 pretty_print_CHMOD(RRLogEntry entry)
 {
     printf("chmod() = %d\n", (int)entry.value[0]);
@@ -163,6 +157,18 @@ pretty_print_GETEUID(RRLogEntry entry)
 }
 
 void
+pretty_print_RECVMSG(RRLogEntry entry)
+{
+    printf("recvmsg(%d,...) = %zd\n", (int)entry.objectId, (ssize_t) entry.value[0]);
+}
+
+void
+pretty_print_SENDMSG(RRLogEntry entry)
+{
+    printf("sendmsg(%d,...) = %zd\n", (int)entry.objectId, (ssize_t) entry.value[0]);
+}
+
+void
 pretty_print_RECVFROM(RRLogEntry entry)
 {
     printf("recvfrom(%d,...) = %zd\n", (int)entry.objectId, (ssize_t) entry.value[0]);
@@ -172,6 +178,12 @@ void
 pretty_print_ACCEPT(RRLogEntry entry)
 {
     printf("accept(%d,...) = %d\n", (int)entry.objectId, (int)entry.value[0]);
+}
+
+void
+pretty_print_GETPEERNAME(RRLogEntry entry)
+{
+    printf("getpeername(%d,...) = %d\n", (int)entry.objectId, (int)entry.value[0]);
 }
 
 void
@@ -541,6 +553,18 @@ pretty_print_FPATHCONF(RRLogEntry entry)
 }
 
 void
+pretty_print_GETRLIMIT(RRLogEntry entry)
+{
+    printf("getrlimit(%d,...) = %d\n", (int)entry.objectId, (int)entry.value[0]);
+}
+
+void
+pretty_print_SETRLIMIT(RRLogEntry entry)
+{
+    printf("setrlimit(%d,...) = %d\n", (int)entry.objectId, (int)entry.value[0]);
+}
+
+void
 pretty_print_UNDELETE(RRLogEntry entry)
 {
     printf("undelete() = %d\n", (int)entry.value[0]);
@@ -622,12 +646,6 @@ void
 pretty_print_LCHOWN(RRLogEntry entry)
 {
     printf("lchown() = %d\n", (int)entry.value[0]);
-}
-
-void
-pretty_print_GETDENTS(RRLogEntry entry)
-{
-    printf("getdents(%d,...) = %d\n", (int)entry.objectId, (int)entry.value[0]);
 }
 
 void
@@ -868,6 +886,24 @@ void
 pretty_print_PWRITE(RRLogEntry entry)
 {
     printf("pwrite(%d,...) = %zd\n", (int)entry.objectId, (ssize_t) entry.value[0]);
+}
+
+void
+pretty_print_LSEEK(RRLogEntry entry)
+{
+    printf("lseek(%d,...) = %ld\n", (int)entry.objectId, (__off_t) entry.value[0]);
+}
+
+void
+pretty_print_TRUNCATE(RRLogEntry entry)
+{
+    printf("truncate() = %d\n", (int)entry.value[0]);
+}
+
+void
+pretty_print_FTRUNCATE(RRLogEntry entry)
+{
+    printf("ftruncate(%d,...) = %d\n", (int)entry.objectId, (int)entry.value[0]);
 }
 
 void
@@ -1117,63 +1153,9 @@ pretty_print_FDATASYNC(RRLogEntry entry)
 }
 
 void
-pretty_print_LSEEK(RRLogEntry entry)
+pretty_print_FSTAT(RRLogEntry entry)
 {
-    printf("lseek(%d,...) = %ld\n", (int)entry.objectId, (__off_t) entry.value[0]);
-}
-
-void
-pretty_print_STAT(RRLogEntry entry)
-{
-    printf("stat() = %d\n", (int)entry.value[0]);
-}
-
-void
-pretty_print_GETDIRENTRIES(RRLogEntry entry)
-{
-    printf("getdirentries(%d,...) = %d\n", (int)entry.objectId, (int)entry.value[0]);
-}
-
-void
-pretty_print_TRUNCATE(RRLogEntry entry)
-{
-    printf("truncate() = %d\n", (int)entry.value[0]);
-}
-
-void
-pretty_print_LSTAT(RRLogEntry entry)
-{
-    printf("lstat() = %d\n", (int)entry.value[0]);
-}
-
-void
-pretty_print_FHSTAT(RRLogEntry entry)
-{
-    printf("fhstat() = %d\n", (int)entry.value[0]);
-}
-
-void
-pretty_print_GETFSSTAT(RRLogEntry entry)
-{
-    printf("getfsstat() = %d\n", (int)entry.value[0]);
-}
-
-void
-pretty_print_GETPEERNAME(RRLogEntry entry)
-{
-    printf("getpeername(%d,...) = %d\n", (int)entry.objectId, (int)entry.value[0]);
-}
-
-void
-pretty_print_FSTATFS(RRLogEntry entry)
-{
-    printf("fstatfs(%d,...) = %d\n", (int)entry.objectId, (int)entry.value[0]);
-}
-
-void
-pretty_print_MKNODAT(RRLogEntry entry)
-{
-    printf("mknodat(%d,...) = %d\n", (int)entry.objectId, (int)entry.value[0]);
+    printf("fstat(%d,...) = %d\n", (int)entry.objectId, (int)entry.value[0]);
 }
 
 void
@@ -1183,21 +1165,15 @@ pretty_print_FSTATAT(RRLogEntry entry)
 }
 
 void
-pretty_print_FHSTATFS(RRLogEntry entry)
+pretty_print_FHSTAT(RRLogEntry entry)
 {
-    printf("fhstatfs() = %d\n", (int)entry.value[0]);
+    printf("fhstat() = %d\n", (int)entry.value[0]);
 }
 
 void
-pretty_print_RECVMSG(RRLogEntry entry)
+pretty_print_GETDIRENTRIES(RRLogEntry entry)
 {
-    printf("recvmsg(%d,...) = %zd\n", (int)entry.objectId, (ssize_t) entry.value[0]);
-}
-
-void
-pretty_print_SENDMSG(RRLogEntry entry)
-{
-    printf("sendmsg(%d,...) = %zd\n", (int)entry.objectId, (ssize_t) entry.value[0]);
+    printf("getdirentries(%d,...) = %zd\n", (int)entry.objectId, (ssize_t) entry.value[0]);
 }
 
 void
@@ -1207,27 +1183,27 @@ pretty_print_STATFS(RRLogEntry entry)
 }
 
 void
-pretty_print_FTRUNCATE(RRLogEntry entry)
+pretty_print_FSTATFS(RRLogEntry entry)
 {
-    printf("ftruncate(%d,...) = %d\n", (int)entry.objectId, (int)entry.value[0]);
+    printf("fstatfs(%d,...) = %d\n", (int)entry.objectId, (int)entry.value[0]);
 }
 
 void
-pretty_print_GETRLIMIT(RRLogEntry entry)
+pretty_print_GETFSSTAT(RRLogEntry entry)
 {
-    printf("getrlimit(%d,...) = %d\n", (int)entry.objectId, (int)entry.value[0]);
+    printf("getfsstat() = %d\n", (int)entry.value[0]);
 }
 
 void
-pretty_print_FSTAT(RRLogEntry entry)
+pretty_print_FHSTATFS(RRLogEntry entry)
 {
-    printf("fstat(%d,...) = %d\n", (int)entry.objectId, (int)entry.value[0]);
+    printf("fhstatfs() = %d\n", (int)entry.value[0]);
 }
 
 void
-pretty_print_SETRLIMIT(RRLogEntry entry)
+pretty_print_MKNODAT(RRLogEntry entry)
 {
-    printf("setrlimit(%d,...) = %d\n", (int)entry.objectId, (int)entry.value[0]);
+    printf("mknodat(%d,...) = %d\n", (int)entry.objectId, (int)entry.value[0]);
 }
 
 void
