@@ -113,7 +113,7 @@ def generate_handler(spec):
     #record mode
     c_output("case RRMODE_RECORD:")
     c_output("result = %s;" % syscall_str)
-    c_output("e = RRLog_Alloc(rrlog, threadId);")
+    c_output("e = RRLog_Alloc(rrlog, getThreadId());")
     c_output("e->event = %s;" % event_number)
     if leading_object:
         c_output("e->objectId = (uint64_t)%s;" % arg_names[0])
@@ -129,7 +129,7 @@ def generate_handler(spec):
 
     #replay mode
     c_output("case RRMODE_REPLAY:")
-    c_output("e = RRPlay_Dequeue(rrlog, threadId);")
+    c_output("e = RRPlay_Dequeue(rrlog, getThreadId());")
     c_output("AssertEvent(e, %s);" % event_number)
     if leading_object:
         c_output("AssertObject(e, (uint64_t)%s);" % arg_names[0])
