@@ -162,9 +162,6 @@ VariantDir("build/tools", "tools")
 SConscript("#build/tools/rrlog/SConstruct")
 SConscript("#build/tools/record/SConstruct")
 SConscript("#build/tools/replay/SConstruct")
-SConscript("#build/tools/baseline/SConstruct")
-SConscript("#build/tools/cft/SConstruct")
-SConscript("#build/tools/rrdump/SConstruct")
 SConscript("#build/tools/rrtool/SConstruct")
 
 
