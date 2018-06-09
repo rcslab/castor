@@ -39,7 +39,5 @@ env_libsys["LINKFLAGS"].append("-Wl,--version-script=lib/Runtime/Version.map")
 
 rt = env_libsys.SharedLibrary("libsys_castor.so", src, LIBS = ["compiler_rt"])
 
-#rt = env.CopyFile("$SYSROOT/usr/lib/libCastorRuntime.a", 
-#"#build/lib/Runtime/libCastorRuntime.a")
 env.Alias("CastorRuntime", rt)
 
