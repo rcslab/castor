@@ -147,7 +147,7 @@ void
 usage()
 {
     printf("rrlog [options] [logfile]\n");
-    printf("  -d	    Dump - display raw log records.\n");
+    printf("  -d            Dump - display raw log records.\n");
     printf("  -t            Truss - truss mode, just display system calls.\n");
     printf("  -a            All -  display all events. (default)\n");
     printf("  -h            Help - display this message.\n");
