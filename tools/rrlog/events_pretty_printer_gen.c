@@ -1173,7 +1173,7 @@ pretty_print_FHSTAT(RRLogEntry entry)
 void
 pretty_print_GETDIRENTRIES(RRLogEntry entry)
 {
-    printf("getdirentries(%d,...) = %zd\n", (int)entry.objectId, (ssize_t) entry.value[0]);
+    printf("getdirentries(%d,...) = %d\n", (int)entry.objectId, (int)entry.value[0]);
 }
 
 void
@@ -1227,7 +1227,7 @@ pretty_print_EXIT(RRLogEntry entry)
 void
 pretty_print_DATA(RRLogEntry entry)
 {
-    printf("[builtin] data()\n");
+    printf("[builtin] <data>\n");
 }
 
 void
