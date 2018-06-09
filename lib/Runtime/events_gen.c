@@ -73,10 +73,9 @@
 #endif
 
 ssize_t
-__rr_read(int fd, void *buf, size_t nbyte)
-{
+__rr_read(int fd, void *buf, size_t nbyte){
     ssize_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -116,7 +115,7 @@ int
 __rr_link(const char *path, const char *link)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -148,7 +147,7 @@ int
 __rr_unlink(const char *path)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -180,7 +179,7 @@ int
 __rr_chdir(const char *path)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -212,7 +211,7 @@ int
 __rr_fchdir(int fd)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -246,7 +245,7 @@ int
 __rr_chmod(const char *path, mode_t mode)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -278,7 +277,7 @@ int
 __rr_chown(const char *path, uid_t uid, gid_t gid)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -307,10 +306,9 @@ __rr_chown(const char *path, uid_t uid, gid_t gid)
 }
 
 pid_t
-__rr_getpid()
-{
+__rr_getpid() {
     pid_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -336,7 +334,7 @@ int
 __rr_mount(const char *type, const char *path, int flags, void *data)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -368,7 +366,7 @@ int
 __rr_unmount(const char *path, int flags)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -400,7 +398,7 @@ int
 __rr_setuid(uid_t uid)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -429,10 +427,9 @@ __rr_setuid(uid_t uid)
 }
 
 uid_t
-__rr_getuid()
-{
+__rr_getuid() {
     uid_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -455,10 +452,9 @@ __rr_getuid()
 }
 
 uid_t
-__rr_geteuid()
-{
+__rr_geteuid() {
     uid_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -481,10 +477,9 @@ __rr_geteuid()
 }
 
 ssize_t
-__rr_sendmsg(int s, const struct msghdr *msg, int flags)
-{
+__rr_sendmsg(int s, const struct msghdr *msg, int flags){
     ssize_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -518,7 +513,7 @@ int
 __rr_accept(int s, struct sockaddr *name, socklen_t * anamelen)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -570,7 +565,7 @@ int
 __rr_getpeername(int fdes, struct sockaddr *asa, socklen_t * alen)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -618,7 +613,7 @@ int
 __rr_getsockname(int fdes, struct sockaddr *asa, socklen_t * alen)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -662,7 +657,7 @@ int
 __rr_access(const char *path, int amode)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -694,7 +689,7 @@ int
 __rr_chflags(const char *path, unsigned long flags)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -726,7 +721,7 @@ int
 __rr_fchflags(int fd, unsigned long flags)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -757,10 +752,9 @@ __rr_fchflags(int fd, unsigned long flags)
 }
 
 pid_t
-__rr_getppid()
-{
+__rr_getppid() {
     pid_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -786,7 +780,7 @@ int
 __rr_dup(int fd)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -817,10 +811,9 @@ __rr_dup(int fd)
 }
 
 gid_t
-__rr_getegid()
-{
+__rr_getegid() {
     gid_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -843,10 +836,9 @@ __rr_getegid()
 }
 
 gid_t
-__rr_getgid()
-{
+__rr_getgid() {
     gid_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -872,7 +864,7 @@ int
 __rr_acct(const char *path)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -904,7 +896,7 @@ int
 __rr_reboot(int opt)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -938,7 +930,7 @@ int
 __rr_symlink(const char *path, const char *link)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -967,10 +959,9 @@ __rr_symlink(const char *path, const char *link)
 }
 
 ssize_t
-__rr_readlink(const char *path, char *buf, size_t count)
-{
+__rr_readlink(const char *path, char *buf, size_t count){
     ssize_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1005,10 +996,9 @@ __rr_readlink(const char *path, char *buf, size_t count)
 }
 
 mode_t
-__rr_umask(mode_t newmask)
-{
+__rr_umask(mode_t newmask) {
     mode_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1034,7 +1024,7 @@ int
 __rr_chroot(const char *path)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1066,7 +1056,7 @@ int
 __rr_getgroups(int gidsetsize, gid_t * gidset)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1110,7 +1100,7 @@ int
 __rr_setgroups(int gidsetsize, const gid_t * gidset)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1144,7 +1134,7 @@ int
 __rr_setitimer(int which, const struct itimerval *itv, struct itimerval *oitv)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1188,7 +1178,7 @@ int
 __rr_swapon(const char *name)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1220,7 +1210,7 @@ int
 __rr_getitimer(int which, struct itimerval *itv)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1260,7 +1250,7 @@ int
 __rr_getdtablesize()
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1292,7 +1282,7 @@ int
 __rr_dup2(int from, int to)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1326,7 +1316,7 @@ int
 __rr_select(int nd, fd_set * in, fd_set * ou, fd_set * ex, struct timeval *tv)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1382,7 +1372,7 @@ int
 __rr_fsync(int fd)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1416,7 +1406,7 @@ int
 __rr_setpriority(int which, int who, int prio)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1450,7 +1440,7 @@ int
 __rr_socket(int domain, int type, int protocol)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1484,7 +1474,7 @@ int
 __rr_connect(int s, const struct sockaddr *name, socklen_t namelen)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1518,7 +1508,7 @@ int
 __rr_getpriority(int which, int who)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1552,7 +1542,7 @@ int
 __rr_bind(int s, const struct sockaddr *name, socklen_t namelen)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1586,7 +1576,7 @@ int
 __rr_setsockopt(int s, int level, int name, const void *val, socklen_t valsize)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1620,7 +1610,7 @@ int
 __rr_listen(int s, int backlog)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1654,7 +1644,7 @@ int
 __rr_getrusage(int who, struct rusage *rusage)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1694,7 +1684,7 @@ int
 __rr_getsockopt(int s, int level, int name, void *val, socklen_t * avalsize)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1742,7 +1732,7 @@ int
 __rr_settimeofday(const struct timeval *tv, const struct timezone *tzp)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1774,7 +1764,7 @@ int
 __rr_fchown(int fd, uid_t uid, gid_t gid)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1808,7 +1798,7 @@ int
 __rr_fchmod(int fd, mode_t mode)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1842,7 +1832,7 @@ int
 __rr_setreuid(uid_t ruid, uid_t euid)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1874,7 +1864,7 @@ int
 __rr_setregid(gid_t rgid, gid_t egid)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1906,7 +1896,7 @@ int
 __rr_rename(const char *from, const char *to)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1938,7 +1928,7 @@ int
 __rr_flock(int fd, int how)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -1972,7 +1962,7 @@ int
 __rr_mkfifo(const char *path, mode_t mode)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2001,10 +1991,9 @@ __rr_mkfifo(const char *path, mode_t mode)
 }
 
 ssize_t
-__rr_sendto(int s, const void *buf, size_t len, int flags, const struct sockaddr *to, socklen_t tolen)
-{
+__rr_sendto(int s, const void *buf, size_t len, int flags, const struct sockaddr *to, socklen_t tolen){
     ssize_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2038,7 +2027,7 @@ int
 __rr_shutdown(int s, int how)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2072,7 +2061,7 @@ int
 __rr_mkdir(const char *path, mode_t mode)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2104,7 +2093,7 @@ int
 __rr_rmdir(const char *path)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2136,7 +2125,7 @@ int
 __rr_utimes(const char *path, const struct timeval *tptr)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2168,7 +2157,7 @@ int
 __rr_adjtime(const struct timeval *delta, struct timeval *olddelta)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2210,7 +2199,7 @@ int
 __rr_quotactl(const char *path, int cmd, int uid, void *arg)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2242,7 +2231,7 @@ int
 __rr_lgetfh(const char *fname, fhandle_t * fhp)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2280,7 +2269,7 @@ int
 __rr_getfh(const char *fname, fhandle_t * fhp)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2318,7 +2307,7 @@ int
 __rr_setfib(int fibnum)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2352,7 +2341,7 @@ int
 __rr_ntp_adjtime(struct timex *tp)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2390,7 +2379,7 @@ int
 __rr_setgid(gid_t gid)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2422,7 +2411,7 @@ int
 __rr_setegid(gid_t egid)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2454,7 +2443,7 @@ int
 __rr_seteuid(uid_t euid)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2486,7 +2475,7 @@ long
 __rr_pathconf(const char *path, int name)
 {
     long	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2518,7 +2507,7 @@ long
 __rr_fpathconf(int fd, int name)
 {
     long	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2552,7 +2541,7 @@ int
 __rr_getrlimit(int which, struct rlimit *rlp)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2592,7 +2581,7 @@ int
 __rr_setrlimit(int which, const struct rlimit *rlp)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2626,7 +2615,7 @@ int
 __rr_undelete(const char *path)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2658,7 +2647,7 @@ int
 __rr_futimes(int fd, const struct timeval *tptr)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2692,7 +2681,7 @@ int
 __rr_poll(struct pollfd *fds, nfds_t nfds, int timeout)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2730,7 +2719,7 @@ int
 __rr_clock_settime(clockid_t clock_id, const struct timespec *tp)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2762,7 +2751,7 @@ int
 __rr_clock_getres(clockid_t clock_id, struct timespec *tp)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2800,7 +2789,7 @@ int
 __rr_ffclock_getcounter(ffcounter * ffcount)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2836,7 +2825,7 @@ int
 __rr_ffclock_setestimate(struct ffclock_estimate *cest)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2868,7 +2857,7 @@ int
 __rr_ffclock_getestimate(struct ffclock_estimate *cest)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2906,7 +2895,7 @@ int
 __rr_ntp_gettime(struct ntptimeval *ntvp)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2944,7 +2933,7 @@ int
 __rr_issetugid()
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -2970,7 +2959,7 @@ int
 __rr_lchown(const char *path, uid_t uid, gid_t gid)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3002,7 +2991,7 @@ int
 __rr_lchmod(const char *path, mode_t mode)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3034,7 +3023,7 @@ int
 __rr_lutimes(const char *path, const struct timeval *tptr)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3066,7 +3055,7 @@ int
 __rr_fhopen(const struct fhandle *u_fhp, int flags)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3098,7 +3087,7 @@ int
 __rr_setresuid(uid_t ruid, uid_t euid, uid_t suid)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3130,7 +3119,7 @@ int
 __rr_setresgid(gid_t rgid, gid_t egid, gid_t sgid)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3162,7 +3151,7 @@ int
 __rr_extattrctl(const char *path, int cmd, const char *filename, int attrnamespace, const char *attrname)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3191,10 +3180,9 @@ __rr_extattrctl(const char *path, int cmd, const char *filename, int attrnamespa
 }
 
 ssize_t
-__rr_extattr_set_file(const char *path, int attrnamespace, const char *attrname, const void *data, size_t nbytes)
-{
+__rr_extattr_set_file(const char *path, int attrnamespace, const char *attrname, const void *data, size_t nbytes){
     ssize_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3223,10 +3211,9 @@ __rr_extattr_set_file(const char *path, int attrnamespace, const char *attrname,
 }
 
 ssize_t
-__rr_extattr_get_file(const char *path, int attrnamespace, const char *attrname, void *data, size_t nbytes)
-{
+__rr_extattr_get_file(const char *path, int attrnamespace, const char *attrname, void *data, size_t nbytes){
     ssize_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3264,7 +3251,7 @@ int
 __rr_extattr_delete_file(const char *path, int attrnamespace, const char *attrname)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3296,7 +3283,7 @@ int
 __rr_getresuid(uid_t * ruid, uid_t * euid, uid_t * suid)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3348,7 +3335,7 @@ int
 __rr_getresgid(gid_t * rgid, gid_t * egid, gid_t * sgid)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3400,7 +3387,7 @@ int
 __rr_kqueue()
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3429,10 +3416,9 @@ __rr_kqueue()
 }
 
 ssize_t
-__rr_extattr_set_fd(int fd, int attrnamespace, const char *attrname, const void *data, size_t nbytes)
-{
+__rr_extattr_set_fd(int fd, int attrnamespace, const char *attrname, const void *data, size_t nbytes){
     ssize_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3463,10 +3449,9 @@ __rr_extattr_set_fd(int fd, int attrnamespace, const char *attrname, const void 
 }
 
 ssize_t
-__rr_extattr_get_fd(int fd, int attrnamespace, const char *attrname, void *data, size_t nbytes)
-{
+__rr_extattr_get_fd(int fd, int attrnamespace, const char *attrname, void *data, size_t nbytes){
     ssize_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3506,7 +3491,7 @@ int
 __rr_extattr_delete_fd(int fd, int attrnamespace, const char *attrname)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3540,7 +3525,7 @@ int
 __rr_eaccess(const char *path, int amode)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3572,7 +3557,7 @@ int
 __rr_nmount(struct iovec *iovp, unsigned int iovcnt, int flags)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3604,7 +3589,7 @@ int
 __rr_kenv(int what, const char *name, char *value, int len)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3648,7 +3633,7 @@ int
 __rr_lchflags(const char *path, unsigned long flags)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3680,7 +3665,7 @@ int
 __rr_uuidgen(struct uuid *store, int count)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3718,7 +3703,7 @@ int
 __rr_sendfile(int fd, int s, off_t offset, size_t nbytes, struct sf_hdtr *hdtr, off_t * sbytes, int flags)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3757,10 +3742,9 @@ __rr_sendfile(int fd, int s, off_t offset, size_t nbytes, struct sf_hdtr *hdtr, 
 }
 
 ssize_t
-__rr_extattr_set_link(const char *path, int attrnamespace, const char *attrname, const void *data, size_t nbytes)
-{
+__rr_extattr_set_link(const char *path, int attrnamespace, const char *attrname, const void *data, size_t nbytes){
     ssize_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3789,10 +3773,9 @@ __rr_extattr_set_link(const char *path, int attrnamespace, const char *attrname,
 }
 
 ssize_t
-__rr_extattr_get_link(const char *path, int attrnamespace, const char *attrname, void *data, size_t nbytes)
-{
+__rr_extattr_get_link(const char *path, int attrnamespace, const char *attrname, void *data, size_t nbytes){
     ssize_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3830,7 +3813,7 @@ int
 __rr_extattr_delete_link(const char *path, int attrnamespace, const char *attrname)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3862,7 +3845,7 @@ int
 __rr_swapoff(const char *name)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3891,10 +3874,9 @@ __rr_swapoff(const char *name)
 }
 
 ssize_t
-__rr_extattr_list_fd(int fd, int attrnamespace, void *data, size_t nbytes)
-{
+__rr_extattr_list_fd(int fd, int attrnamespace, void *data, size_t nbytes){
     ssize_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3935,10 +3917,9 @@ __rr_extattr_list_fd(int fd, int attrnamespace, void *data, size_t nbytes)
 }
 
 ssize_t
-__rr_extattr_list_file(const char *path, int attrnamespace, void *data, size_t nbytes)
-{
+__rr_extattr_list_file(const char *path, int attrnamespace, void *data, size_t nbytes){
     ssize_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -3977,10 +3958,9 @@ __rr_extattr_list_file(const char *path, int attrnamespace, void *data, size_t n
 }
 
 ssize_t
-__rr_extattr_list_link(const char *path, int attrnamespace, void *data, size_t nbytes)
-{
+__rr_extattr_list_link(const char *path, int attrnamespace, void *data, size_t nbytes){
     ssize_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4022,7 +4002,7 @@ int
 __rr_audit(const void *record, int length)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4054,7 +4034,7 @@ int
 __rr_auditon(int cmd, void *data, int length)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4088,7 +4068,7 @@ int
 __rr_getauid(au_id_t * auid)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4124,7 +4104,7 @@ int
 __rr_setauid(const au_id_t * auid)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4156,7 +4136,7 @@ int
 __rr_getaudit(struct auditinfo *auditinfo)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4194,7 +4174,7 @@ int
 __rr_setaudit(const struct auditinfo *auditinfo)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4226,7 +4206,7 @@ int
 __rr_getaudit_addr(struct auditinfo_addr *auditinfo_addr, int length)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4264,7 +4244,7 @@ int
 __rr_setaudit_addr(const struct auditinfo_addr *auditinfo_addr, int length)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4296,7 +4276,7 @@ int
 __rr_auditctl(const char *path)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4325,10 +4305,9 @@ __rr_auditctl(const char *path)
 }
 
 ssize_t
-__rr_pread(int fd, void *buf, size_t nbyte, off_t offset)
-{
+__rr_pread(int fd, void *buf, size_t nbyte, off_t offset){
     ssize_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4365,10 +4344,9 @@ __rr_pread(int fd, void *buf, size_t nbyte, off_t offset)
 }
 
 __off_t
-__rr_lseek(int fd, __off_t offset, int whence)
-{
+__rr_lseek(int fd, __off_t offset, int whence){
     __off_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4402,7 +4380,7 @@ int
 __rr_truncate(const char *path, __off_t length)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4434,7 +4412,7 @@ int
 __rr_ftruncate(int fd, __off_t length)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4468,7 +4446,7 @@ int
 __rr_cpuset(cpusetid_t * setid)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4504,7 +4482,7 @@ int
 __rr_cpuset_setid(cpuwhich_t which, id_t id, cpusetid_t setid)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4536,7 +4514,7 @@ int
 __rr_cpuset_getid(cpulevel_t level, cpuwhich_t which, id_t id, cpusetid_t * setid)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4572,7 +4550,7 @@ int
 __rr_cpuset_getaffinity(cpulevel_t level, cpuwhich_t which, id_t id, size_t cpusetsize, cpuset_t * mask)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4610,7 +4588,7 @@ int
 __rr_cpuset_setaffinity(cpulevel_t level, cpuwhich_t which, id_t id, size_t cpusetsize, const cpuset_t * mask)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4648,7 +4626,7 @@ int
 __rr_faccessat(int fd, const char *path, int amode, int flag)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4682,7 +4660,7 @@ int
 __rr_fchmodat(int fd, const char *path, mode_t mode, int flag)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4716,7 +4694,7 @@ int
 __rr_fchownat(int fd, const char *path, uid_t uid, gid_t gid, int flag)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4750,7 +4728,7 @@ int
 __rr_linkat(int fd1, const char *path1, int fd2, const char *path2, int flag)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4784,7 +4762,7 @@ int
 __rr_mkdirat(int fd, const char *path, mode_t mode)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4818,7 +4796,7 @@ int
 __rr_mkfifoat(int fd, const char *path, mode_t mode)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4849,10 +4827,9 @@ __rr_mkfifoat(int fd, const char *path, mode_t mode)
 }
 
 ssize_t
-__rr_readlinkat(int fd, const char *path, char *buf, size_t bufsize)
-{
+__rr_readlinkat(int fd, const char *path, char *buf, size_t bufsize){
     ssize_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4892,7 +4869,7 @@ int
 __rr_renameat(int oldfd, const char *old, int newfd, const char *new)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4926,7 +4903,7 @@ int
 __rr_symlinkat(const char *path1, int fd, const char *path2)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4958,7 +4935,7 @@ int
 __rr_unlinkat(int fd, const char *path, int flag)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -4992,7 +4969,7 @@ long
 __rr_lpathconf(const char *path, int name)
 {
     long	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5024,7 +5001,7 @@ int
 __rr_cap_enter()
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5056,7 +5033,7 @@ int
 __rr_cap_getmode(u_int * modep)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5092,7 +5069,7 @@ int
 __rr_getloginclass(char *namebuf, size_t namelen)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5130,7 +5107,7 @@ int
 __rr_setloginclass(const char *namebuf)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5162,7 +5139,7 @@ int
 __rr_rctl_get_racct(const char *inbufp, size_t inbuflen, char *outbufp, size_t outbuflen)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5200,7 +5177,7 @@ int
 __rr_rctl_get_rules(const char *inbufp, size_t inbuflen, char *outbufp, size_t outbuflen)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5238,7 +5215,7 @@ int
 __rr_rctl_get_limits(const char *inbufp, size_t inbuflen, char *outbufp, size_t outbuflen)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5276,7 +5253,7 @@ int
 __rr_rctl_add_rule(const char *inbufp, size_t inbuflen, char *outbufp, size_t outbuflen)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5314,7 +5291,7 @@ int
 __rr_rctl_remove_rule(const char *inbufp, size_t inbuflen, char *outbufp, size_t outbuflen)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5352,7 +5329,7 @@ int
 __rr_posix_fallocate(int fd, off_t offset, off_t len)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5386,7 +5363,7 @@ int
 __rr_posix_fadvise(int fd, off_t offset, off_t len, int advice)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5420,7 +5397,7 @@ int
 __rr_cap_rights_limit(int fd, const cap_rights_t * rightsp)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5454,7 +5431,7 @@ int
 __rr_cap_ioctls_limit(int fd, const cap_ioctl_t * cmds, size_t ncmds)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5485,10 +5462,9 @@ __rr_cap_ioctls_limit(int fd, const cap_ioctl_t * cmds, size_t ncmds)
 }
 
 ssize_t
-__rr_cap_ioctls_get(int fd, cap_ioctl_t * cmds, size_t maxcmds)
-{
+__rr_cap_ioctls_get(int fd, cap_ioctl_t * cmds, size_t maxcmds){
     ssize_t	    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5528,7 +5504,7 @@ int
 __rr_cap_fcntls_limit(int fd, uint32_t fcntlrights)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5562,7 +5538,7 @@ int
 __rr_cap_fcntls_get(int fd, uint32_t * fcntlrightsp)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5600,7 +5576,7 @@ int
 __rr_bindat(int fd, int s, const struct sockaddr *name, socklen_t namelen)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5634,7 +5610,7 @@ int
 __rr_connectat(int fd, int s, const struct sockaddr *name, socklen_t namelen)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5668,7 +5644,7 @@ int
 __rr_chflagsat(int fd, const char *path, unsigned long flags, int atflag)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5702,7 +5678,7 @@ int
 __rr_accept4(int s, struct sockaddr *name, socklen_t * anamelen, int flags)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5754,7 +5730,7 @@ int
 __rr_fdatasync(int fd)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5788,7 +5764,7 @@ int
 __rr_fstat(int fd, struct stat *sb)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5828,7 +5804,7 @@ int
 __rr_fstatat(int fd, const char *path, struct stat *buf, int flag)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5868,7 +5844,7 @@ int
 __rr_fhstat(const struct fhandle *u_fhp, struct stat *sb)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5902,11 +5878,10 @@ __rr_fhstat(const struct fhandle *u_fhp, struct stat *sb)
     return result;
 }
 
-int
-__rr_getdirentries(int fd, char *buf, int count, long *basep)
-{
-    int		    result;
-    RRLogEntry     *e;
+ssize_t
+__rr_getdirentries(int fd, char *buf, size_t count, off_t * basep){
+    ssize_t	    result;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5931,11 +5906,11 @@ __rr_getdirentries(int fd, char *buf, int count, long *basep)
 	e = RRPlay_Dequeue(rrlog, getThreadId());
 	AssertEvent(e, RREVENT_GETDIRENTRIES);
 	AssertObject(e, (uint64_t) fd);
-	result = (int)e->value[0];
+	result = (ssize_t) e->value[0];
 	if (result == -1) {
 	    errno = e->value[1];
 	} else {
-	    (*basep) = (long)e->value[2];
+	    (*basep) = (off_t) e->value[2];
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
@@ -5950,7 +5925,7 @@ int
 __rr_statfs(const char *path, struct statfs *buf)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -5988,7 +5963,7 @@ int
 __rr_fstatfs(int fd, struct statfs *buf)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -6028,7 +6003,7 @@ int
 __rr_getfsstat(struct statfs *buf, long bufsize, int mode)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -6070,7 +6045,7 @@ int
 __rr_fhstatfs(const struct fhandle *u_fhp, struct statfs *buf)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -6108,7 +6083,7 @@ int
 __rr_mknodat(int fd, const char *path, mode_t mode, dev_t dev)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
@@ -6142,7 +6117,7 @@ int
 __rr_kevent(int fd, const struct kevent *changelist, int nchanges, struct kevent *eventlist, int nevents, const struct timespec *timeout)
 {
     int		    result;
-    RRLogEntry     *e;
+    RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
