@@ -43,3 +43,6 @@
 #include "util.h"
 
 #endif
+
+//XXX add an ifdef for this
+#define SYS_mknod SYS_freebsd11_mknod

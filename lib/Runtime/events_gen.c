@@ -65,8 +65,11 @@
 
 #endif
 
-ssize_t
-__rr_read(int fd, void *buf, size_t nbyte){
+// XXX add an ifdef for this
+#define SYS_mknod SYS_freebsd11_mknod
+
+    ssize_t
+	__rr_read(int fd, void *buf, size_t nbyte){
     ssize_t	    result;
     RRLogEntry	   *e;
 
@@ -102,7 +105,7 @@ __rr_read(int fd, void *buf, size_t nbyte){
 	break;
     }
     return result;
-}
+    }
 
 int
 __rr_link(const char *path, const char *link)
@@ -224,38 +227,6 @@ __rr_fchdir(int fd)
 	e = RRPlay_Dequeue(rrlog, getThreadId());
 	AssertEvent(e, RREVENT_FCHDIR);
 	AssertObject(e, (uint64_t) fd);
-	result = (int)e->value[0];
-	if (result == -1) {
-	    errno = e->value[1];
-	}
-	RRPlay_Free(rrlog, e);
-	break;
-    }
-    return result;
-}
-
-int
-__rr_mknod(const char *path, mode_t mode, dev_t dev)
-{
-    int		    result;
-    RRLogEntry	   *e;
-
-    switch (rrMode) {
-    case RRMODE_NORMAL:
-	return __rr_syscall(SYS_freebsd11_mknod, path, mode, dev);
-    case RRMODE_RECORD:
-	result = __rr_syscall(SYS_freebsd11_mknod, path, mode, dev);
-	e = RRLog_Alloc(rrlog, getThreadId());
-	e->event = RREVENT_MKNOD;
-	e->value[0] = (uint64_t) result;
-	if (result == -1) {
-	    e->value[1] = (uint64_t) errno;
-	}
-	RRLog_Append(rrlog, e);
-	break;
-    case RRMODE_REPLAY:
-	e = RRPlay_Dequeue(rrlog, getThreadId());
-	AssertEvent(e, RREVENT_MKNOD);
 	result = (int)e->value[0];
 	if (result == -1) {
 	    errno = e->value[1];
@@ -501,6 +472,39 @@ __rr_geteuid() {
     return result;
 }
 
+ssize_t
+__rr_sendmsg(int s, const struct msghdr *msg, int flags){
+    ssize_t	    result;
+    RRLogEntry	   *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return __rr_syscall(SYS_sendmsg, s, msg, flags);
+    case RRMODE_RECORD:
+	result = __rr_syscall(SYS_sendmsg, s, msg, flags);
+	e = RRLog_Alloc(rrlog, getThreadId());
+	e->event = RREVENT_SENDMSG;
+	e->objectId = (uint64_t) s;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, getThreadId());
+	AssertEvent(e, RREVENT_SENDMSG);
+	AssertObject(e, (uint64_t) s);
+	result = (ssize_t) e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
 int
 __rr_accept(int s, struct sockaddr *name, socklen_t * anamelen)
 {
@@ -544,6 +548,52 @@ __rr_accept(int s, struct sockaddr *name, socklen_t * anamelen)
 	    }
 	    if (anamelen != NULL) {
 		logData((uint8_t *) anamelen, (unsigned long)sizeof(socklen_t));
+	    }
+	}
+	break;
+    }
+    return result;
+}
+
+int
+__rr_getpeername(int fdes, struct sockaddr *asa, socklen_t * alen)
+{
+    int		    result;
+    RRLogEntry	   *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return __rr_syscall(SYS_getpeername, fdes, asa, alen);
+    case RRMODE_RECORD:
+	result = __rr_syscall(SYS_getpeername, fdes, asa, alen);
+	e = RRLog_Alloc(rrlog, getThreadId());
+	e->event = RREVENT_GETPEERNAME;
+	e->objectId = (uint64_t) fdes;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) asa, (unsigned long)*alen);
+	    if (alen != NULL) {
+		logData((uint8_t *) alen, (unsigned long)sizeof(socklen_t));
+	    }
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, getThreadId());
+	AssertEvent(e, RREVENT_GETPEERNAME);
+	AssertObject(e, (uint64_t) fdes);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) asa, (unsigned long)*alen);
+	    if (alen != NULL) {
+		logData((uint8_t *) alen, (unsigned long)sizeof(socklen_t));
 	    }
 	}
 	break;
@@ -2476,6 +2526,80 @@ __rr_fpathconf(int fd, int name)
 }
 
 int
+__rr_getrlimit(int which, struct rlimit *rlp)
+{
+    int		    result;
+    RRLogEntry	   *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return __rr_syscall(SYS_getrlimit, which, rlp);
+    case RRMODE_RECORD:
+	result = __rr_syscall(SYS_getrlimit, which, rlp);
+	e = RRLog_Alloc(rrlog, getThreadId());
+	e->event = RREVENT_GETRLIMIT;
+	e->objectId = (uint64_t) which;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) rlp, (unsigned long)sizeof(struct rlimit));
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, getThreadId());
+	AssertEvent(e, RREVENT_GETRLIMIT);
+	AssertObject(e, (uint64_t) which);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) rlp, (unsigned long)sizeof(struct rlimit));
+	}
+	break;
+    }
+    return result;
+}
+
+int
+__rr_setrlimit(int which, const struct rlimit *rlp)
+{
+    int		    result;
+    RRLogEntry	   *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return __rr_syscall(SYS_setrlimit, which, rlp);
+    case RRMODE_RECORD:
+	result = __rr_syscall(SYS_setrlimit, which, rlp);
+	e = RRLog_Alloc(rrlog, getThreadId());
+	e->event = RREVENT_SETRLIMIT;
+	e->objectId = (uint64_t) which;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, getThreadId());
+	AssertEvent(e, RREVENT_SETRLIMIT);
+	AssertObject(e, (uint64_t) which);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
 __rr_undelete(const char *path)
 {
     int		    result;
@@ -4217,6 +4341,105 @@ __rr_pread(int fd, void *buf, size_t nbyte, off_t offset){
     return result;
 }
 
+__off_t
+__rr_lseek(int fd, __off_t offset, int whence){
+    __off_t	    result;
+    RRLogEntry	   *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return __rr_syscall(SYS_lseek, fd, offset, whence);
+    case RRMODE_RECORD:
+	result = __rr_syscall(SYS_lseek, fd, offset, whence);
+	e = RRLog_Alloc(rrlog, getThreadId());
+	e->event = RREVENT_LSEEK;
+	e->objectId = (uint64_t) fd;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, getThreadId());
+	AssertEvent(e, RREVENT_LSEEK);
+	AssertObject(e, (uint64_t) fd);
+	result = (__off_t) e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
+__rr_truncate(const char *path, __off_t length)
+{
+    int		    result;
+    RRLogEntry	   *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return __rr_syscall(SYS_truncate, path, length);
+    case RRMODE_RECORD:
+	result = __rr_syscall(SYS_truncate, path, length);
+	e = RRLog_Alloc(rrlog, getThreadId());
+	e->event = RREVENT_TRUNCATE;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, getThreadId());
+	AssertEvent(e, RREVENT_TRUNCATE);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
+int
+__rr_ftruncate(int fd, __off_t length)
+{
+    int		    result;
+    RRLogEntry	   *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return __rr_syscall(SYS_ftruncate, fd, length);
+    case RRMODE_RECORD:
+	result = __rr_syscall(SYS_ftruncate, fd, length);
+	e = RRLog_Alloc(rrlog, getThreadId());
+	e->event = RREVENT_FTRUNCATE;
+	e->objectId = (uint64_t) fd;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, getThreadId());
+	AssertEvent(e, RREVENT_FTRUNCATE);
+	AssertObject(e, (uint64_t) fd);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	break;
+    }
+    return result;
+}
+
 int
 __rr_cpuset(cpusetid_t * setid)
 {
@@ -5541,51 +5764,19 @@ __rr_fdatasync(int fd)
     return result;
 }
 
-__off_t
-__rr_lseek(int fd, __off_t offset, int whence){
-    __off_t	    result;
+int
+__rr_fstat(int fd, struct stat *sb)
+{
+    int		    result;
     RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return __rr_syscall(SYS_lseek, fd, offset, whence);
+	return __rr_syscall(SYS_fstat, fd, sb);
     case RRMODE_RECORD:
-	result = __rr_syscall(SYS_lseek, fd, offset, whence);
+	result = __rr_syscall(SYS_fstat, fd, sb);
 	e = RRLog_Alloc(rrlog, getThreadId());
-	e->event = RREVENT_LSEEK;
-	e->objectId = (uint64_t) fd;
-	e->value[0] = (uint64_t) result;
-	if (result == -1) {
-	    e->value[1] = (uint64_t) errno;
-	}
-	RRLog_Append(rrlog, e);
-	break;
-    case RRMODE_REPLAY:
-	e = RRPlay_Dequeue(rrlog, getThreadId());
-	AssertEvent(e, RREVENT_LSEEK);
-	AssertObject(e, (uint64_t) fd);
-	result = (__off_t) e->value[0];
-	if (result == -1) {
-	    errno = e->value[1];
-	}
-	RRPlay_Free(rrlog, e);
-	break;
-    }
-    return result;
-}
-
-ssize_t
-__rr_getdirentries(int fd, char *buf, size_t count, off_t * basep){
-    ssize_t	    result;
-    RRLogEntry	   *e;
-
-    switch (rrMode) {
-    case RRMODE_NORMAL:
-	return __rr_syscall(SYS_getdirentries, fd, buf, count, basep);
-    case RRMODE_RECORD:
-	result = __rr_syscall(SYS_getdirentries, fd, buf, count, basep);
-	e = RRLog_Alloc(rrlog, getThreadId());
-	e->event = RREVENT_GETDIRENTRIES;
+	e->event = RREVENT_FSTAT;
 	e->objectId = (uint64_t) fd;
 	e->value[0] = (uint64_t) result;
 	if (result == -1) {
@@ -5593,24 +5784,20 @@ __rr_getdirentries(int fd, char *buf, size_t count, off_t * basep){
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, (unsigned long)result);
-	    if (basep)
-		logData((uint8_t *) basep, (unsigned long)sizeof(off_t));
+	    logData((uint8_t *) sb, (unsigned long)sizeof(struct stat));
 	}
 	break;
     case RRMODE_REPLAY:
 	e = RRPlay_Dequeue(rrlog, getThreadId());
-	AssertEvent(e, RREVENT_GETDIRENTRIES);
+	AssertEvent(e, RREVENT_FSTAT);
 	AssertObject(e, (uint64_t) fd);
-	result = (ssize_t) e->value[0];
+	result = (int)e->value[0];
 	if (result == -1) {
 	    errno = e->value[1];
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
-	    logData((uint8_t *) buf, (unsigned long)result);
-	    if (basep)
-		logData((uint8_t *) basep, (unsigned long)sizeof(off_t));
+	    logData((uint8_t *) sb, (unsigned long)sizeof(struct stat));
 	}
 	break;
     }
@@ -5618,32 +5805,40 @@ __rr_getdirentries(int fd, char *buf, size_t count, off_t * basep){
 }
 
 int
-__rr_truncate(const char *path, __off_t length)
+__rr_fstatat(int fd, const char *path, struct stat *buf, int flag)
 {
     int		    result;
     RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return __rr_syscall(SYS_truncate, path, length);
+	return __rr_syscall(SYS_fstatat, fd, path, buf, flag);
     case RRMODE_RECORD:
-	result = __rr_syscall(SYS_truncate, path, length);
+	result = __rr_syscall(SYS_fstatat, fd, path, buf, flag);
 	e = RRLog_Alloc(rrlog, getThreadId());
-	e->event = RREVENT_TRUNCATE;
+	e->event = RREVENT_FSTATAT;
+	e->objectId = (uint64_t) fd;
 	e->value[0] = (uint64_t) result;
 	if (result == -1) {
 	    e->value[1] = (uint64_t) errno;
 	}
 	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) buf, (unsigned long)sizeof(struct stat));
+	}
 	break;
     case RRMODE_REPLAY:
 	e = RRPlay_Dequeue(rrlog, getThreadId());
-	AssertEvent(e, RREVENT_TRUNCATE);
+	AssertEvent(e, RREVENT_FSTATAT);
+	AssertObject(e, (uint64_t) fd);
 	result = (int)e->value[0];
 	if (result == -1) {
 	    errno = e->value[1];
 	}
 	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) buf, (unsigned long)sizeof(struct stat));
+	}
 	break;
     }
     return result;
@@ -5681,6 +5876,125 @@ __rr_fhstat(const struct fhandle *u_fhp, struct stat *sb)
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {
 	    logData((uint8_t *) sb, (unsigned long)sizeof(struct stat));
+	}
+	break;
+    }
+    return result;
+}
+
+ssize_t
+__rr_getdirentries(int fd, char *buf, size_t count, off_t * basep){
+    ssize_t	    result;
+    RRLogEntry	   *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return __rr_syscall(SYS_getdirentries, fd, buf, count, basep);
+    case RRMODE_RECORD:
+	result = __rr_syscall(SYS_getdirentries, fd, buf, count, basep);
+	e = RRLog_Alloc(rrlog, getThreadId());
+	e->event = RREVENT_GETDIRENTRIES;
+	e->objectId = (uint64_t) fd;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) buf, (unsigned long)result);
+	    logData((uint8_t *) basep, (unsigned long)sizeof(off_t));
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, getThreadId());
+	AssertEvent(e, RREVENT_GETDIRENTRIES);
+	AssertObject(e, (uint64_t) fd);
+	result = (ssize_t) e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) buf, (unsigned long)result);
+	    logData((uint8_t *) basep, (unsigned long)sizeof(off_t));
+	}
+	break;
+    }
+    return result;
+}
+
+int
+__rr_statfs(const char *path, struct statfs *buf)
+{
+    int		    result;
+    RRLogEntry	   *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return __rr_syscall(SYS_statfs, path, buf);
+    case RRMODE_RECORD:
+	result = __rr_syscall(SYS_statfs, path, buf);
+	e = RRLog_Alloc(rrlog, getThreadId());
+	e->event = RREVENT_STATFS;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) buf, (unsigned long)sizeof(struct statfs));
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, getThreadId());
+	AssertEvent(e, RREVENT_STATFS);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) buf, (unsigned long)sizeof(struct statfs));
+	}
+	break;
+    }
+    return result;
+}
+
+int
+__rr_fstatfs(int fd, struct statfs *buf)
+{
+    int		    result;
+    RRLogEntry	   *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return __rr_syscall(SYS_fstatfs, fd, buf);
+    case RRMODE_RECORD:
+	result = __rr_syscall(SYS_fstatfs, fd, buf);
+	e = RRLog_Alloc(rrlog, getThreadId());
+	e->event = RREVENT_FSTATFS;
+	e->objectId = (uint64_t) fd;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) buf, (unsigned long)sizeof(struct statfs));
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, getThreadId());
+	AssertEvent(e, RREVENT_FSTATFS);
+	AssertObject(e, (uint64_t) fd);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) buf, (unsigned long)sizeof(struct statfs));
 	}
 	break;
     }
@@ -5730,166 +6044,6 @@ __rr_getfsstat(struct statfs *buf, long bufsize, int mode)
 }
 
 int
-__rr_getpeername(int fdes, struct sockaddr *asa, socklen_t * alen)
-{
-    int		    result;
-    RRLogEntry	   *e;
-
-    switch (rrMode) {
-    case RRMODE_NORMAL:
-	return __rr_syscall(SYS_getpeername, fdes, asa, alen);
-    case RRMODE_RECORD:
-	result = __rr_syscall(SYS_getpeername, fdes, asa, alen);
-	e = RRLog_Alloc(rrlog, getThreadId());
-	e->event = RREVENT_GETPEERNAME;
-	e->objectId = (uint64_t) fdes;
-	e->value[0] = (uint64_t) result;
-	if (result == -1) {
-	    e->value[1] = (uint64_t) errno;
-	}
-	RRLog_Append(rrlog, e);
-	if (result != -1) {
-	    logData((uint8_t *) asa, (unsigned long)*alen);
-	    if (alen != NULL) {
-		logData((uint8_t *) alen, (unsigned long)sizeof(socklen_t));
-	    }
-	}
-	break;
-    case RRMODE_REPLAY:
-	e = RRPlay_Dequeue(rrlog, getThreadId());
-	AssertEvent(e, RREVENT_GETPEERNAME);
-	AssertObject(e, (uint64_t) fdes);
-	result = (int)e->value[0];
-	if (result == -1) {
-	    errno = e->value[1];
-	}
-	RRPlay_Free(rrlog, e);
-	if (result != -1) {
-	    logData((uint8_t *) asa, (unsigned long)*alen);
-	    if (alen != NULL) {
-		logData((uint8_t *) alen, (unsigned long)sizeof(socklen_t));
-	    }
-	}
-	break;
-    }
-    return result;
-}
-
-int
-__rr_fstatfs(int fd, struct statfs *buf)
-{
-    int		    result;
-    RRLogEntry	   *e;
-
-    switch (rrMode) {
-    case RRMODE_NORMAL:
-	return __rr_syscall(SYS_fstatfs, fd, buf);
-    case RRMODE_RECORD:
-	result = __rr_syscall(SYS_fstatfs, fd, buf);
-	e = RRLog_Alloc(rrlog, getThreadId());
-	e->event = RREVENT_FSTATFS;
-	e->objectId = (uint64_t) fd;
-	e->value[0] = (uint64_t) result;
-	if (result == -1) {
-	    e->value[1] = (uint64_t) errno;
-	}
-	RRLog_Append(rrlog, e);
-	if (result != -1) {
-	    logData((uint8_t *) buf, (unsigned long)sizeof(struct statfs));
-	}
-	break;
-    case RRMODE_REPLAY:
-	e = RRPlay_Dequeue(rrlog, getThreadId());
-	AssertEvent(e, RREVENT_FSTATFS);
-	AssertObject(e, (uint64_t) fd);
-	result = (int)e->value[0];
-	if (result == -1) {
-	    errno = e->value[1];
-	}
-	RRPlay_Free(rrlog, e);
-	if (result != -1) {
-	    logData((uint8_t *) buf, (unsigned long)sizeof(struct statfs));
-	}
-	break;
-    }
-    return result;
-}
-
-int
-__rr_mknodat(int fd, const char *path, mode_t mode, dev_t dev)
-{
-    int		    result;
-    RRLogEntry	   *e;
-
-    switch (rrMode) {
-    case RRMODE_NORMAL:
-	return __rr_syscall(SYS_mknodat, fd, path, mode, dev);
-    case RRMODE_RECORD:
-	result = __rr_syscall(SYS_mknodat, fd, path, mode, dev);
-	e = RRLog_Alloc(rrlog, getThreadId());
-	e->event = RREVENT_MKNODAT;
-	e->objectId = (uint64_t) fd;
-	e->value[0] = (uint64_t) result;
-	if (result == -1) {
-	    e->value[1] = (uint64_t) errno;
-	}
-	RRLog_Append(rrlog, e);
-	break;
-    case RRMODE_REPLAY:
-	e = RRPlay_Dequeue(rrlog, getThreadId());
-	AssertEvent(e, RREVENT_MKNODAT);
-	AssertObject(e, (uint64_t) fd);
-	result = (int)e->value[0];
-	if (result == -1) {
-	    errno = e->value[1];
-	}
-	RRPlay_Free(rrlog, e);
-	break;
-    }
-    return result;
-}
-
-int
-__rr_fstatat(int fd, const char *path, struct stat *buf, int flag)
-{
-    int		    result;
-    RRLogEntry	   *e;
-
-    switch (rrMode) {
-    case RRMODE_NORMAL:
-	return __rr_syscall(SYS_fstatat, fd, path, buf, flag);
-    case RRMODE_RECORD:
-	result = __rr_syscall(SYS_fstatat, fd, path, buf, flag);
-	e = RRLog_Alloc(rrlog, getThreadId());
-	e->event = RREVENT_FSTATAT;
-	e->objectId = (uint64_t) fd;
-	e->value[0] = (uint64_t) result;
-	if (result == -1) {
-	    e->value[1] = (uint64_t) errno;
-	}
-	RRLog_Append(rrlog, e);
-	if (result != -1) {
-	    logData((uint8_t *) buf, (unsigned long)sizeof(struct stat));
-	}
-	break;
-    case RRMODE_REPLAY:
-	e = RRPlay_Dequeue(rrlog, getThreadId());
-	AssertEvent(e, RREVENT_FSTATAT);
-	AssertObject(e, (uint64_t) fd);
-	result = (int)e->value[0];
-	if (result == -1) {
-	    errno = e->value[1];
-	}
-	RRPlay_Free(rrlog, e);
-	if (result != -1) {
-	    logData((uint8_t *) buf, (unsigned long)sizeof(struct stat));
-	}
-	break;
-    }
-    return result;
-}
-
-int
 __rr_fhstatfs(const struct fhandle *u_fhp, struct statfs *buf)
 {
     int		    result;
@@ -5927,90 +6081,19 @@ __rr_fhstatfs(const struct fhandle *u_fhp, struct statfs *buf)
     return result;
 }
 
-ssize_t
-__rr_sendmsg(int s, const struct msghdr *msg, int flags){
-    ssize_t	    result;
-    RRLogEntry	   *e;
-
-    switch (rrMode) {
-    case RRMODE_NORMAL:
-	return __rr_syscall(SYS_sendmsg, s, msg, flags);
-    case RRMODE_RECORD:
-	result = __rr_syscall(SYS_sendmsg, s, msg, flags);
-	e = RRLog_Alloc(rrlog, getThreadId());
-	e->event = RREVENT_SENDMSG;
-	e->objectId = (uint64_t) s;
-	e->value[0] = (uint64_t) result;
-	if (result == -1) {
-	    e->value[1] = (uint64_t) errno;
-	}
-	RRLog_Append(rrlog, e);
-	break;
-    case RRMODE_REPLAY:
-	e = RRPlay_Dequeue(rrlog, getThreadId());
-	AssertEvent(e, RREVENT_SENDMSG);
-	AssertObject(e, (uint64_t) s);
-	result = (ssize_t) e->value[0];
-	if (result == -1) {
-	    errno = e->value[1];
-	}
-	RRPlay_Free(rrlog, e);
-	break;
-    }
-    return result;
-}
-
 int
-__rr_statfs(const char *path, struct statfs *buf)
+__rr_mknodat(int fd, const char *path, mode_t mode, dev_t dev)
 {
     int		    result;
     RRLogEntry	   *e;
 
     switch (rrMode) {
     case RRMODE_NORMAL:
-	return __rr_syscall(SYS_statfs, path, buf);
+	return __rr_syscall(SYS_mknodat, fd, path, mode, dev);
     case RRMODE_RECORD:
-	result = __rr_syscall(SYS_statfs, path, buf);
+	result = __rr_syscall(SYS_mknodat, fd, path, mode, dev);
 	e = RRLog_Alloc(rrlog, getThreadId());
-	e->event = RREVENT_STATFS;
-	e->value[0] = (uint64_t) result;
-	if (result == -1) {
-	    e->value[1] = (uint64_t) errno;
-	}
-	RRLog_Append(rrlog, e);
-	if (result != -1) {
-	    logData((uint8_t *) buf, (unsigned long)sizeof(struct statfs));
-	}
-	break;
-    case RRMODE_REPLAY:
-	e = RRPlay_Dequeue(rrlog, getThreadId());
-	AssertEvent(e, RREVENT_STATFS);
-	result = (int)e->value[0];
-	if (result == -1) {
-	    errno = e->value[1];
-	}
-	RRPlay_Free(rrlog, e);
-	if (result != -1) {
-	    logData((uint8_t *) buf, (unsigned long)sizeof(struct statfs));
-	}
-	break;
-    }
-    return result;
-}
-
-int
-__rr_ftruncate(int fd, __off_t length)
-{
-    int		    result;
-    RRLogEntry	   *e;
-
-    switch (rrMode) {
-    case RRMODE_NORMAL:
-	return __rr_syscall(SYS_ftruncate, fd, length);
-    case RRMODE_RECORD:
-	result = __rr_syscall(SYS_ftruncate, fd, length);
-	e = RRLog_Alloc(rrlog, getThreadId());
-	e->event = RREVENT_FTRUNCATE;
+	e->event = RREVENT_MKNODAT;
 	e->objectId = (uint64_t) fd;
 	e->value[0] = (uint64_t) result;
 	if (result == -1) {
@@ -6020,122 +6103,8 @@ __rr_ftruncate(int fd, __off_t length)
 	break;
     case RRMODE_REPLAY:
 	e = RRPlay_Dequeue(rrlog, getThreadId());
-	AssertEvent(e, RREVENT_FTRUNCATE);
+	AssertEvent(e, RREVENT_MKNODAT);
 	AssertObject(e, (uint64_t) fd);
-	result = (int)e->value[0];
-	if (result == -1) {
-	    errno = e->value[1];
-	}
-	RRPlay_Free(rrlog, e);
-	break;
-    }
-    return result;
-}
-
-int
-__rr_getrlimit(int which, struct rlimit *rlp)
-{
-    int		    result;
-    RRLogEntry	   *e;
-
-    switch (rrMode) {
-    case RRMODE_NORMAL:
-	return __rr_syscall(SYS_getrlimit, which, rlp);
-    case RRMODE_RECORD:
-	result = __rr_syscall(SYS_getrlimit, which, rlp);
-	e = RRLog_Alloc(rrlog, getThreadId());
-	e->event = RREVENT_GETRLIMIT;
-	e->objectId = (uint64_t) which;
-	e->value[0] = (uint64_t) result;
-	if (result == -1) {
-	    e->value[1] = (uint64_t) errno;
-	}
-	RRLog_Append(rrlog, e);
-	if (result != -1) {
-	    logData((uint8_t *) rlp, (unsigned long)sizeof(struct rlimit));
-	}
-	break;
-    case RRMODE_REPLAY:
-	e = RRPlay_Dequeue(rrlog, getThreadId());
-	AssertEvent(e, RREVENT_GETRLIMIT);
-	AssertObject(e, (uint64_t) which);
-	result = (int)e->value[0];
-	if (result == -1) {
-	    errno = e->value[1];
-	}
-	RRPlay_Free(rrlog, e);
-	if (result != -1) {
-	    logData((uint8_t *) rlp, (unsigned long)sizeof(struct rlimit));
-	}
-	break;
-    }
-    return result;
-}
-
-int
-__rr_fstat(int fd, struct stat *sb)
-{
-    int		    result;
-    RRLogEntry	   *e;
-
-    switch (rrMode) {
-    case RRMODE_NORMAL:
-	return __rr_syscall(SYS_fstat, fd, sb);
-    case RRMODE_RECORD:
-	result = __rr_syscall(SYS_fstat, fd, sb);
-	e = RRLog_Alloc(rrlog, getThreadId());
-	e->event = RREVENT_FSTAT;
-	e->objectId = (uint64_t) fd;
-	e->value[0] = (uint64_t) result;
-	if (result == -1) {
-	    e->value[1] = (uint64_t) errno;
-	}
-	RRLog_Append(rrlog, e);
-	if (result != -1) {
-	    logData((uint8_t *) sb, (unsigned long)sizeof(struct stat));
-	}
-	break;
-    case RRMODE_REPLAY:
-	e = RRPlay_Dequeue(rrlog, getThreadId());
-	AssertEvent(e, RREVENT_FSTAT);
-	AssertObject(e, (uint64_t) fd);
-	result = (int)e->value[0];
-	if (result == -1) {
-	    errno = e->value[1];
-	}
-	RRPlay_Free(rrlog, e);
-	if (result != -1) {
-	    logData((uint8_t *) sb, (unsigned long)sizeof(struct stat));
-	}
-	break;
-    }
-    return result;
-}
-
-int
-__rr_setrlimit(int which, const struct rlimit *rlp)
-{
-    int		    result;
-    RRLogEntry	   *e;
-
-    switch (rrMode) {
-    case RRMODE_NORMAL:
-	return __rr_syscall(SYS_setrlimit, which, rlp);
-    case RRMODE_RECORD:
-	result = __rr_syscall(SYS_setrlimit, which, rlp);
-	e = RRLog_Alloc(rrlog, getThreadId());
-	e->event = RREVENT_SETRLIMIT;
-	e->objectId = (uint64_t) which;
-	e->value[0] = (uint64_t) result;
-	if (result == -1) {
-	    e->value[1] = (uint64_t) errno;
-	}
-	RRLog_Append(rrlog, e);
-	break;
-    case RRMODE_REPLAY:
-	e = RRPlay_Dequeue(rrlog, getThreadId());
-	AssertEvent(e, RREVENT_SETRLIMIT);
-	AssertObject(e, (uint64_t) which);
 	result = (int)e->value[0];
 	if (result == -1) {
 	    errno = e->value[1];
@@ -6195,7 +6164,6 @@ BIND_REF(link);
 BIND_REF(unlink);
 BIND_REF(chdir);
 BIND_REF(fchdir);
-BIND_REF(mknod);
 BIND_REF(chmod);
 BIND_REF(chown);
 BIND_REF(getpid);
@@ -6204,7 +6172,9 @@ BIND_REF(unmount);
 BIND_REF(setuid);
 BIND_REF(getuid);
 BIND_REF(geteuid);
+BIND_REF(sendmsg);
 BIND_REF(accept);
+BIND_REF(getpeername);
 BIND_REF(getsockname);
 BIND_REF(access);
 BIND_REF(chflags);
@@ -6261,6 +6231,8 @@ BIND_REF(setegid);
 BIND_REF(seteuid);
 BIND_REF(pathconf);
 BIND_REF(fpathconf);
+BIND_REF(getrlimit);
+BIND_REF(setrlimit);
 BIND_REF(undelete);
 BIND_REF(futimes);
 BIND_REF(poll);
@@ -6310,6 +6282,9 @@ BIND_REF(getaudit_addr);
 BIND_REF(setaudit_addr);
 BIND_REF(auditctl);
 BIND_REF(pread);
+BIND_REF(lseek);
+BIND_REF(truncate);
+BIND_REF(ftruncate);
 BIND_REF(cpuset);
 BIND_REF(cpuset_setid);
 BIND_REF(cpuset_getid);
@@ -6347,20 +6322,13 @@ BIND_REF(connectat);
 BIND_REF(chflagsat);
 BIND_REF(accept4);
 BIND_REF(fdatasync);
-BIND_REF(lseek);
-BIND_REF(getdirentries);
-BIND_REF(truncate);
-BIND_REF(fhstat);
-BIND_REF(getfsstat);
-BIND_REF(getpeername);
-BIND_REF(fstatfs);
-BIND_REF(mknodat);
-BIND_REF(fstatat);
-BIND_REF(fhstatfs);
-BIND_REF(sendmsg);
-BIND_REF(statfs);
-BIND_REF(ftruncate);
-BIND_REF(getrlimit);
 BIND_REF(fstat);
-BIND_REF(setrlimit);
+BIND_REF(fstatat);
+BIND_REF(fhstat);
+BIND_REF(getdirentries);
+BIND_REF(statfs);
+BIND_REF(fstatfs);
+BIND_REF(getfsstat);
+BIND_REF(fhstatfs);
+BIND_REF(mknodat);
 BIND_REF(kevent);

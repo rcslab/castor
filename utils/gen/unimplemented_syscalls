@@ -1,7 +1,7 @@
 ;===== calls to remove from core runtime.
-;XXX weird naming convention thing not supported yet.
-__sysctl
-__getcwd
+;XXX weird naming convention thing not supported yet. (in core runtime, move to autogen)
+;__sysctl
+;__getcwd
 ;XXX  -- return's void, icky, maybe just put this in events.c.
 closefrom
 sync

@@ -13,7 +13,7 @@ INCLUDES_PATH = "./autogenerate_includes.h"
 MISSING_CALLS_PATH = "./missing_syscalls.out"
 
 #In order of precendence -- we will prefer the STD declaration over COMPAT, and so forth.
-SUPPORTED_DECL_TYPES = ['STD', 'NOSTD', 'COMPAT', 'COMPAT11']
+SUPPORTED_DECL_TYPES = ['STD', 'NOSTD']
 
 RETURNS_BYTES_OUT = ['getdents', 'getdirentries', 'read', 'pread', 'readv', 'preadv','kenv']
 RETURNS_ELEMENTS_OUT = ['kevent', 'getgroups']

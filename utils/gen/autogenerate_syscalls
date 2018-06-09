@@ -14,7 +14,6 @@ cap_ioctls_limit
 cap_rights_limit
 kevent
 getdirentries
-getdents
 kqueue
 getgroups
 setgroups
@@ -69,7 +68,6 @@ chroot
 chdir
 fchdir
 mknodat
-mknod
 mkdir
 mkdirat
 rmdir
@@ -83,8 +81,6 @@ link
 linkat
 readlinkat
 readlink
-stat
-lstat
 fstatat
 statfs
 fstatfs
