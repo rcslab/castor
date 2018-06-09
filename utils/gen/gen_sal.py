@@ -712,6 +712,11 @@ def build_type_size_map(type_list):
             type, size = line.split(',')
             size = size.strip()
             type_size_map[type] = int(size)
+    if not debug_flag:
+        os.unlink(TYPE_SIZES_C_PATH)
+        os.unlink(TYPE_SIZES_OUT_PATH)
+        os.unlink(exec_path)
+
     return type_size_map
 
 if __name__ == '__main__':
