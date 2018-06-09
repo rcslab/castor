@@ -1,0 +1,23 @@
+;Add anything in the core runtime that is a syscall thus we can still
+;pretty print as normal
+
+shmget
+semget
+semop
+shm_open
+shm_unlink
+open
+openat
+close
+write
+ioctl
+fcntl
+pwrite
+readv
+preadv
+writev
+recvmsg
+recvfrom
+pipe2
+gettimeofday
+fork
