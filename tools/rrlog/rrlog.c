@@ -169,6 +169,10 @@ int main(int argc, char * const argv[])
 	    case 't':
 		mode = TRUSS_MODE;
 		break;
+	    case 'a':
+		mode = ALL_MODE;
+		break;
+
 	    case 's':
 		showStats = 1;
 		break;
