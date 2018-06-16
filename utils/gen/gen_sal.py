@@ -245,6 +245,7 @@ def generate_pretty_printer(spec):
     name = spec['name']
     return_type = spec['return_type']
     arg_types =  [arg['type'] for arg in spec['args_spec']]
+    arg_names =  [arg['name'] for arg in spec['args_spec']]
     leading_object = arg_types and (arg_types[0] == 'int')
 
     return_format = {'int':'%d', 'ssize_t':'%zd', 'long':'%ld',
@@ -256,9 +257,22 @@ def generate_pretty_printer(spec):
 
     arg_format = '()'
     arg_values = ''
+    logged_names = []
+
+    for arg in spec['args_spec']:
+        if arg['log_spec']:
+            logged_names.append(arg['name'])
+        else:
+            logged_names.append('_')
+
     if leading_object:
-        arg_format = '(%d,...)'
+        arg_name_str = ", ".join(logged_names[1:])
+        arg_format = '(%d,' + arg_name_str + ')'
         arg_values = '(int)entry.objectId, '
+    else:
+        arg_name_str = ", ".join(logged_names)
+        arg_format = '(%s)' % arg_name_str
+
     ppc_output('printf("' + name + arg_format + ' = ' + return_format +  '",' + arg_values +
             '(' + return_type + ')' + 'entry.value[0]);')
     if not name in ALWAYS_SUCCESSFUL_SYSCALLS:
