@@ -110,7 +110,7 @@ X(ELAST)
 XEND
 };
 
-const char * xlat_errno(int errnum) {
+const char * castor_xlat_errno(int errnum) {
     for (int i = 0; errno_xlat_table[i].str != 0; i++) {
 	if (errno_xlat_table[i].val == errnum) {
 	    return errno_xlat_table[i].str;

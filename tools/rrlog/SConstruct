@@ -3,7 +3,8 @@ Import('env')
 
 src = [
     "rrlog.c",
-    "events_pretty_printer_gen.c"
+    "events_pretty_printer_gen.c",
+    "castor_xlat.c"
 ]
 
 env.Program("rrlog", src)

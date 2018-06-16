@@ -263,7 +263,7 @@ def generate_pretty_printer(spec):
             '(' + return_type + ')' + 'entry.value[0]);')
     if not name in ALWAYS_SUCCESSFUL_SYSCALLS:
         ppc_output('if ((int)entry.value[0] == -1) {')
-        ppc_output('printf("[errno:%d]", (int)entry.value[1]);')
+        ppc_output('printf(" [errno:%s]", castor_xlat_errno((int)entry.value[1]));')
         ppc_output("}\n")
     ppc_output('printf("\\n");')
 
@@ -543,15 +543,15 @@ def generate_pretty_print_header_file(builtin, generated):
 
     pph_output("#endif")
 
-def generate_includes():
+def import_includes():
     with open(INCLUDES_PATH) as f:
             includes_list = f.read().splitlines()
     for include in includes_list:
         c_output(include)
         ppc_output(include)
 
-def generate_boilerplate():
-    pass
+def add_includes():
+    ppc_output('#include "castor_xlat.h"')
 
 def generate_bindings(generated):
     c_output("")
@@ -758,8 +758,8 @@ if __name__ == '__main__':
                         set(core_runtime_list) - set(unimplemented_list))
 
     generate_preambles()
-    generate_includes()
-    generate_boilerplate()
+    import_includes()
+    add_includes()
     print("Generating syscall handlers...")
     debug("syscall_description_list:", syscall_description_list)
     processed_descriptions = []
