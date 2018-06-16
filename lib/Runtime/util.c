@@ -106,9 +106,6 @@ AssertOutput(RRLogEntry *e, uint64_t hash, uint8_t *buf, size_t nbytes)
     }
 }
 
-#define RREVENT_DATA_LEN	32
-#define RREVENT_DATA_OFFSET	32
-
 void
 logData(uint8_t *buf, size_t len)
 {

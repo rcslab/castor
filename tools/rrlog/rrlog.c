@@ -106,6 +106,35 @@ int readEntry(RRLogEntry * entry){
     return 1;
 }
 
+static inline void assertData(RRLogEntry * entry) {
+    if (entry->event != RREVENT_DATA) {
+	fprintf(stderr, "invalide entry: something went horribly wrong while reading the log.");
+	exit(1);
+    }
+}
+
+
+void readData(uint8_t * buf, size_t len) {
+    assert(buf != NULL);
+    uint64_t recs = len / RREVENT_DATA_LEN;
+    uint64_t rlen = len % RREVENT_DATA_LEN;
+    RRLogEntry entry;
+
+    for (unsigned int i = 0; i < recs; i++) {
+	readEntry(&entry);
+	assertData(&entry);
+	uint8_t *src = ((uint8_t *)&entry) + RREVENT_DATA_OFFSET;
+	memcpy(buf, src, RREVENT_DATA_LEN);
+	buf += RREVENT_DATA_LEN;
+    }
+    if (rlen) {
+	readEntry(&entry);
+	assertData(&entry);
+	uint8_t *src = ((uint8_t *)&entry) + RREVENT_DATA_OFFSET;
+	memcpy(buf, src, rlen);
+    }
+}
+
 void dumpEntry(RRLogEntry entry)
 {
     if (entry.event > RREVENTS_MAX) {

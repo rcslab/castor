@@ -250,17 +250,24 @@ def generate_pretty_printer(spec):
     return_format = {'int':'%d', 'ssize_t':'%zd', 'long':'%ld',
             'pid_t':'%d','uid_t':'%d','gid_t':'%d', 'mode_t':'%d',
             '__off_t':'%ld'}[return_type]
+
+    ppc_output("void")
+    ppc_output("pretty_print_%s(RRLogEntry entry) {" % name.upper())
+
     arg_format = '()'
     arg_values = ''
     if leading_object:
         arg_format = '(%d,...)'
         arg_values = '(int)entry.objectId, '
-
-    ppc_output("void")
-    ppc_output("pretty_print_%s(RRLogEntry entry) {" % name.upper())
-    ppc_output('printf("' + name + arg_format + ' = ' + return_format +  '\\n",' + arg_values +
+    ppc_output('printf("' + name + arg_format + ' = ' + return_format +  '",' + arg_values +
             '(' + return_type + ')' + 'entry.value[0]);')
-    ppc_output("}\n")
+    if not name in ALWAYS_SUCCESSFUL_SYSCALLS:
+        ppc_output('if ((int)entry.value[0] == -1) {')
+        ppc_output('printf("[errno:%d]", (int)entry.value[1]);')
+        ppc_output("}\n")
+    ppc_output('printf("\\n");')
+
+    ppc_output('}\n')
 
 def generate_builtin_printers(builtins):
     for name in builtins:
@@ -372,7 +379,8 @@ def parse_spec_line(line):
     number, name, type = prefix.split()
     handler_spec['decl_type'] = type
     if not type in SUPPORTED_DECL_TYPES:
-        debug("===Unused line===")
+        debug("Unused line:" + line)
+        return None
     else:
         tail = proto.rfind('}')
         proto = proto[:tail]
