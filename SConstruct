@@ -52,6 +52,7 @@ opts.AddVariables(
     EnumVariable("CLANGSAN", "Clang/LLVM Sanitizer", "", ["", "address", "thread", "leak"]),
     ("CASTORPASS", "Castor LLVM IR Pass", "lib/Pass/libCastorPass.so"),
     EnumVariable("VERBOSE", "Show full build information", "0", ["0", "1"]),
+    EnumVariable("COLOR", "Color build output (breaks vim quickfix).", "no", ["yes", "no"]),
     EnumVariable("BUILDTYPE", "Build Type", "DEBUG", ["DEBUG", "RELEASE"]),
     EnumVariable("ARCH", "CPU Architecture", "amd64", ["amd64"]),
     EnumVariable("RR", "R/R Type", "ctr", ["ctr", "tsc", "tsx"]),
@@ -84,9 +85,10 @@ if env["LOGFILE"] != "":
     log = open(env["LOGFILE"], "w")
     env['SPAWN'] = myspawn
     # Force color output to play well with spawn overload
-    env.Append(CPPFLAGS = ["-fcolor-diagnostics"])
+    if env["COLOR"] == "yes":
+        env.Append(CPPFLAGS = ["-fcolor-diagnostics"])
 
-if os.isatty(1) and os.isatty(2):
+if env["COLOR"] == "yes" and os.isatty(1) and os.isatty(2):
     env.Append(CPPFLAGS = ["-fcolor-diagnostics"])
 
 if env["VERBOSE"] == "0":
