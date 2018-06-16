@@ -1,5 +1,9 @@
 #include <unistd.h>
 #include <errno.h>
+#include <string.h>
+#include <stdio.h>
+
+#include <sys/stat.h>
 
 struct xlat {
 	int val;
@@ -117,4 +121,13 @@ const char * castor_xlat_errno(int errnum) {
 	}
     }
     return NULL;
+}
+
+void castor_xlat_stat(struct stat st, char buf[255]) {
+    char mode[12];
+    strmode(st.st_mode, mode);
+    snprintf(buf, 255,
+	"{ mode=%s,inode=%ju,size=%jd,blksize=%ld }", mode,
+	(uintmax_t)st.st_ino, (intmax_t)st.st_size,
+	(long)st.st_blksize);
 }

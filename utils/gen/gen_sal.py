@@ -160,12 +160,14 @@ def gen_log_values(spec, type_size_map, mode):
 def log_aggregate_p(arg):
     return arg['log_spec'] != None and not arg['log_spec']['logged']
 
-def gen_log_data(spec):
-    gen_log = False
+def logged_data_p(spec):
     for arg in spec['args_spec']:
         if log_aggregate_p(arg):
-            gen_log = True
-    if gen_log:
+            return True
+    return False
+
+def gen_log_data(spec):
+    if logged_data_p(spec):
         c_output("if (result != -1) {")
         for arg in spec['args_spec']:
             if log_aggregate_p(arg):
@@ -277,10 +279,23 @@ def generate_pretty_printer(spec):
             '(' + return_type + ')' + 'entry.value[0]);')
     if not name in ALWAYS_SUCCESSFUL_SYSCALLS:
         ppc_output('if ((int)entry.value[0] == -1) {')
-        ppc_output('printf(" [errno:%s]", castor_xlat_errno((int)entry.value[1]));')
+        ppc_output('printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));')
         ppc_output("}\n")
-    ppc_output('printf("\\n");')
 
+    if logged_data_p(spec):
+        ppc_output('if ((int)entry.value[0] != -1) {')
+        for arg in spec['args_spec']:
+            if log_aggregate_p(arg) and not arg['log_spec']['null_check']:
+                #XXX make this an exact comparison
+                if 'struct stat' in arg['type']:
+                    ppc_output('struct stat %s;' % arg['name'])
+                    ppc_output('char str[255];')
+                    ppc_output('readData((uint8_t *)&%s,sizeof(%s));' % (arg['name'], arg['name']))
+                    ppc_output('castor_xlat_stat(%s,str);' % arg['name'])
+                    ppc_output('printf("   [' + arg['name'] + ': %s]\\n",str);')
+        ppc_output('}\n')
+
+    ppc_output('printf("\\n");')
     ppc_output('}\n')
 
 def generate_builtin_printers(builtins):
@@ -566,6 +581,7 @@ def import_includes():
 
 def add_includes():
     ppc_output('#include "castor_xlat.h"')
+    ppc_output('#include "rrlog.h"')
 
 def generate_bindings(generated):
     c_output("")
