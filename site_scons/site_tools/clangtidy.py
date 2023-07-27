@@ -11,8 +11,8 @@ def generate(env, **kwargs):
                 j = json.loads(f)
                 for x in j:
                     fn = x["file"]
-                    print env.subst(env['CLANGCHECK_COMSTR'], source = fn)
-                    result = os.system(env["CLANGTIDY"]+" -header-filter=.\* "+fn)
+                    print(env.subst(env['CLANGCHECK_COMSTR'], source = fn))
+                    result = os.system(env["CLANGTIDY"]+" "+fn)
             except IOError as e:
                 return
 

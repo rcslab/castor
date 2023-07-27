@@ -4,7 +4,6 @@ import os
 import multiprocessing
 import sys
 import subprocess
-import StringIO
 
 log = None
 
@@ -126,7 +125,7 @@ if (env["BUILDTYPE"] == "DEBUG"):
 elif (env["BUILDTYPE"] == "RELEASE"):
     env.Append(CPPFLAGS = ["-DCASTOR_RELEASE"])
 else:
-    print "Unknown BUILDTYPE"
+    print("Unknown BUILDTYPE")
 
 if (env["RR"] == "ctr"):
     env.Append(CPPFLAGS = ["-DCASTOR_CTR"])
@@ -135,7 +134,7 @@ elif (env["RR"] == "tsc"):
 elif (env["RR"] == "tsx"):
     env.Append(CPPFLAGS = ["-DCASTOR_TSX"])
 else:
-    print "Unknown RR"
+    print("Unknown RR")
 
 if (env["CFG"] == "ft"):
     env.Append(CPPFLAGS = ["-DCASTOR_FT"])
@@ -144,7 +143,7 @@ elif (env["CFG"] == "dbg"):
 elif (env["CFG"] == "snap"):
     env.Append(CPPFLAGS = ["-DCASTOR_SNAP"])
 else:
-    print "Unknown CFG"
+    print("Unknown CFG")
 
 env.Append(CPPPATH = ["#include",
                       "#include/" + env["RR"],

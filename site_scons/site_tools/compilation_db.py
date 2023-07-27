@@ -32,19 +32,19 @@ __COMPILATION_DB_ENTRIES=[]
 
 # We make no effort to avoid rebuilding the entries. Someday, perhaps we could and even
 # integrate with the cache, but there doesn't seem to be much call for it.
-class __CompilationDbNode(SCons.Node.Node):
-    def __init__(self):
-        SCons.Node.Node.__init__(self)
+class __CompilationDbNode(SCons.Node.Python.Value):
+    def __init__(self, value):
+        SCons.Node.Python.Value.__init__(self, value)
         self.Decider(changed_since_last_build_node)
 
-def changed_since_last_build_node(node, target, prev_ni):
+def changed_since_last_build_node(node, target, prev_ni, pnode):
     return True
 
 def makeEmitCompilationDbEntry(comstr):
     user_action = SCons.Action.Action(comstr)
     def EmitCompilationDbEntry(target, source, env):
 
-        dbtarget = __CompilationDbNode()
+        dbtarget = __CompilationDbNode(source)
 
         entry = env.__COMPILATIONDB_Entry(
             target=dbtarget,

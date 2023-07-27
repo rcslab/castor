@@ -6,8 +6,8 @@ import SCons
 def copy_file(target, source, env):
     dest = str(target[0])
     src = str(source[0])
-    print dest
-    print src
+    print(dest)
+    print(src)
     shutil.copy(src, dest)
 
 def generate(env, **kwargs):
