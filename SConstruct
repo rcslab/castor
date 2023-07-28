@@ -19,14 +19,14 @@ def myspawn(sh, escape, cmd, args, env):
     if p.returncode == 0:
         out += ' '.join(args)
         out += "\n"
-        out += stdout + stderr
+        out += stdout.decode("ascii") + stderr.decode("ascii")
         sys.stdout.write(stdout + stderr)
         log.write(out)
     else:
         out += "----- Build Error -----\n"
         out += "Command: " + ' '.join(args) + '\n'
         out += "\nMessages:\n"
-        out += stdout + stderr
+        out += stdout.decode("ascii") + stderr.decode("ascii")
         out += "-----------------------\n"
         sys.stdout.write(out)
         log.write(out)
@@ -51,7 +51,7 @@ opts.AddVariables(
     EnumVariable("CLANGSAN", "Clang/LLVM Sanitizer", "", ["", "address", "thread", "leak"]),
     ("CASTORPASS", "Castor LLVM IR Pass", "lib/Pass/libCastorPass.so"),
     EnumVariable("VERBOSE", "Show full build information", "0", ["0", "1"]),
-    EnumVariable("COLOR", "Color build output (breaks vim quickfix).", "no", ["yes", "no"]),
+    EnumVariable("COLOR", "Color build output (breaks vim quickfix).", "yes", ["yes", "no"]),
     EnumVariable("BUILDTYPE", "Build Type", "DEBUG", ["DEBUG", "RELEASE"]),
     EnumVariable("ARCH", "CPU Architecture", "amd64", ["amd64"]),
     EnumVariable("RR", "R/R Type", "ctr", ["ctr", "tsc", "tsx"]),
@@ -152,6 +152,28 @@ env.Append(CPPPATH = ["#include",
 #env["SYSROOT"] = os.getcwd() + "/sysroot/usr/amd64-freebsd/"
 env["BUILDROOT"] = os.getcwd() + "/lib/"
 
+# Configuration
+conf = env.Configure()
+
+# XXX: Hack to support clang static analyzer
+def CheckFailed(msg):
+    print(msg)
+    if os.getenv('CCC_ANALYZER_OUTPUT_FORMAT') != None:
+        return
+    Exit(1)
+
+if not conf.CheckCC():
+    CheckFailed("Your C compiler and/or environment is incorrectly configured.")
+if not conf.CheckCXX():
+    CheckFailed("Your C++ compiler and/or environment is incorrectly configured.")
+
+if sys.platform != "freebsd13":
+    print("Current Castor release is tested on FreeBSD 13.1")
+    print("Running on another version requires updating the system call definitions")
+    exit(1)
+
+conf.Finish()
+
 Export('env')
 
 VariantDir("build/lib", "lib")
@@ -163,8 +185,7 @@ VariantDir("build/tools", "tools")
 SConscript("#build/tools/rrlog/SConstruct")
 SConscript("#build/tools/record/SConstruct")
 SConscript("#build/tools/replay/SConstruct")
-#SConscript("#build/tools/rrtool/SConstruct")
-
+SConscript("#build/tools/rrtool/SConstruct")
 
 #cp = env.Command("#lib/Pass/libCastorPass.so",
 #            [ "lib/Pass/CastorPass.cc", "lib/Pass/CastorPass.h",

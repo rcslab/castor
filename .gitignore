@@ -9,6 +9,8 @@ rr.shm
 build
 build.log
 .sconsign.dblite
+.sconf_temp
+config.log
 sysroot
 sysroot-src
 llvm
