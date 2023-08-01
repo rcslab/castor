@@ -44,7 +44,7 @@ def die(message):
 
 def debug(*args, **kwargs):
     if debug_flag:
-	print("DEBUG >>", *args, file=sys.stdout, **kwargs)
+        print("DEBUG >>", *args, file=sys.stdout, **kwargs)
 
 def error(*args, **kwargs):
     global error_count
@@ -234,14 +234,6 @@ def generate_handler(spec, type_size_map):
     c_output("}") #end function
     return spec
 
-# typedef struct RRLogEntry {
-#     alignas(CACHELINE) uint64_t		eventId;
-#     uint64_t				objectId;
-#     uint32_t				event;
-#     uint32_t				threadId;
-#     uint64_t				value[5];
-# } RRLogEntry;
-
 def generate_pretty_printer(spec):
     debug("generating_handler(%s) with spec:%s", (spec['name'], str(spec)))
     name = spec['name']
@@ -397,15 +389,34 @@ def parse_proto(proto, handler_spec):
     handler_spec['args_spec'] = parse_args(arg_string, handler_spec)
     return handler_spec
 
+def pre_parse_spec_line(line):
+    preparsed_line = line
+
+    # remove extra commas before )
+    pivot = preparsed_line.rfind(')')
+    last_comma = line.rfind(',', 0, pivot)
+    if pivot != -1 and last_comma != -1:
+        content = preparsed_line[last_comma: pivot]
+        match = re.search(r'[a-zA-Z]+', content) or re.search(r'[0-9]+', content)
+        if not match:
+            preparsed_line = preparsed_line[:last_comma] + preparsed_line[last_comma+1:]
+
+    return preparsed_line
+
 def parse_spec_line(line):
     debug("spec_line:" + line)
     handler_spec = {}
+    line = pre_parse_spec_line(line)
     pivot = line.index('{')
     prefix = line[:pivot]
     proto = line[pivot:]
     debug("prefix:" + prefix)
     debug("proto:" + proto)
     number, name, type = prefix.split()
+
+    if "STD" in type and "CAPENABLED" in type:
+        type = "STD"
+
     handler_spec['decl_type'] = type
     if not type in SUPPORTED_DECL_TYPES:
         debug("Unused line:" + line)
@@ -465,6 +476,7 @@ def parse_spec():
     line_number = 0
     partial_line = None
     spec_line = None
+    after_brkt_line = False
     syscall_description_list = []
 
     for line in sys.stdin:
@@ -481,24 +493,31 @@ def parse_spec():
             elif line.startswith(";") or line.startswith("$"):
                 parse_spec_comment(line)
             elif line[0].isdigit():
-                if line.endswith("\\"):
-                    partial_line = line
-                    debug("partial line:", line)
-                elif '{' in line and '}' in line:
-                    spec_line = line
-                else:
+                partial_line = line
+                if '}' in line:
+                    if not line.endswith("\\"):
+                        spec_line = partial_line
+                    else:
+                        after_brkt_line = True
+                    
+                if (not '{' in line) and (not '}' in line):
+                    partial_line = ""
                     parse_unused(line)
             else:
                 die("Parse error on line:" + str(line_number))
         else:
-            if line.endswith("\\"):
+            if '}' in line or after_brkt_line:
                 partial_line = partial_line + line
-                debug("partial line:", partial_line)
+                if not line.endswith("\\"):
+                    debug("partial line:", partial_line)
+                    after_brkt_line = False
+                    spec_line = partial_line.replace("\\","")
+                    partial_line = None
+                else:
+                    after_brkt_line = True
             else:
                 partial_line = partial_line + line
                 debug("partial line:", partial_line)
-                spec_line = partial_line.replace("\\","")
-                partial_line = None
 
         if spec_line:
             finished = spec_line
@@ -510,6 +529,7 @@ def parse_spec():
             except:
                 debug("Unknown parsing error on line %d" % line_number)
                 raise
+            partial_line = ""
 
     return syscall_description_list
 
@@ -611,7 +631,7 @@ def read_syscall_list(file_name):
     with open(file_name) as f:
                 syscall_list = f.read().splitlines()
     syscall_list = map(lambda x: x.strip(), syscall_list)
-    syscall_list = filter(lambda x:not x.startswith(';') and len(x) > 0, syscall_list)
+    syscall_list = list(filter(lambda x:not x.startswith(';') and len(x) > 0, syscall_list))
     duplicates = find_duplicates(syscall_list)
     if len(duplicates) > 0:
         die(file_name + " contains duplicate entries:" + str(duplicates))
@@ -668,8 +688,8 @@ def read_libc_type_signatures():
             return_type = match.group('return_type').strip()
             name = match.group('name').strip()
             args = re.sub('\n','',match.group('args')).split(',')
-            args = map(lambda x:x.strip(), args)
-            args = map(lambda x:clean_types(x), args)
+            args = list(map(lambda x:x.strip(), args))
+            args = list(map(lambda x:clean_types(x), args))
             if name in type_signatures:
                 current = type_signatures[name]
                 if (return_type != current['return_type'] or args != current['args']):
@@ -769,16 +789,18 @@ if __name__ == '__main__':
 
     all_syscalls_list = map(lambda x:x['name'], syscall_description_list)
 
-    autogenerate_list = read_syscall_list('autogenerate_syscalls')
+    syscalls_list = read_syscall_list('autogenerate_syscalls')
     passthrough_list = read_syscall_list('passthrough_syscalls')
     unimplemented_list = read_syscall_list('unimplemented_syscalls')
     unsupported_list = read_syscall_list('unsupported_syscalls')
     builtin_syscalls = read_syscall_list('builtin_syscalls')
     builtin_events = read_syscall_list('builtin_events')
-    #XXX need to do something more sensible with this since
-    #we now have builtin list
+
+    autogenerate_list = list(filter(lambda i: i not in unimplemented_list, syscalls_list))
+    autogenerate_list = list(filter(lambda i: i not in unsupported_list, autogenerate_list))
+
     core_runtime_list = subprocess.check_output('./core_runtime_syscalls.sh').split()
-    duplicates = find_duplicates(autogenerate_list + passthrough_list +\
+    duplicates = find_duplicates(autogenerate_list + passthrough_list + \
             unimplemented_list + unsupported_list + core_runtime_list)
     if len(duplicates) > 0:
         warning("syscall lists contain duplicates:" + str(duplicates))
@@ -833,7 +855,7 @@ if __name__ == '__main__':
 
     print("==Summary==")
     print("System calls of type %s : (%s)" % \
-        (str(SUPPORTED_DECL_TYPES), len(all_syscalls_list)))
+        (str(SUPPORTED_DECL_TYPES), len(list(all_syscalls_list))))
     print("Core Runtime calls:(%s)" % len(core_runtime_list))
     print("Autogenerated calls:(%s)" % len(autogenerate_list))
     print("Passthrough calls:(%s)" % len(passthrough_list))

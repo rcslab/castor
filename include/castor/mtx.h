@@ -10,8 +10,6 @@ typedef struct Mutex {
     atomic_uintptr_t				thr;
 } Mutex;
 
-Mutex m;
-
 static inline void
 Mutex_Init(Mutex *m)
 {
