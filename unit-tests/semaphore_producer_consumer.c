@@ -28,9 +28,10 @@ sbuf_t shared;
 
 void *Producer(void *arg)
 {
-    int i, item, index;
+    int i, item;
+    intptr_t index;
 
-    index = (int)arg;
+    index = (intptr_t)arg;
 
 
     for (i=0; i < NITERS; i++)
@@ -47,7 +48,7 @@ void *Producer(void *arg)
         pthread_mutex_lock(&shared.mutex);
         shared.buf[shared.in] = item;
         shared.in = (shared.in+1)%BUFF_SIZE;
-        printf("[P%d] Producing %d ...\n", index, item);
+        printf("[P%ld] Producing %d ...\n", index, item);
         fflush(stdout);
         /* Release the buffer */
         pthread_mutex_unlock(&shared.mutex);
@@ -62,16 +63,17 @@ void *Producer(void *arg)
 
 void *Consumer(void *arg)
 {
-    int i, item, index;
+    int i, item;
+    intptr_t index;
 
-    index = (int)arg;
+    index = (intptr_t)arg;
     for (i=NITERS; i > 0; i--) {
         sem_wait(&shared.full);
         pthread_mutex_lock(&shared.mutex);
         item=i;
         item=shared.buf[shared.out];
         shared.out = (shared.out+1)%BUFF_SIZE;
-        printf("[C%d] Consuming  %d ...\n", index, item);
+        printf("[C%ld] Consuming  %d ...\n", index, item);
         fflush(stdout);
         /* Release the buffer */
         pthread_mutex_unlock(&shared.mutex);

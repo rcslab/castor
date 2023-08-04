@@ -57,9 +57,9 @@ def BuildTest(name):
     if t.returncode != 0:
         write(CLEAR)
         write(FORMAT % (name, RED, "Build Fail") + "\n")
-        print "***** BEGIN COMPILER OUTPUT *****"
-        print t.communicate()
-        print "***** END COMPILER OUTPUT *****"
+        print("***** BEGIN COMPILER OUTPUT *****")
+        print(t.communicate())
+        print("***** END COMPILER OUTPUT *****")
         sys.exit(1)
     write(CLEAR)
 
@@ -135,7 +135,7 @@ if (basedir.split('/')[-1] != 'unit-tests'):
 if len(sys.argv) > 1:
     for t in sys.argv[1:]:
         if all_tests.count(t) == 0:
-            print "Test '%s' does not exist!" % (t)
+            print("Test '%s' does not exist!" % (t))
             sys.exit(255)
         tests.append(t)
 else:
@@ -154,18 +154,18 @@ for t in tests:
     #BuildTest(t)
     RunTest(t)
 
-print str(len(disabled)) + " tests disabled"
+print(str(len(disabled)) + " tests disabled")
 
 if len(failed) > 0:
-    print "\n>>>>>>> !!!!!TESTS FAILED !!!!!<<<<<<<<"
-    print str(len(failed)) + " tests failed"
-    print ">>>>>>>> !!!!!!!!!!<<<<<<<<\n"
+    print("\n>>>>>>> !!!!!TESTS FAILED !!!!!<<<<<<<<")
+    print(str(len(failed)) + " tests failed")
+    print(">>>>>>>> !!!!!!!!!!<<<<<<<<\n")
 
 if len(failed) != 0:
-    print "Killing any left over processes."
+    print("Killing any left over processes.")
     signal.signal(signal.SIGTERM, signal.SIG_IGN)
     os.killpg(0, signal.SIGTERM)
-    print "Cleaning any left over System V shared memory segments."
+    print("Cleaning any left over System V shared memory segments.")
     t = subprocess.Popen(["ipcrm", "-W"],
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)

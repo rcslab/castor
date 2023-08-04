@@ -9,10 +9,10 @@
 void *
 routine(void *arg)
 {
-    int thrNo = (int)arg;
+    intptr_t thrNo = (intptr_t)arg;
 
     for (int i = 0; i < ITERATIONS; i++) {
-	printf("T%d\n", thrNo);
+	printf("T%ld\n", thrNo);
     }
 
     return NULL;

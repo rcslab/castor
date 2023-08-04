@@ -8,18 +8,18 @@
 
 pthread_once_t oc1;
 pthread_once_t oc2;
-thread_local int thrNo;
+thread_local intptr_t thrNo;
 
 void
 initroutine(void)
 {
-    printf("init %d\n", thrNo);
+    printf("init %ld\n", thrNo);
 }
 
 void *
 routine(void *arg)
 {
-    thrNo = (int)arg;
+    thrNo = (intptr_t)arg;
 
     pthread_once(&oc2, initroutine);
     pthread_once(&oc2, initroutine);

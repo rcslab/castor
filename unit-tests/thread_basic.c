@@ -7,9 +7,9 @@
 void *
 routine(void *arg)
 {
-    int thrNo = (int)arg;
+    intptr_t thrNo = (intptr_t)arg;
 
-    printf("Hello %d\n", thrNo);
+    printf("Hello %ld\n", thrNo);
 
     return NULL;
 }
