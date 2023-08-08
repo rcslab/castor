@@ -244,7 +244,6 @@ extern void pretty_print_GETCWD(RRLogEntry entry);
 extern void pretty_print_SHMGET(RRLogEntry entry);
 extern void pretty_print_SEMGET(RRLogEntry entry);
 extern void pretty_print_SEMOP(RRLogEntry entry);
-extern void pretty_print_SHM_OPEN(RRLogEntry entry);
 extern void pretty_print_SHM_UNLINK(RRLogEntry entry);
 extern void pretty_print_OPEN(RRLogEntry entry);
 extern void pretty_print_OPENAT(RRLogEntry entry);

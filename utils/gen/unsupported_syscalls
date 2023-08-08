@@ -83,4 +83,5 @@ gethostid
 ;too new, no declaration in lib/type signature yet.
 cpuset_getdomain
 cpuset_setdomain
+shm_open
 shm_open2

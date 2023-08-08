@@ -799,6 +799,12 @@ if __name__ == '__main__':
     autogenerate_list = list(filter(lambda i: i not in unimplemented_list, syscalls_list))
     autogenerate_list = list(filter(lambda i: i not in unsupported_list, autogenerate_list))
 
+    builtin_syscalls = list(filter(lambda i: i not in unimplemented_list, builtin_syscalls))
+    builtin_syscalls = list(filter(lambda i: i not in unsupported_list, builtin_syscalls))
+
+    builtin_events = list(filter(lambda i: i not in unimplemented_list, builtin_events))
+    builtin_events = list(filter(lambda i: i not in unsupported_list, builtin_events))
+
     core_runtime_list = subprocess.check_output('./core_runtime_syscalls.sh').split()
     duplicates = find_duplicates(autogenerate_list + passthrough_list + \
             unimplemented_list + unsupported_list + core_runtime_list)
