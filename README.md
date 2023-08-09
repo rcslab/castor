@@ -2,8 +2,8 @@
 
 ##Requirements
 
-Castor is only supported on FreeBSD 11+ at this time, and has only been tested 
-with Clang 4.0. 
+Castor is only supported on FreeBSD 13.1 at this time, and has only been tested 
+with Clang 15.0. 
 
 ##Building Castor
 
@@ -12,10 +12,10 @@ Following these steps will allow you to build Castor and run the test suite.
 ### 1. Install the packages needed to build Castor
 
 ```
-pkg install git python scons llvm39 ninja cmake curl
+pkg install git python scons llvm15 ninja cmake curl
 ```
 
-Note: If ```clang39 --version``` does not match 3.9.1 on your system and you still wish to proceed, then
+Note: If ```clang15 --version``` does not match 15.0.x on your system and you still wish to proceed, then
 you need to update util/llvm.sh to match your version before proceeding.
 
 

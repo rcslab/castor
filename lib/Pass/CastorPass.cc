@@ -2,7 +2,7 @@
  * Castor Record/Replay Pass
  */
 
-#define DEBUG_TYPE "castor"
+#define CASTOR_DEBUG_TYPE "castor"
 
 #include "llvm/ADT/Statistic.h"
 #include "llvm/IR/Function.h"
@@ -94,10 +94,10 @@ bool Castor::doAtomicRMW(Module &M, AtomicRMWInst *I)
     IRBuilder<> before(I);
     IRBuilder<> after(ni);
 
-    Value *load_begin = M.getOrInsertFunction("__castor_rmw_begin",
+    FunctionCallee load_begin = M.getOrInsertFunction("__castor_rmw_begin",
 				Type::getVoidTy(ctx),
 				Type::getInt64Ty(ctx), NULL);
-    Value *load_end = M.getOrInsertFunction("__castor_rmw_end",
+    FunctionCallee load_end = M.getOrInsertFunction("__castor_rmw_end",
 				Type::getVoidTy(ctx),
 				Type::getInt64Ty(ctx), NULL);
     Value *tmpAddr = before.CreatePtrToInt(addr, Type::getInt64Ty(ctx));
@@ -120,10 +120,10 @@ bool Castor::doAtomicCmpXchg(Module &M, AtomicCmpXchgInst *I)
     IRBuilder<> before(I);
     IRBuilder<> after(ni);
 
-    Value *load_begin = M.getOrInsertFunction("__castor_cmpxchg_begin",
+    FunctionCallee load_begin = M.getOrInsertFunction("__castor_cmpxchg_begin",
 				Type::getVoidTy(ctx),
 				Type::getInt64Ty(ctx), NULL);
-    Value *load_end = M.getOrInsertFunction("__castor_cmpxchg_end",
+    FunctionCallee load_end = M.getOrInsertFunction("__castor_cmpxchg_end",
 				Type::getVoidTy(ctx),
 				Type::getInt64Ty(ctx), NULL);
     Value *tmpAddr = before.CreatePtrToInt(addr, Type::getInt64Ty(ctx));
@@ -146,10 +146,10 @@ bool Castor::doLoad(Module &M, LoadInst *I)
 	IRBuilder<> before(I);
 	IRBuilder<> after(ni);
 
-	Value *load_begin = M.getOrInsertFunction("__castor_load_begin",
+	FunctionCallee load_begin = M.getOrInsertFunction("__castor_load_begin",
 				Type::getVoidTy(ctx),
 				Type::getInt64Ty(ctx), NULL);
-	Value *load_end = M.getOrInsertFunction("__castor_load_end",
+	FunctionCallee load_end = M.getOrInsertFunction("__castor_load_end",
 				Type::getVoidTy(ctx),
 				Type::getInt64Ty(ctx), NULL);
 	Value *tmpAddr = before.CreatePtrToInt(addr, Type::getInt64Ty(ctx));
@@ -175,10 +175,10 @@ bool Castor::doStore(Module &M, StoreInst *I)
 	IRBuilder<> before(I);
 	IRBuilder<> after(ni);
 
-	Value *store_begin = M.getOrInsertFunction("__castor_store_begin",
+	FunctionCallee store_begin = M.getOrInsertFunction("__castor_store_begin",
 				Type::getVoidTy(ctx),
 				Type::getInt64Ty(ctx), NULL);
-	Value *store_end = M.getOrInsertFunction("__castor_store_end",
+	FunctionCallee store_end = M.getOrInsertFunction("__castor_store_end",
 				Type::getVoidTy(ctx),
 				Type::getInt64Ty(ctx), NULL);
 	Value *tmpAddr = before.CreatePtrToInt(addr, Type::getInt64Ty(ctx));
@@ -194,12 +194,10 @@ bool Castor::doStore(Module &M, StoreInst *I)
 
 bool Castor::doCall(Module &M, CallInst *I)
 {
-    Function *f;
-
     if (I->isInlineAsm()) {
 	bool needRR = false;
 	errs() << "Inline Assembly\n";
-	Value *f = I->getCalledValue();
+	Value *f = I->getCalledOperand();
 	InlineAsm *ia = dyn_cast<InlineAsm>(f);
 	InlineAsm::ConstraintInfoVector civ = ia->ParseConstraints();
 
@@ -220,9 +218,9 @@ bool Castor::doCall(Module &M, CallInst *I)
 	    IRBuilder<> before(I);
 	    IRBuilder<> after(ni);
 
-	    Value *asm_begin = M.getOrInsertFunction("__castor_asm_begin",
+	    FunctionCallee asm_begin = M.getOrInsertFunction("__castor_asm_begin",
 				Type::getVoidTy(ctx), NULL);
-	    Value *asm_end = M.getOrInsertFunction("__castor_asm_end",
+	    FunctionCallee asm_end = M.getOrInsertFunction("__castor_asm_end",
 				Type::getVoidTy(ctx), NULL);
 
 	    before.CreateCall(asm_begin);
@@ -234,7 +232,7 @@ bool Castor::doCall(Module &M, CallInst *I)
 	return false;
     }
 
-    f = I->getCalledFunction();
+    Function *f = I->getCalledFunction();
     if (!f)
 	return false;
 
@@ -245,7 +243,7 @@ bool Castor::doCall(Module &M, CallInst *I)
 
 	IRBuilder<> after(ni);
 
-	Value *castor_rdtsc = M.getOrInsertFunction("__castor_rdtsc",
+	FunctionCallee castor_rdtsc = M.getOrInsertFunction("__castor_rdtsc",
 				Type::getInt64Ty(ctx),
 				NULL);
 	Value *rdtsc = after.CreateCall(castor_rdtsc);

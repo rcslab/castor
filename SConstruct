@@ -187,11 +187,11 @@ SConscript("#build/tools/record/SConstruct")
 SConscript("#build/tools/replay/SConstruct")
 SConscript("#build/tools/rrtool/SConstruct")
 
-#cp = env.Command("#lib/Pass/libCastorPass.so",
-#            [ "lib/Pass/CastorPass.cc", "lib/Pass/CastorPass.h",
-#              "lib/Pass/CMakeLists.txt" ],
-#            "cd lib/Pass && cmake . && cmake --build .")
-#env.Alias("CastorPass", "#lib/Pass/libCastorPass.so")
+cp = env.Command("#lib/Pass/libCastorPass.so",
+            [ "lib/Pass/CastorPass.cc", "lib/Pass/CastorPass.h",
+              "lib/Pass/CMakeLists.txt" ],
+            "cd lib/Pass && cmake . && cmake --build .")
+env.Alias("CastorPass", "#lib/Pass/libCastorPass.so")
 
 VariantDir("build/unit-tests", "unit-tests")
 SConscript("#build/unit-tests/SConstruct")
