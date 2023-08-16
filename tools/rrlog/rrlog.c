@@ -18,6 +18,10 @@
 #include "events_pretty_printer_gen.h"
 
 enum display_modes {ALL_MODE, TRUSS_MODE, DUMP_MODE};
+/* Bit enums */
+enum truss_modes {
+    TRUSS_TID = 1,
+};
 
 static int logfd;
 
@@ -36,7 +40,9 @@ struct {
 
 uint64_t eventsPerThread[RRLOG_MAX_THREADS];
 
-int openLog(const char * logfile) {
+static int 
+openLog(const char * logfile)
+{
     castor_magic_t magic;
     castor_version_t version;
     const int flags = O_RDWR;
@@ -66,19 +72,24 @@ int openLog(const char * logfile) {
     return logfd;
 }
 
-void initStats()
+static void 
+initStats()
 {
     for (int i = 0; i < RRLOG_MAX_THREADS; i++) {
 	eventsPerThread[i] = 0;
     }
 }
 
-void updateStats(RRLogEntry entry) {
+static void 
+updateStats(RRLogEntry entry)
+{
     rreventTable[entry.event].count++;
     eventsPerThread[entry.threadId] += 1;
 }
 
-void displayStats() {
+static void
+displayStats()
+{
     printf("\n%-16s      %s\n", "Event", "Count");
     for (int i = 0; rreventTable[i].str != 0; i++) {
 	if (rreventTable[i].count != 0) {
@@ -94,7 +105,9 @@ void displayStats() {
     }
 }
 
-int readEntry(RRLogEntry * entry){
+static int
+readEntry(RRLogEntry * entry)
+{
     int result = read(logfd, (void *)entry, sizeof(RRLogEntry));
     if (result < 0) {
 	perror("read");
@@ -106,15 +119,17 @@ int readEntry(RRLogEntry * entry){
     return 1;
 }
 
-static inline void assertData(RRLogEntry * entry) {
+static inline void
+assertData(RRLogEntry * entry)
+{
     if (entry->event != RREVENT_DATA) {
 	fprintf(stderr, "invalide entry: something went horribly wrong while reading the log.");
 	exit(1);
     }
 }
 
-
-void readData(uint8_t * buf, size_t len) {
+void readData(uint8_t * buf, size_t len) 
+{
     assert(buf != NULL);
     uint64_t recs = len / RREVENT_DATA_LEN;
     uint64_t rlen = len % RREVENT_DATA_LEN;
@@ -135,7 +150,8 @@ void readData(uint8_t * buf, size_t len) {
     }
 }
 
-void dumpEntry(RRLogEntry entry)
+static void
+dumpEntry(RRLogEntry entry)
 {
     if (entry.event > RREVENTS_MAX) {
 	fprintf(stderr, "invalid event number %u\n", entry.event);
@@ -149,17 +165,24 @@ void dumpEntry(RRLogEntry entry)
 	    entry.value[3], entry.value[4]);
 }
 
-void prettyPrintEntry(RRLogEntry entry)
+static void
+prettyPrintEntryWithTrussOption(RRLogEntry entry, uint32_t trussOption)
 {
     if (entry.event > RREVENTS_MAX) {
 	fprintf(stderr, "invalid event number %u\n", entry.event);
 	exit(1);
     }
-
+    if (trussOption & TRUSS_TID) {
+	printf("%d", entry.threadId);
+    }
+    if (trussOption) {
+	printf(": ");
+    }
     rreventTable[entry.event].pretty_print(entry);
 }
 
-void prettyPrintSyscalls(RRLogEntry entry)
+static void 
+prettyPrintSyscallsWithTrussOption(RRLogEntry entry, uint32_t trussOption)
 {
     if (entry.event > RREVENTS_MAX) {
 	fprintf(stderr, "invalid event number %u\n", entry.event);
@@ -167,12 +190,17 @@ void prettyPrintSyscalls(RRLogEntry entry)
     }
     if (GENERATED_SYSCALLS_CONTAINS(entry.event) ||
 	    BUILTIN_SYSCALLS_CONTAINS(entry.event)) {
+        if (trussOption & TRUSS_TID) {
+	    printf("%d", entry.threadId);
+	}
+	if (trussOption) {
+	    printf(": ");
+	}
 	rreventTable[entry.event].pretty_print(entry);
     }
 }
 
-
-void
+static void
 usage()
 {
     printf("rrlog [options] [logfile]\n");
@@ -181,16 +209,18 @@ usage()
     printf("  -a            All -  display all events. (default)\n");
     printf("  -h            Help - display this message.\n");
     printf("  -s            Summary - show summary of total # of events by type and thread.\n");
+    printf("  -H            TID - show TID in truss mode.\n");
 }
 
 
 int main(int argc, char * const argv[])
 {
     int mode = ALL_MODE;
+    int trussMode = 0;
     char ch;
     int showStats = 0;
 
-    while ((ch = getopt(argc, argv, "dtash:")) != -1) {
+    while ((ch = getopt(argc, argv, "dtasHh:")) != -1) {
 	switch (ch) {
 	    case 'd':
 		mode = DUMP_MODE;
@@ -202,6 +232,12 @@ int main(int argc, char * const argv[])
 		mode = ALL_MODE;
 		break;
 
+	    /* Truss mode arguments */
+	    case 'H': // Show TID
+		trussMode |= TRUSS_TID;
+		break;
+
+	    /* General arguments */
 	    case 's':
 		showStats = 1;
 		break;
@@ -230,13 +266,13 @@ int main(int argc, char * const argv[])
 	case ALL_MODE:
 	    while (readEntry(&entry)) {
 		updateStats(entry);
-		prettyPrintEntry(entry);
+		prettyPrintEntryWithTrussOption(entry, 0);
 	    }
 	    break;
 	case TRUSS_MODE:
 	    while (readEntry(&entry)) {
 		updateStats(entry);
-		prettyPrintSyscalls(entry);
+		prettyPrintSyscallsWithTrussOption(entry, trussMode);
 	    }
 	    break;
 	case DUMP_MODE:
