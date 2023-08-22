@@ -253,39 +253,85 @@ def generate_pretty_printer(spec):
     arg_values = ''
     logged_names = []
 
+    fmt_str_idx = 0
+    arg_str_count = 0
+    printf_arg = []
+    printf_arg_err = []
+    printf_arg_fmt = []
+    printf_arg_fmt_err = []
+    arg_expanded = False
+
+    ppc_output('printf("' + name + '");')
+
+    if logged_data_p(spec):
+        ppc_output('if ((int)entry.value[0] != -1) {')
+    
     for arg in spec['args_spec']:
+        if leading_object:
+            printf_arg_fmt.append('%d')
+            printf_arg_fmt_err.append('%d')
+            printf_arg.append('(int)entry.objectId') 
+            leading_object = False
+            continue
+        
+        arg_expanded = False
+        if log_aggregate_p(arg) and not arg['log_spec']['null_check']:
+            #XXX make this an exact comparison
+            if 'struct stat' in arg['type']:
+                str_name = 'str' + str(arg_str_count)
+
+                ppc_output('struct stat %s;' % arg['name'])
+                ppc_output('char ' + str_name + '[255];')
+                ppc_output('readData((uint8_t *)&%s,sizeof(%s));' % (arg['name'], arg['name']))
+                ppc_output('castor_xlat_stat(%s,%s);\n' % (arg['name'], str_name))
+
+                printf_arg_fmt.append('%s')
+                printf_arg.append(str_name)
+                arg_str_count += 1
+                arg_expanded = True
+
         if arg['log_spec']:
-            logged_names.append(arg['name'])
+            printf_arg_fmt_err.append(arg['name'])
         else:
-            logged_names.append('_')
+            printf_arg_fmt_err.append('_')
 
-    if leading_object:
-        arg_name_str = ", ".join(logged_names[1:])
-        arg_format = '(%d,' + arg_name_str + ')'
-        arg_values = '(int)entry.objectId, '
+        if not arg_expanded:
+            if arg['log_spec']:
+                printf_arg_fmt.append(arg['name'])
+            else:
+                printf_arg_fmt.append('_')
+
+    for fmt in printf_arg_fmt_err: 
+        if fmt == '%s' or fmt == '%d':
+            printf_arg_err.append(printf_arg[fmt_str_idx])
+            fmt_str_idx += 1
+
+    fmt_str = ", ".join(printf_arg_fmt)
+    fmt_str_err = ", ".join(printf_arg_fmt_err)
+    print_str = ", ".join(printf_arg)
+    print_str_err = ", ".join(printf_arg_err)
+
+    if len(print_str) > 0:
+        ppc_output('printf("(' + fmt_str + '", ' + print_str + ');')
     else:
-        arg_name_str = ", ".join(logged_names)
-        arg_format = '(%s)' % arg_name_str
+        ppc_output('printf("(' + fmt_str + '");')
 
-    ppc_output('printf("' + name + arg_format + ' = ' + return_format +  '",' + arg_values +
-            '(' + return_type + ')' + 'entry.value[0]);')
+    if logged_data_p(spec):
+        ppc_output('} else {')
+        
+        if len(print_str_err) > 0:
+            ppc_output('printf("(' + fmt_str_err + '", ' + print_str_err + ');')
+        else:
+            ppc_output('printf("(' + fmt_str_err + '");')
+
+        ppc_output('}')
+
+    ppc_output('printf(") = ' + return_format + '", (' + return_type + ')entry.value[0]);\n')
+
     if not name in ALWAYS_SUCCESSFUL_SYSCALLS:
         ppc_output('if ((int)entry.value[0] == -1) {')
         ppc_output('printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));')
         ppc_output("}\n")
-
-    if logged_data_p(spec):
-        ppc_output('if ((int)entry.value[0] != -1) {')
-        for arg in spec['args_spec']:
-            if log_aggregate_p(arg) and not arg['log_spec']['null_check']:
-                #XXX make this an exact comparison
-                if 'struct stat' in arg['type']:
-                    ppc_output('struct stat %s;' % arg['name'])
-                    ppc_output('char str[255];')
-                    ppc_output('readData((uint8_t *)&%s,sizeof(%s));' % (arg['name'], arg['name']))
-                    ppc_output('castor_xlat_stat(%s,str);' % arg['name'])
-                    ppc_output('printf("   [' + arg['name'] + ': %s]\\n",str);')
-        ppc_output('}\n')
 
     ppc_output('printf("\\n");')
     ppc_output('}\n')

@@ -59,7 +59,10 @@
 void
 pretty_print_FORK(RRLogEntry entry)
 {
-    printf("fork() = %d", (pid_t) entry.value[0]);
+    printf("fork");
+    printf("(");
+    printf(") = %d", (pid_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -70,12 +73,16 @@ pretty_print_FORK(RRLogEntry entry)
 void
 pretty_print_READ(RRLogEntry entry)
 {
-    printf("read(%d,buf, _) = %zd", (int)entry.objectId, (ssize_t) entry.value[0]);
+    printf("read");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, buf, _", (int)entry.objectId);
+    } else {
+	printf("(%d, buf, _", (int)entry.objectId);
+    }
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -84,7 +91,10 @@ pretty_print_READ(RRLogEntry entry)
 void
 pretty_print_WRITE(RRLogEntry entry)
 {
-    printf("write(%d,_, _) = %zd", (int)entry.objectId, (ssize_t) entry.value[0]);
+    printf("write");
+    printf("(%d, _, _", (int)entry.objectId);
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -95,7 +105,10 @@ pretty_print_WRITE(RRLogEntry entry)
 void
 pretty_print_OPEN(RRLogEntry entry)
 {
-    printf("open(_, _, _) = %d", (int)entry.value[0]);
+    printf("open");
+    printf("(_, _, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -106,7 +119,10 @@ pretty_print_OPEN(RRLogEntry entry)
 void
 pretty_print_CLOSE(RRLogEntry entry)
 {
-    printf("close(%d,) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("close");
+    printf("(%d", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -117,7 +133,10 @@ pretty_print_CLOSE(RRLogEntry entry)
 void
 pretty_print_LINK(RRLogEntry entry)
 {
-    printf("link(_, _) = %d", (int)entry.value[0]);
+    printf("link");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -128,7 +147,10 @@ pretty_print_LINK(RRLogEntry entry)
 void
 pretty_print_UNLINK(RRLogEntry entry)
 {
-    printf("unlink(_) = %d", (int)entry.value[0]);
+    printf("unlink");
+    printf("(_");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -139,7 +161,10 @@ pretty_print_UNLINK(RRLogEntry entry)
 void
 pretty_print_CHDIR(RRLogEntry entry)
 {
-    printf("chdir(_) = %d", (int)entry.value[0]);
+    printf("chdir");
+    printf("(_");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -150,7 +175,10 @@ pretty_print_CHDIR(RRLogEntry entry)
 void
 pretty_print_FCHDIR(RRLogEntry entry)
 {
-    printf("fchdir(%d,) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("fchdir");
+    printf("(%d", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -161,7 +189,10 @@ pretty_print_FCHDIR(RRLogEntry entry)
 void
 pretty_print_CHMOD(RRLogEntry entry)
 {
-    printf("chmod(_, _) = %d", (int)entry.value[0]);
+    printf("chmod");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -172,7 +203,10 @@ pretty_print_CHMOD(RRLogEntry entry)
 void
 pretty_print_CHOWN(RRLogEntry entry)
 {
-    printf("chown(_, _, _) = %d", (int)entry.value[0]);
+    printf("chown");
+    printf("(_, _, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -183,14 +217,20 @@ pretty_print_CHOWN(RRLogEntry entry)
 void
 pretty_print_GETPID(RRLogEntry entry)
 {
-    printf("getpid() = %d", (pid_t) entry.value[0]);
+    printf("getpid");
+    printf("(");
+    printf(") = %d", (pid_t) entry.value[0]);
+
     printf("\n");
 }
 
 void
 pretty_print_MOUNT(RRLogEntry entry)
 {
-    printf("mount(_, _, _, _) = %d", (int)entry.value[0]);
+    printf("mount");
+    printf("(_, _, _, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -201,7 +241,10 @@ pretty_print_MOUNT(RRLogEntry entry)
 void
 pretty_print_UNMOUNT(RRLogEntry entry)
 {
-    printf("unmount(_, _) = %d", (int)entry.value[0]);
+    printf("unmount");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -212,7 +255,10 @@ pretty_print_UNMOUNT(RRLogEntry entry)
 void
 pretty_print_SETUID(RRLogEntry entry)
 {
-    printf("setuid(_) = %d", (int)entry.value[0]);
+    printf("setuid");
+    printf("(_");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -223,26 +269,36 @@ pretty_print_SETUID(RRLogEntry entry)
 void
 pretty_print_GETUID(RRLogEntry entry)
 {
-    printf("getuid() = %d", (uid_t) entry.value[0]);
+    printf("getuid");
+    printf("(");
+    printf(") = %d", (uid_t) entry.value[0]);
+
     printf("\n");
 }
 
 void
 pretty_print_GETEUID(RRLogEntry entry)
 {
-    printf("geteuid() = %d", (uid_t) entry.value[0]);
+    printf("geteuid");
+    printf("(");
+    printf(") = %d", (uid_t) entry.value[0]);
+
     printf("\n");
 }
 
 void
 pretty_print_RECVMSG(RRLogEntry entry)
 {
-    printf("recvmsg(%d,msg, _) = %zd", (int)entry.objectId, (ssize_t) entry.value[0]);
+    printf("recvmsg");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, msg, _", (int)entry.objectId);
+    } else {
+	printf("(%d, msg, _", (int)entry.objectId);
+    }
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -251,7 +307,10 @@ pretty_print_RECVMSG(RRLogEntry entry)
 void
 pretty_print_SENDMSG(RRLogEntry entry)
 {
-    printf("sendmsg(%d,_, _) = %zd", (int)entry.objectId, (ssize_t) entry.value[0]);
+    printf("sendmsg");
+    printf("(%d, _, _", (int)entry.objectId);
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -262,12 +321,16 @@ pretty_print_SENDMSG(RRLogEntry entry)
 void
 pretty_print_RECVFROM(RRLogEntry entry)
 {
-    printf("recvfrom(%d,buf, _, _, from, fromlenaddr) = %zd", (int)entry.objectId, (ssize_t) entry.value[0]);
+    printf("recvfrom");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, buf, _, _, from, fromlenaddr", (int)entry.objectId);
+    } else {
+	printf("(%d, buf, _, _, from, fromlenaddr", (int)entry.objectId);
+    }
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -276,12 +339,16 @@ pretty_print_RECVFROM(RRLogEntry entry)
 void
 pretty_print_ACCEPT(RRLogEntry entry)
 {
-    printf("accept(%d,name, anamelen) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("accept");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, name, anamelen", (int)entry.objectId);
+    } else {
+	printf("(%d, name, anamelen", (int)entry.objectId);
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -290,12 +357,16 @@ pretty_print_ACCEPT(RRLogEntry entry)
 void
 pretty_print_GETPEERNAME(RRLogEntry entry)
 {
-    printf("getpeername(%d,asa, alen) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("getpeername");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, asa, alen", (int)entry.objectId);
+    } else {
+	printf("(%d, asa, alen", (int)entry.objectId);
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -304,12 +375,16 @@ pretty_print_GETPEERNAME(RRLogEntry entry)
 void
 pretty_print_GETSOCKNAME(RRLogEntry entry)
 {
-    printf("getsockname(%d,asa, alen) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("getsockname");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, asa, alen", (int)entry.objectId);
+    } else {
+	printf("(%d, asa, alen", (int)entry.objectId);
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -318,7 +393,10 @@ pretty_print_GETSOCKNAME(RRLogEntry entry)
 void
 pretty_print_ACCESS(RRLogEntry entry)
 {
-    printf("access(_, _) = %d", (int)entry.value[0]);
+    printf("access");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -329,7 +407,10 @@ pretty_print_ACCESS(RRLogEntry entry)
 void
 pretty_print_CHFLAGS(RRLogEntry entry)
 {
-    printf("chflags(_, _) = %d", (int)entry.value[0]);
+    printf("chflags");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -340,7 +421,10 @@ pretty_print_CHFLAGS(RRLogEntry entry)
 void
 pretty_print_FCHFLAGS(RRLogEntry entry)
 {
-    printf("fchflags(%d,_) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("fchflags");
+    printf("(%d, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -351,14 +435,20 @@ pretty_print_FCHFLAGS(RRLogEntry entry)
 void
 pretty_print_GETPPID(RRLogEntry entry)
 {
-    printf("getppid() = %d", (pid_t) entry.value[0]);
+    printf("getppid");
+    printf("(");
+    printf(") = %d", (pid_t) entry.value[0]);
+
     printf("\n");
 }
 
 void
 pretty_print_DUP(RRLogEntry entry)
 {
-    printf("dup(%d,) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("dup");
+    printf("(%d", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -369,21 +459,30 @@ pretty_print_DUP(RRLogEntry entry)
 void
 pretty_print_GETEGID(RRLogEntry entry)
 {
-    printf("getegid() = %d", (gid_t) entry.value[0]);
+    printf("getegid");
+    printf("(");
+    printf(") = %d", (gid_t) entry.value[0]);
+
     printf("\n");
 }
 
 void
 pretty_print_GETGID(RRLogEntry entry)
 {
-    printf("getgid() = %d", (gid_t) entry.value[0]);
+    printf("getgid");
+    printf("(");
+    printf(") = %d", (gid_t) entry.value[0]);
+
     printf("\n");
 }
 
 void
 pretty_print_ACCT(RRLogEntry entry)
 {
-    printf("acct(_) = %d", (int)entry.value[0]);
+    printf("acct");
+    printf("(_");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -394,12 +493,16 @@ pretty_print_ACCT(RRLogEntry entry)
 void
 pretty_print_IOCTL(RRLogEntry entry)
 {
-    printf("ioctl(%d,_, data) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("ioctl");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, _, data", (int)entry.objectId);
+    } else {
+	printf("(%d, _, data", (int)entry.objectId);
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -408,7 +511,10 @@ pretty_print_IOCTL(RRLogEntry entry)
 void
 pretty_print_REBOOT(RRLogEntry entry)
 {
-    printf("reboot(%d,) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("reboot");
+    printf("(%d", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -419,7 +525,10 @@ pretty_print_REBOOT(RRLogEntry entry)
 void
 pretty_print_SYMLINK(RRLogEntry entry)
 {
-    printf("symlink(_, _) = %d", (int)entry.value[0]);
+    printf("symlink");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -430,12 +539,16 @@ pretty_print_SYMLINK(RRLogEntry entry)
 void
 pretty_print_READLINK(RRLogEntry entry)
 {
-    printf("readlink(_, buf, _) = %zd", (ssize_t) entry.value[0]);
+    printf("readlink");
+    if ((int)entry.value[0] != -1) {
+	printf("(_, buf, _");
+    } else {
+	printf("(_, buf, _");
+    }
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -444,14 +557,20 @@ pretty_print_READLINK(RRLogEntry entry)
 void
 pretty_print_UMASK(RRLogEntry entry)
 {
-    printf("umask(_) = %d", (mode_t) entry.value[0]);
+    printf("umask");
+    printf("(_");
+    printf(") = %d", (mode_t) entry.value[0]);
+
     printf("\n");
 }
 
 void
 pretty_print_CHROOT(RRLogEntry entry)
 {
-    printf("chroot(_) = %d", (int)entry.value[0]);
+    printf("chroot");
+    printf("(_");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -462,12 +581,16 @@ pretty_print_CHROOT(RRLogEntry entry)
 void
 pretty_print_GETGROUPS(RRLogEntry entry)
 {
-    printf("getgroups(%d,gidset) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("getgroups");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, gidset", (int)entry.objectId);
+    } else {
+	printf("(%d, gidset", (int)entry.objectId);
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -476,7 +599,10 @@ pretty_print_GETGROUPS(RRLogEntry entry)
 void
 pretty_print_SETGROUPS(RRLogEntry entry)
 {
-    printf("setgroups(%d,_) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("setgroups");
+    printf("(%d, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -487,12 +613,16 @@ pretty_print_SETGROUPS(RRLogEntry entry)
 void
 pretty_print_SETITIMER(RRLogEntry entry)
 {
-    printf("setitimer(%d,_, oitv) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("setitimer");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, _, oitv", (int)entry.objectId);
+    } else {
+	printf("(%d, _, oitv", (int)entry.objectId);
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -501,7 +631,10 @@ pretty_print_SETITIMER(RRLogEntry entry)
 void
 pretty_print_SWAPON(RRLogEntry entry)
 {
-    printf("swapon(_) = %d", (int)entry.value[0]);
+    printf("swapon");
+    printf("(_");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -512,12 +645,16 @@ pretty_print_SWAPON(RRLogEntry entry)
 void
 pretty_print_GETITIMER(RRLogEntry entry)
 {
-    printf("getitimer(%d,itv) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("getitimer");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, itv", (int)entry.objectId);
+    } else {
+	printf("(%d, itv", (int)entry.objectId);
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -526,7 +663,10 @@ pretty_print_GETITIMER(RRLogEntry entry)
 void
 pretty_print_GETDTABLESIZE(RRLogEntry entry)
 {
-    printf("getdtablesize() = %d", (int)entry.value[0]);
+    printf("getdtablesize");
+    printf("(");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -537,7 +677,10 @@ pretty_print_GETDTABLESIZE(RRLogEntry entry)
 void
 pretty_print_DUP2(RRLogEntry entry)
 {
-    printf("dup2(%d,_) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("dup2");
+    printf("(%d, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -548,7 +691,10 @@ pretty_print_DUP2(RRLogEntry entry)
 void
 pretty_print_FCNTL(RRLogEntry entry)
 {
-    printf("fcntl(%d,_, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("fcntl");
+    printf("(%d, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -559,12 +705,16 @@ pretty_print_FCNTL(RRLogEntry entry)
 void
 pretty_print_SELECT(RRLogEntry entry)
 {
-    printf("select(%d,in, ou, ex, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("select");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, in, ou, ex, _", (int)entry.objectId);
+    } else {
+	printf("(%d, in, ou, ex, _", (int)entry.objectId);
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -573,7 +723,10 @@ pretty_print_SELECT(RRLogEntry entry)
 void
 pretty_print_FSYNC(RRLogEntry entry)
 {
-    printf("fsync(%d,) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("fsync");
+    printf("(%d", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -584,7 +737,10 @@ pretty_print_FSYNC(RRLogEntry entry)
 void
 pretty_print_SETPRIORITY(RRLogEntry entry)
 {
-    printf("setpriority(%d,_, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("setpriority");
+    printf("(%d, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -595,7 +751,10 @@ pretty_print_SETPRIORITY(RRLogEntry entry)
 void
 pretty_print_SOCKET(RRLogEntry entry)
 {
-    printf("socket(%d,_, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("socket");
+    printf("(%d, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -606,7 +765,10 @@ pretty_print_SOCKET(RRLogEntry entry)
 void
 pretty_print_CONNECT(RRLogEntry entry)
 {
-    printf("connect(%d,_, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("connect");
+    printf("(%d, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -617,7 +779,10 @@ pretty_print_CONNECT(RRLogEntry entry)
 void
 pretty_print_GETPRIORITY(RRLogEntry entry)
 {
-    printf("getpriority(%d,_) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("getpriority");
+    printf("(%d, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -628,7 +793,10 @@ pretty_print_GETPRIORITY(RRLogEntry entry)
 void
 pretty_print_BIND(RRLogEntry entry)
 {
-    printf("bind(%d,_, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("bind");
+    printf("(%d, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -639,7 +807,10 @@ pretty_print_BIND(RRLogEntry entry)
 void
 pretty_print_SETSOCKOPT(RRLogEntry entry)
 {
-    printf("setsockopt(%d,_, _, _, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("setsockopt");
+    printf("(%d, _, _, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -650,7 +821,10 @@ pretty_print_SETSOCKOPT(RRLogEntry entry)
 void
 pretty_print_LISTEN(RRLogEntry entry)
 {
-    printf("listen(%d,_) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("listen");
+    printf("(%d, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -661,12 +835,16 @@ pretty_print_LISTEN(RRLogEntry entry)
 void
 pretty_print_GETTIMEOFDAY(RRLogEntry entry)
 {
-    printf("gettimeofday(tp, tzp) = %d", (int)entry.value[0]);
+    printf("gettimeofday");
+    if ((int)entry.value[0] != -1) {
+	printf("(tp, tzp");
+    } else {
+	printf("(tp, tzp");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -675,12 +853,16 @@ pretty_print_GETTIMEOFDAY(RRLogEntry entry)
 void
 pretty_print_GETRUSAGE(RRLogEntry entry)
 {
-    printf("getrusage(%d,rusage) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("getrusage");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, rusage", (int)entry.objectId);
+    } else {
+	printf("(%d, rusage", (int)entry.objectId);
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -689,12 +871,16 @@ pretty_print_GETRUSAGE(RRLogEntry entry)
 void
 pretty_print_GETSOCKOPT(RRLogEntry entry)
 {
-    printf("getsockopt(%d,_, _, val, avalsize) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("getsockopt");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, _, _, val, avalsize", (int)entry.objectId);
+    } else {
+	printf("(%d, _, _, val, avalsize", (int)entry.objectId);
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -703,12 +889,16 @@ pretty_print_GETSOCKOPT(RRLogEntry entry)
 void
 pretty_print_READV(RRLogEntry entry)
 {
-    printf("readv(%d,iovp, _) = %zd", (int)entry.objectId, (ssize_t) entry.value[0]);
+    printf("readv");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, iovp, _", (int)entry.objectId);
+    } else {
+	printf("(%d, iovp, _", (int)entry.objectId);
+    }
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -717,7 +907,10 @@ pretty_print_READV(RRLogEntry entry)
 void
 pretty_print_WRITEV(RRLogEntry entry)
 {
-    printf("writev(%d,_, _) = %zd", (int)entry.objectId, (ssize_t) entry.value[0]);
+    printf("writev");
+    printf("(%d, _, _", (int)entry.objectId);
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -728,7 +921,10 @@ pretty_print_WRITEV(RRLogEntry entry)
 void
 pretty_print_SETTIMEOFDAY(RRLogEntry entry)
 {
-    printf("settimeofday(_, _) = %d", (int)entry.value[0]);
+    printf("settimeofday");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -739,7 +935,10 @@ pretty_print_SETTIMEOFDAY(RRLogEntry entry)
 void
 pretty_print_FCHOWN(RRLogEntry entry)
 {
-    printf("fchown(%d,_, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("fchown");
+    printf("(%d, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -750,7 +949,10 @@ pretty_print_FCHOWN(RRLogEntry entry)
 void
 pretty_print_FCHMOD(RRLogEntry entry)
 {
-    printf("fchmod(%d,_) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("fchmod");
+    printf("(%d, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -761,7 +963,10 @@ pretty_print_FCHMOD(RRLogEntry entry)
 void
 pretty_print_SETREUID(RRLogEntry entry)
 {
-    printf("setreuid(_, _) = %d", (int)entry.value[0]);
+    printf("setreuid");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -772,7 +977,10 @@ pretty_print_SETREUID(RRLogEntry entry)
 void
 pretty_print_SETREGID(RRLogEntry entry)
 {
-    printf("setregid(_, _) = %d", (int)entry.value[0]);
+    printf("setregid");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -783,7 +991,10 @@ pretty_print_SETREGID(RRLogEntry entry)
 void
 pretty_print_RENAME(RRLogEntry entry)
 {
-    printf("rename(_, _) = %d", (int)entry.value[0]);
+    printf("rename");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -794,7 +1005,10 @@ pretty_print_RENAME(RRLogEntry entry)
 void
 pretty_print_FLOCK(RRLogEntry entry)
 {
-    printf("flock(%d,_) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("flock");
+    printf("(%d, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -805,7 +1019,10 @@ pretty_print_FLOCK(RRLogEntry entry)
 void
 pretty_print_MKFIFO(RRLogEntry entry)
 {
-    printf("mkfifo(_, _) = %d", (int)entry.value[0]);
+    printf("mkfifo");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -816,7 +1033,10 @@ pretty_print_MKFIFO(RRLogEntry entry)
 void
 pretty_print_SENDTO(RRLogEntry entry)
 {
-    printf("sendto(%d,_, _, _, _, _) = %zd", (int)entry.objectId, (ssize_t) entry.value[0]);
+    printf("sendto");
+    printf("(%d, _, _, _, _, _", (int)entry.objectId);
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -827,7 +1047,10 @@ pretty_print_SENDTO(RRLogEntry entry)
 void
 pretty_print_SHUTDOWN(RRLogEntry entry)
 {
-    printf("shutdown(%d,_) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("shutdown");
+    printf("(%d, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -838,7 +1061,10 @@ pretty_print_SHUTDOWN(RRLogEntry entry)
 void
 pretty_print_MKDIR(RRLogEntry entry)
 {
-    printf("mkdir(_, _) = %d", (int)entry.value[0]);
+    printf("mkdir");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -849,7 +1075,10 @@ pretty_print_MKDIR(RRLogEntry entry)
 void
 pretty_print_RMDIR(RRLogEntry entry)
 {
-    printf("rmdir(_) = %d", (int)entry.value[0]);
+    printf("rmdir");
+    printf("(_");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -860,7 +1089,10 @@ pretty_print_RMDIR(RRLogEntry entry)
 void
 pretty_print_UTIMES(RRLogEntry entry)
 {
-    printf("utimes(_, _) = %d", (int)entry.value[0]);
+    printf("utimes");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -871,12 +1103,16 @@ pretty_print_UTIMES(RRLogEntry entry)
 void
 pretty_print_ADJTIME(RRLogEntry entry)
 {
-    printf("adjtime(_, olddelta) = %d", (int)entry.value[0]);
+    printf("adjtime");
+    if ((int)entry.value[0] != -1) {
+	printf("(_, olddelta");
+    } else {
+	printf("(_, olddelta");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -885,7 +1121,10 @@ pretty_print_ADJTIME(RRLogEntry entry)
 void
 pretty_print_QUOTACTL(RRLogEntry entry)
 {
-    printf("quotactl(_, _, _, _) = %d", (int)entry.value[0]);
+    printf("quotactl");
+    printf("(_, _, _, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -896,12 +1135,16 @@ pretty_print_QUOTACTL(RRLogEntry entry)
 void
 pretty_print_LGETFH(RRLogEntry entry)
 {
-    printf("lgetfh(_, fhp) = %d", (int)entry.value[0]);
+    printf("lgetfh");
+    if ((int)entry.value[0] != -1) {
+	printf("(_, fhp");
+    } else {
+	printf("(_, fhp");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -910,12 +1153,16 @@ pretty_print_LGETFH(RRLogEntry entry)
 void
 pretty_print_GETFH(RRLogEntry entry)
 {
-    printf("getfh(_, fhp) = %d", (int)entry.value[0]);
+    printf("getfh");
+    if ((int)entry.value[0] != -1) {
+	printf("(_, fhp");
+    } else {
+	printf("(_, fhp");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -924,7 +1171,10 @@ pretty_print_GETFH(RRLogEntry entry)
 void
 pretty_print_SETFIB(RRLogEntry entry)
 {
-    printf("setfib(%d,) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("setfib");
+    printf("(%d", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -935,12 +1185,16 @@ pretty_print_SETFIB(RRLogEntry entry)
 void
 pretty_print_NTP_ADJTIME(RRLogEntry entry)
 {
-    printf("ntp_adjtime(tp) = %d", (int)entry.value[0]);
+    printf("ntp_adjtime");
+    if ((int)entry.value[0] != -1) {
+	printf("(tp");
+    } else {
+	printf("(tp");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -949,7 +1203,10 @@ pretty_print_NTP_ADJTIME(RRLogEntry entry)
 void
 pretty_print_SETGID(RRLogEntry entry)
 {
-    printf("setgid(_) = %d", (int)entry.value[0]);
+    printf("setgid");
+    printf("(_");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -960,7 +1217,10 @@ pretty_print_SETGID(RRLogEntry entry)
 void
 pretty_print_SETEGID(RRLogEntry entry)
 {
-    printf("setegid(_) = %d", (int)entry.value[0]);
+    printf("setegid");
+    printf("(_");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -971,7 +1231,10 @@ pretty_print_SETEGID(RRLogEntry entry)
 void
 pretty_print_SETEUID(RRLogEntry entry)
 {
-    printf("seteuid(_) = %d", (int)entry.value[0]);
+    printf("seteuid");
+    printf("(_");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -982,7 +1245,10 @@ pretty_print_SETEUID(RRLogEntry entry)
 void
 pretty_print_PATHCONF(RRLogEntry entry)
 {
-    printf("pathconf(_, _) = %ld", (long)entry.value[0]);
+    printf("pathconf");
+    printf("(_, _");
+    printf(") = %ld", (long)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -993,7 +1259,10 @@ pretty_print_PATHCONF(RRLogEntry entry)
 void
 pretty_print_FPATHCONF(RRLogEntry entry)
 {
-    printf("fpathconf(%d,_) = %ld", (int)entry.objectId, (long)entry.value[0]);
+    printf("fpathconf");
+    printf("(%d, _", (int)entry.objectId);
+    printf(") = %ld", (long)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1004,12 +1273,16 @@ pretty_print_FPATHCONF(RRLogEntry entry)
 void
 pretty_print_GETRLIMIT(RRLogEntry entry)
 {
-    printf("getrlimit(%d,rlp) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("getrlimit");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, rlp", (int)entry.objectId);
+    } else {
+	printf("(%d, rlp", (int)entry.objectId);
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1018,7 +1291,10 @@ pretty_print_GETRLIMIT(RRLogEntry entry)
 void
 pretty_print_SETRLIMIT(RRLogEntry entry)
 {
-    printf("setrlimit(%d,_) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("setrlimit");
+    printf("(%d, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1029,7 +1305,10 @@ pretty_print_SETRLIMIT(RRLogEntry entry)
 void
 pretty_print_UNDELETE(RRLogEntry entry)
 {
-    printf("undelete(_) = %d", (int)entry.value[0]);
+    printf("undelete");
+    printf("(_");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1040,7 +1319,10 @@ pretty_print_UNDELETE(RRLogEntry entry)
 void
 pretty_print_FUTIMES(RRLogEntry entry)
 {
-    printf("futimes(%d,_) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("futimes");
+    printf("(%d, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1051,12 +1333,16 @@ pretty_print_FUTIMES(RRLogEntry entry)
 void
 pretty_print_POLL(RRLogEntry entry)
 {
-    printf("poll(fds, _, _) = %d", (int)entry.value[0]);
+    printf("poll");
+    if ((int)entry.value[0] != -1) {
+	printf("(fds, _, _");
+    } else {
+	printf("(fds, _, _");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1065,7 +1351,10 @@ pretty_print_POLL(RRLogEntry entry)
 void
 pretty_print_SEMGET(RRLogEntry entry)
 {
-    printf("semget(_, _, _) = %d", (int)entry.value[0]);
+    printf("semget");
+    printf("(_, _, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1076,7 +1365,10 @@ pretty_print_SEMGET(RRLogEntry entry)
 void
 pretty_print_SEMOP(RRLogEntry entry)
 {
-    printf("semop(%d,_, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("semop");
+    printf("(%d, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1087,7 +1379,10 @@ pretty_print_SEMOP(RRLogEntry entry)
 void
 pretty_print_SHMGET(RRLogEntry entry)
 {
-    printf("shmget(_, _, _) = %d", (int)entry.value[0]);
+    printf("shmget");
+    printf("(_, _, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1098,7 +1393,10 @@ pretty_print_SHMGET(RRLogEntry entry)
 void
 pretty_print_CLOCK_SETTIME(RRLogEntry entry)
 {
-    printf("clock_settime(_, _) = %d", (int)entry.value[0]);
+    printf("clock_settime");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1109,12 +1407,16 @@ pretty_print_CLOCK_SETTIME(RRLogEntry entry)
 void
 pretty_print_CLOCK_GETRES(RRLogEntry entry)
 {
-    printf("clock_getres(_, tp) = %d", (int)entry.value[0]);
+    printf("clock_getres");
+    if ((int)entry.value[0] != -1) {
+	printf("(_, tp");
+    } else {
+	printf("(_, tp");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1123,12 +1425,16 @@ pretty_print_CLOCK_GETRES(RRLogEntry entry)
 void
 pretty_print_FFCLOCK_GETCOUNTER(RRLogEntry entry)
 {
-    printf("ffclock_getcounter(ffcount) = %d", (int)entry.value[0]);
+    printf("ffclock_getcounter");
+    if ((int)entry.value[0] != -1) {
+	printf("(ffcount");
+    } else {
+	printf("(ffcount");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1137,7 +1443,10 @@ pretty_print_FFCLOCK_GETCOUNTER(RRLogEntry entry)
 void
 pretty_print_FFCLOCK_SETESTIMATE(RRLogEntry entry)
 {
-    printf("ffclock_setestimate(_) = %d", (int)entry.value[0]);
+    printf("ffclock_setestimate");
+    printf("(_");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1148,12 +1457,16 @@ pretty_print_FFCLOCK_SETESTIMATE(RRLogEntry entry)
 void
 pretty_print_FFCLOCK_GETESTIMATE(RRLogEntry entry)
 {
-    printf("ffclock_getestimate(cest) = %d", (int)entry.value[0]);
+    printf("ffclock_getestimate");
+    if ((int)entry.value[0] != -1) {
+	printf("(cest");
+    } else {
+	printf("(cest");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1162,12 +1475,16 @@ pretty_print_FFCLOCK_GETESTIMATE(RRLogEntry entry)
 void
 pretty_print_NTP_GETTIME(RRLogEntry entry)
 {
-    printf("ntp_gettime(ntvp) = %d", (int)entry.value[0]);
+    printf("ntp_gettime");
+    if ((int)entry.value[0] != -1) {
+	printf("(ntvp");
+    } else {
+	printf("(ntvp");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1176,14 +1493,20 @@ pretty_print_NTP_GETTIME(RRLogEntry entry)
 void
 pretty_print_ISSETUGID(RRLogEntry entry)
 {
-    printf("issetugid() = %d", (int)entry.value[0]);
+    printf("issetugid");
+    printf("(");
+    printf(") = %d", (int)entry.value[0]);
+
     printf("\n");
 }
 
 void
 pretty_print_LCHOWN(RRLogEntry entry)
 {
-    printf("lchown(_, _, _) = %d", (int)entry.value[0]);
+    printf("lchown");
+    printf("(_, _, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1194,7 +1517,10 @@ pretty_print_LCHOWN(RRLogEntry entry)
 void
 pretty_print_LCHMOD(RRLogEntry entry)
 {
-    printf("lchmod(_, _) = %d", (int)entry.value[0]);
+    printf("lchmod");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1205,7 +1531,10 @@ pretty_print_LCHMOD(RRLogEntry entry)
 void
 pretty_print_LUTIMES(RRLogEntry entry)
 {
-    printf("lutimes(_, _) = %d", (int)entry.value[0]);
+    printf("lutimes");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1216,7 +1545,10 @@ pretty_print_LUTIMES(RRLogEntry entry)
 void
 pretty_print_PREADV(RRLogEntry entry)
 {
-    printf("preadv(%d,_, _, _) = %zd", (int)entry.objectId, (ssize_t) entry.value[0]);
+    printf("preadv");
+    printf("(%d, _, _, _", (int)entry.objectId);
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1227,7 +1559,10 @@ pretty_print_PREADV(RRLogEntry entry)
 void
 pretty_print_FHOPEN(RRLogEntry entry)
 {
-    printf("fhopen(_, _) = %d", (int)entry.value[0]);
+    printf("fhopen");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1238,7 +1573,10 @@ pretty_print_FHOPEN(RRLogEntry entry)
 void
 pretty_print_SETRESUID(RRLogEntry entry)
 {
-    printf("setresuid(_, _, _) = %d", (int)entry.value[0]);
+    printf("setresuid");
+    printf("(_, _, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1249,7 +1587,10 @@ pretty_print_SETRESUID(RRLogEntry entry)
 void
 pretty_print_SETRESGID(RRLogEntry entry)
 {
-    printf("setresgid(_, _, _) = %d", (int)entry.value[0]);
+    printf("setresgid");
+    printf("(_, _, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1260,7 +1601,10 @@ pretty_print_SETRESGID(RRLogEntry entry)
 void
 pretty_print_EXTATTRCTL(RRLogEntry entry)
 {
-    printf("extattrctl(_, _, _, _, _) = %d", (int)entry.value[0]);
+    printf("extattrctl");
+    printf("(_, _, _, _, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1271,7 +1615,10 @@ pretty_print_EXTATTRCTL(RRLogEntry entry)
 void
 pretty_print_EXTATTR_SET_FILE(RRLogEntry entry)
 {
-    printf("extattr_set_file(_, _, _, _, _) = %zd", (ssize_t) entry.value[0]);
+    printf("extattr_set_file");
+    printf("(_, _, _, _, _");
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1282,12 +1629,16 @@ pretty_print_EXTATTR_SET_FILE(RRLogEntry entry)
 void
 pretty_print_EXTATTR_GET_FILE(RRLogEntry entry)
 {
-    printf("extattr_get_file(_, _, _, data, _) = %zd", (ssize_t) entry.value[0]);
+    printf("extattr_get_file");
+    if ((int)entry.value[0] != -1) {
+	printf("(_, _, _, data, _");
+    } else {
+	printf("(_, _, _, data, _");
+    }
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1296,7 +1647,10 @@ pretty_print_EXTATTR_GET_FILE(RRLogEntry entry)
 void
 pretty_print_EXTATTR_DELETE_FILE(RRLogEntry entry)
 {
-    printf("extattr_delete_file(_, _, _) = %d", (int)entry.value[0]);
+    printf("extattr_delete_file");
+    printf("(_, _, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1307,12 +1661,16 @@ pretty_print_EXTATTR_DELETE_FILE(RRLogEntry entry)
 void
 pretty_print_GETRESUID(RRLogEntry entry)
 {
-    printf("getresuid(ruid, euid, suid) = %d", (int)entry.value[0]);
+    printf("getresuid");
+    if ((int)entry.value[0] != -1) {
+	printf("(ruid, euid, suid");
+    } else {
+	printf("(ruid, euid, suid");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1321,12 +1679,16 @@ pretty_print_GETRESUID(RRLogEntry entry)
 void
 pretty_print_GETRESGID(RRLogEntry entry)
 {
-    printf("getresgid(rgid, egid, sgid) = %d", (int)entry.value[0]);
+    printf("getresgid");
+    if ((int)entry.value[0] != -1) {
+	printf("(rgid, egid, sgid");
+    } else {
+	printf("(rgid, egid, sgid");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1335,7 +1697,10 @@ pretty_print_GETRESGID(RRLogEntry entry)
 void
 pretty_print_KQUEUE(RRLogEntry entry)
 {
-    printf("kqueue() = %d", (int)entry.value[0]);
+    printf("kqueue");
+    printf("(");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1346,7 +1711,10 @@ pretty_print_KQUEUE(RRLogEntry entry)
 void
 pretty_print_EXTATTR_SET_FD(RRLogEntry entry)
 {
-    printf("extattr_set_fd(%d,_, _, _, _) = %zd", (int)entry.objectId, (ssize_t) entry.value[0]);
+    printf("extattr_set_fd");
+    printf("(%d, _, _, _, _", (int)entry.objectId);
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1357,12 +1725,16 @@ pretty_print_EXTATTR_SET_FD(RRLogEntry entry)
 void
 pretty_print_EXTATTR_GET_FD(RRLogEntry entry)
 {
-    printf("extattr_get_fd(%d,_, _, data, _) = %zd", (int)entry.objectId, (ssize_t) entry.value[0]);
+    printf("extattr_get_fd");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, _, _, data, _", (int)entry.objectId);
+    } else {
+	printf("(%d, _, _, data, _", (int)entry.objectId);
+    }
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1371,7 +1743,10 @@ pretty_print_EXTATTR_GET_FD(RRLogEntry entry)
 void
 pretty_print_EXTATTR_DELETE_FD(RRLogEntry entry)
 {
-    printf("extattr_delete_fd(%d,_, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("extattr_delete_fd");
+    printf("(%d, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1382,7 +1757,10 @@ pretty_print_EXTATTR_DELETE_FD(RRLogEntry entry)
 void
 pretty_print_EACCESS(RRLogEntry entry)
 {
-    printf("eaccess(_, _) = %d", (int)entry.value[0]);
+    printf("eaccess");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1393,7 +1771,10 @@ pretty_print_EACCESS(RRLogEntry entry)
 void
 pretty_print_NMOUNT(RRLogEntry entry)
 {
-    printf("nmount(_, _, _) = %d", (int)entry.value[0]);
+    printf("nmount");
+    printf("(_, _, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1404,12 +1785,16 @@ pretty_print_NMOUNT(RRLogEntry entry)
 void
 pretty_print_KENV(RRLogEntry entry)
 {
-    printf("kenv(%d,_, value, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("kenv");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, _, value, _", (int)entry.objectId);
+    } else {
+	printf("(%d, _, value, _", (int)entry.objectId);
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1418,7 +1803,10 @@ pretty_print_KENV(RRLogEntry entry)
 void
 pretty_print_LCHFLAGS(RRLogEntry entry)
 {
-    printf("lchflags(_, _) = %d", (int)entry.value[0]);
+    printf("lchflags");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1429,12 +1817,16 @@ pretty_print_LCHFLAGS(RRLogEntry entry)
 void
 pretty_print_UUIDGEN(RRLogEntry entry)
 {
-    printf("uuidgen(store, _) = %d", (int)entry.value[0]);
+    printf("uuidgen");
+    if ((int)entry.value[0] != -1) {
+	printf("(store, _");
+    } else {
+	printf("(store, _");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1443,12 +1835,16 @@ pretty_print_UUIDGEN(RRLogEntry entry)
 void
 pretty_print_SENDFILE(RRLogEntry entry)
 {
-    printf("sendfile(%d,_, _, _, _, sbytes, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("sendfile");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, _, _, _, _, sbytes, _", (int)entry.objectId);
+    } else {
+	printf("(%d, _, _, _, _, sbytes, _", (int)entry.objectId);
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1457,7 +1853,10 @@ pretty_print_SENDFILE(RRLogEntry entry)
 void
 pretty_print_EXTATTR_SET_LINK(RRLogEntry entry)
 {
-    printf("extattr_set_link(_, _, _, _, _) = %zd", (ssize_t) entry.value[0]);
+    printf("extattr_set_link");
+    printf("(_, _, _, _, _");
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1468,12 +1867,16 @@ pretty_print_EXTATTR_SET_LINK(RRLogEntry entry)
 void
 pretty_print_EXTATTR_GET_LINK(RRLogEntry entry)
 {
-    printf("extattr_get_link(_, _, _, data, _) = %zd", (ssize_t) entry.value[0]);
+    printf("extattr_get_link");
+    if ((int)entry.value[0] != -1) {
+	printf("(_, _, _, data, _");
+    } else {
+	printf("(_, _, _, data, _");
+    }
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1482,7 +1885,10 @@ pretty_print_EXTATTR_GET_LINK(RRLogEntry entry)
 void
 pretty_print_EXTATTR_DELETE_LINK(RRLogEntry entry)
 {
-    printf("extattr_delete_link(_, _, _) = %d", (int)entry.value[0]);
+    printf("extattr_delete_link");
+    printf("(_, _, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1493,12 +1899,16 @@ pretty_print_EXTATTR_DELETE_LINK(RRLogEntry entry)
 void
 pretty_print_EXTATTR_LIST_FD(RRLogEntry entry)
 {
-    printf("extattr_list_fd(%d,_, data, _) = %zd", (int)entry.objectId, (ssize_t) entry.value[0]);
+    printf("extattr_list_fd");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, _, data, _", (int)entry.objectId);
+    } else {
+	printf("(%d, _, data, _", (int)entry.objectId);
+    }
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1507,12 +1917,16 @@ pretty_print_EXTATTR_LIST_FD(RRLogEntry entry)
 void
 pretty_print_EXTATTR_LIST_FILE(RRLogEntry entry)
 {
-    printf("extattr_list_file(_, _, data, _) = %zd", (ssize_t) entry.value[0]);
+    printf("extattr_list_file");
+    if ((int)entry.value[0] != -1) {
+	printf("(_, _, data, _");
+    } else {
+	printf("(_, _, data, _");
+    }
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1521,12 +1935,16 @@ pretty_print_EXTATTR_LIST_FILE(RRLogEntry entry)
 void
 pretty_print_EXTATTR_LIST_LINK(RRLogEntry entry)
 {
-    printf("extattr_list_link(_, _, data, _) = %zd", (ssize_t) entry.value[0]);
+    printf("extattr_list_link");
+    if ((int)entry.value[0] != -1) {
+	printf("(_, _, data, _");
+    } else {
+	printf("(_, _, data, _");
+    }
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1535,7 +1953,10 @@ pretty_print_EXTATTR_LIST_LINK(RRLogEntry entry)
 void
 pretty_print_AUDIT(RRLogEntry entry)
 {
-    printf("audit(_, _) = %d", (int)entry.value[0]);
+    printf("audit");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1546,7 +1967,10 @@ pretty_print_AUDIT(RRLogEntry entry)
 void
 pretty_print_AUDITON(RRLogEntry entry)
 {
-    printf("auditon(%d,_, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("auditon");
+    printf("(%d, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1557,12 +1981,16 @@ pretty_print_AUDITON(RRLogEntry entry)
 void
 pretty_print_GETAUID(RRLogEntry entry)
 {
-    printf("getauid(auid) = %d", (int)entry.value[0]);
+    printf("getauid");
+    if ((int)entry.value[0] != -1) {
+	printf("(auid");
+    } else {
+	printf("(auid");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1571,7 +1999,10 @@ pretty_print_GETAUID(RRLogEntry entry)
 void
 pretty_print_SETAUID(RRLogEntry entry)
 {
-    printf("setauid(_) = %d", (int)entry.value[0]);
+    printf("setauid");
+    printf("(_");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1582,12 +2013,16 @@ pretty_print_SETAUID(RRLogEntry entry)
 void
 pretty_print_GETAUDIT(RRLogEntry entry)
 {
-    printf("getaudit(auditinfo) = %d", (int)entry.value[0]);
+    printf("getaudit");
+    if ((int)entry.value[0] != -1) {
+	printf("(auditinfo");
+    } else {
+	printf("(auditinfo");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1596,7 +2031,10 @@ pretty_print_GETAUDIT(RRLogEntry entry)
 void
 pretty_print_SETAUDIT(RRLogEntry entry)
 {
-    printf("setaudit(_) = %d", (int)entry.value[0]);
+    printf("setaudit");
+    printf("(_");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1607,12 +2045,16 @@ pretty_print_SETAUDIT(RRLogEntry entry)
 void
 pretty_print_GETAUDIT_ADDR(RRLogEntry entry)
 {
-    printf("getaudit_addr(auditinfo_addr, _) = %d", (int)entry.value[0]);
+    printf("getaudit_addr");
+    if ((int)entry.value[0] != -1) {
+	printf("(auditinfo_addr, _");
+    } else {
+	printf("(auditinfo_addr, _");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1621,7 +2063,10 @@ pretty_print_GETAUDIT_ADDR(RRLogEntry entry)
 void
 pretty_print_SETAUDIT_ADDR(RRLogEntry entry)
 {
-    printf("setaudit_addr(_, _) = %d", (int)entry.value[0]);
+    printf("setaudit_addr");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1632,7 +2077,10 @@ pretty_print_SETAUDIT_ADDR(RRLogEntry entry)
 void
 pretty_print_AUDITCTL(RRLogEntry entry)
 {
-    printf("auditctl(_) = %d", (int)entry.value[0]);
+    printf("auditctl");
+    printf("(_");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1643,12 +2091,16 @@ pretty_print_AUDITCTL(RRLogEntry entry)
 void
 pretty_print_PREAD(RRLogEntry entry)
 {
-    printf("pread(%d,buf, _, _) = %zd", (int)entry.objectId, (ssize_t) entry.value[0]);
+    printf("pread");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, buf, _, _", (int)entry.objectId);
+    } else {
+	printf("(%d, buf, _, _", (int)entry.objectId);
+    }
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1657,7 +2109,10 @@ pretty_print_PREAD(RRLogEntry entry)
 void
 pretty_print_PWRITE(RRLogEntry entry)
 {
-    printf("pwrite(%d,_, _, _) = %zd", (int)entry.objectId, (ssize_t) entry.value[0]);
+    printf("pwrite");
+    printf("(%d, _, _, _", (int)entry.objectId);
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1668,7 +2123,10 @@ pretty_print_PWRITE(RRLogEntry entry)
 void
 pretty_print_LSEEK(RRLogEntry entry)
 {
-    printf("lseek(%d,_, _) = %ld", (int)entry.objectId, (__off_t) entry.value[0]);
+    printf("lseek");
+    printf("(%d, _, _", (int)entry.objectId);
+    printf(") = %ld", (__off_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1679,7 +2137,10 @@ pretty_print_LSEEK(RRLogEntry entry)
 void
 pretty_print_TRUNCATE(RRLogEntry entry)
 {
-    printf("truncate(_, _) = %d", (int)entry.value[0]);
+    printf("truncate");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1690,7 +2151,10 @@ pretty_print_TRUNCATE(RRLogEntry entry)
 void
 pretty_print_FTRUNCATE(RRLogEntry entry)
 {
-    printf("ftruncate(%d,_) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("ftruncate");
+    printf("(%d, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1701,7 +2165,10 @@ pretty_print_FTRUNCATE(RRLogEntry entry)
 void
 pretty_print_SHM_UNLINK(RRLogEntry entry)
 {
-    printf("shm_unlink(_) = %d", (int)entry.value[0]);
+    printf("shm_unlink");
+    printf("(_");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1712,12 +2179,16 @@ pretty_print_SHM_UNLINK(RRLogEntry entry)
 void
 pretty_print_CPUSET(RRLogEntry entry)
 {
-    printf("cpuset(setid) = %d", (int)entry.value[0]);
+    printf("cpuset");
+    if ((int)entry.value[0] != -1) {
+	printf("(setid");
+    } else {
+	printf("(setid");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1726,7 +2197,10 @@ pretty_print_CPUSET(RRLogEntry entry)
 void
 pretty_print_CPUSET_SETID(RRLogEntry entry)
 {
-    printf("cpuset_setid(_, _, _) = %d", (int)entry.value[0]);
+    printf("cpuset_setid");
+    printf("(_, _, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1737,12 +2211,16 @@ pretty_print_CPUSET_SETID(RRLogEntry entry)
 void
 pretty_print_CPUSET_GETID(RRLogEntry entry)
 {
-    printf("cpuset_getid(_, _, _, setid) = %d", (int)entry.value[0]);
+    printf("cpuset_getid");
+    if ((int)entry.value[0] != -1) {
+	printf("(_, _, _, setid");
+    } else {
+	printf("(_, _, _, setid");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1751,12 +2229,16 @@ pretty_print_CPUSET_GETID(RRLogEntry entry)
 void
 pretty_print_CPUSET_GETAFFINITY(RRLogEntry entry)
 {
-    printf("cpuset_getaffinity(_, _, _, _, mask) = %d", (int)entry.value[0]);
+    printf("cpuset_getaffinity");
+    if ((int)entry.value[0] != -1) {
+	printf("(_, _, _, _, mask");
+    } else {
+	printf("(_, _, _, _, mask");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1765,12 +2247,16 @@ pretty_print_CPUSET_GETAFFINITY(RRLogEntry entry)
 void
 pretty_print_CPUSET_SETAFFINITY(RRLogEntry entry)
 {
-    printf("cpuset_setaffinity(_, _, _, _, mask) = %d", (int)entry.value[0]);
+    printf("cpuset_setaffinity");
+    if ((int)entry.value[0] != -1) {
+	printf("(_, _, _, _, mask");
+    } else {
+	printf("(_, _, _, _, mask");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1779,7 +2265,10 @@ pretty_print_CPUSET_SETAFFINITY(RRLogEntry entry)
 void
 pretty_print_FACCESSAT(RRLogEntry entry)
 {
-    printf("faccessat(%d,_, _, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("faccessat");
+    printf("(%d, _, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1790,7 +2279,10 @@ pretty_print_FACCESSAT(RRLogEntry entry)
 void
 pretty_print_FCHMODAT(RRLogEntry entry)
 {
-    printf("fchmodat(%d,_, _, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("fchmodat");
+    printf("(%d, _, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1801,7 +2293,10 @@ pretty_print_FCHMODAT(RRLogEntry entry)
 void
 pretty_print_FCHOWNAT(RRLogEntry entry)
 {
-    printf("fchownat(%d,_, _, _, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("fchownat");
+    printf("(%d, _, _, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1812,7 +2307,10 @@ pretty_print_FCHOWNAT(RRLogEntry entry)
 void
 pretty_print_LINKAT(RRLogEntry entry)
 {
-    printf("linkat(%d,_, _, _, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("linkat");
+    printf("(%d, _, _, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1823,7 +2321,10 @@ pretty_print_LINKAT(RRLogEntry entry)
 void
 pretty_print_MKDIRAT(RRLogEntry entry)
 {
-    printf("mkdirat(%d,_, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("mkdirat");
+    printf("(%d, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1834,7 +2335,10 @@ pretty_print_MKDIRAT(RRLogEntry entry)
 void
 pretty_print_MKFIFOAT(RRLogEntry entry)
 {
-    printf("mkfifoat(%d,_, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("mkfifoat");
+    printf("(%d, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1845,7 +2349,10 @@ pretty_print_MKFIFOAT(RRLogEntry entry)
 void
 pretty_print_OPENAT(RRLogEntry entry)
 {
-    printf("openat(%d,_, _, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("openat");
+    printf("(%d, _, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1856,12 +2363,16 @@ pretty_print_OPENAT(RRLogEntry entry)
 void
 pretty_print_READLINKAT(RRLogEntry entry)
 {
-    printf("readlinkat(%d,_, buf, _) = %zd", (int)entry.objectId, (ssize_t) entry.value[0]);
+    printf("readlinkat");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, _, buf, _", (int)entry.objectId);
+    } else {
+	printf("(%d, _, buf, _", (int)entry.objectId);
+    }
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1870,7 +2381,10 @@ pretty_print_READLINKAT(RRLogEntry entry)
 void
 pretty_print_RENAMEAT(RRLogEntry entry)
 {
-    printf("renameat(%d,_, _, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("renameat");
+    printf("(%d, _, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1881,7 +2395,10 @@ pretty_print_RENAMEAT(RRLogEntry entry)
 void
 pretty_print_SYMLINKAT(RRLogEntry entry)
 {
-    printf("symlinkat(_, _, _) = %d", (int)entry.value[0]);
+    printf("symlinkat");
+    printf("(_, _, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1892,7 +2409,10 @@ pretty_print_SYMLINKAT(RRLogEntry entry)
 void
 pretty_print_UNLINKAT(RRLogEntry entry)
 {
-    printf("unlinkat(%d,_, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("unlinkat");
+    printf("(%d, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1903,7 +2423,10 @@ pretty_print_UNLINKAT(RRLogEntry entry)
 void
 pretty_print_LPATHCONF(RRLogEntry entry)
 {
-    printf("lpathconf(_, _) = %ld", (long)entry.value[0]);
+    printf("lpathconf");
+    printf("(_, _");
+    printf(") = %ld", (long)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1914,7 +2437,10 @@ pretty_print_LPATHCONF(RRLogEntry entry)
 void
 pretty_print_CAP_ENTER(RRLogEntry entry)
 {
-    printf("cap_enter() = %d", (int)entry.value[0]);
+    printf("cap_enter");
+    printf("(");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1925,12 +2451,16 @@ pretty_print_CAP_ENTER(RRLogEntry entry)
 void
 pretty_print_CAP_GETMODE(RRLogEntry entry)
 {
-    printf("cap_getmode(modep) = %d", (int)entry.value[0]);
+    printf("cap_getmode");
+    if ((int)entry.value[0] != -1) {
+	printf("(modep");
+    } else {
+	printf("(modep");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1939,12 +2469,16 @@ pretty_print_CAP_GETMODE(RRLogEntry entry)
 void
 pretty_print_GETLOGINCLASS(RRLogEntry entry)
 {
-    printf("getloginclass(namebuf, _) = %d", (int)entry.value[0]);
+    printf("getloginclass");
+    if ((int)entry.value[0] != -1) {
+	printf("(namebuf, _");
+    } else {
+	printf("(namebuf, _");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1953,7 +2487,10 @@ pretty_print_GETLOGINCLASS(RRLogEntry entry)
 void
 pretty_print_SETLOGINCLASS(RRLogEntry entry)
 {
-    printf("setloginclass(_) = %d", (int)entry.value[0]);
+    printf("setloginclass");
+    printf("(_");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -1964,12 +2501,16 @@ pretty_print_SETLOGINCLASS(RRLogEntry entry)
 void
 pretty_print_RCTL_GET_RACCT(RRLogEntry entry)
 {
-    printf("rctl_get_racct(_, _, outbufp, _) = %d", (int)entry.value[0]);
+    printf("rctl_get_racct");
+    if ((int)entry.value[0] != -1) {
+	printf("(_, _, outbufp, _");
+    } else {
+	printf("(_, _, outbufp, _");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1978,12 +2519,16 @@ pretty_print_RCTL_GET_RACCT(RRLogEntry entry)
 void
 pretty_print_RCTL_GET_RULES(RRLogEntry entry)
 {
-    printf("rctl_get_rules(_, _, outbufp, _) = %d", (int)entry.value[0]);
+    printf("rctl_get_rules");
+    if ((int)entry.value[0] != -1) {
+	printf("(_, _, outbufp, _");
+    } else {
+	printf("(_, _, outbufp, _");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -1992,12 +2537,16 @@ pretty_print_RCTL_GET_RULES(RRLogEntry entry)
 void
 pretty_print_RCTL_GET_LIMITS(RRLogEntry entry)
 {
-    printf("rctl_get_limits(_, _, outbufp, _) = %d", (int)entry.value[0]);
+    printf("rctl_get_limits");
+    if ((int)entry.value[0] != -1) {
+	printf("(_, _, outbufp, _");
+    } else {
+	printf("(_, _, outbufp, _");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -2006,12 +2555,16 @@ pretty_print_RCTL_GET_LIMITS(RRLogEntry entry)
 void
 pretty_print_RCTL_ADD_RULE(RRLogEntry entry)
 {
-    printf("rctl_add_rule(_, _, outbufp, _) = %d", (int)entry.value[0]);
+    printf("rctl_add_rule");
+    if ((int)entry.value[0] != -1) {
+	printf("(_, _, outbufp, _");
+    } else {
+	printf("(_, _, outbufp, _");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -2020,12 +2573,16 @@ pretty_print_RCTL_ADD_RULE(RRLogEntry entry)
 void
 pretty_print_RCTL_REMOVE_RULE(RRLogEntry entry)
 {
-    printf("rctl_remove_rule(_, _, outbufp, _) = %d", (int)entry.value[0]);
+    printf("rctl_remove_rule");
+    if ((int)entry.value[0] != -1) {
+	printf("(_, _, outbufp, _");
+    } else {
+	printf("(_, _, outbufp, _");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -2034,7 +2591,10 @@ pretty_print_RCTL_REMOVE_RULE(RRLogEntry entry)
 void
 pretty_print_POSIX_FALLOCATE(RRLogEntry entry)
 {
-    printf("posix_fallocate(%d,_, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("posix_fallocate");
+    printf("(%d, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -2045,7 +2605,10 @@ pretty_print_POSIX_FALLOCATE(RRLogEntry entry)
 void
 pretty_print_POSIX_FADVISE(RRLogEntry entry)
 {
-    printf("posix_fadvise(%d,_, _, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("posix_fadvise");
+    printf("(%d, _, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -2056,7 +2619,10 @@ pretty_print_POSIX_FADVISE(RRLogEntry entry)
 void
 pretty_print_CAP_RIGHTS_LIMIT(RRLogEntry entry)
 {
-    printf("cap_rights_limit(%d,_) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("cap_rights_limit");
+    printf("(%d, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -2067,7 +2633,10 @@ pretty_print_CAP_RIGHTS_LIMIT(RRLogEntry entry)
 void
 pretty_print_CAP_IOCTLS_LIMIT(RRLogEntry entry)
 {
-    printf("cap_ioctls_limit(%d,_, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("cap_ioctls_limit");
+    printf("(%d, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -2078,12 +2647,16 @@ pretty_print_CAP_IOCTLS_LIMIT(RRLogEntry entry)
 void
 pretty_print_CAP_IOCTLS_GET(RRLogEntry entry)
 {
-    printf("cap_ioctls_get(%d,cmds, _) = %zd", (int)entry.objectId, (ssize_t) entry.value[0]);
+    printf("cap_ioctls_get");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, cmds, _", (int)entry.objectId);
+    } else {
+	printf("(%d, cmds, _", (int)entry.objectId);
+    }
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -2092,7 +2665,10 @@ pretty_print_CAP_IOCTLS_GET(RRLogEntry entry)
 void
 pretty_print_CAP_FCNTLS_LIMIT(RRLogEntry entry)
 {
-    printf("cap_fcntls_limit(%d,_) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("cap_fcntls_limit");
+    printf("(%d, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -2103,12 +2679,16 @@ pretty_print_CAP_FCNTLS_LIMIT(RRLogEntry entry)
 void
 pretty_print_CAP_FCNTLS_GET(RRLogEntry entry)
 {
-    printf("cap_fcntls_get(%d,fcntlrightsp) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("cap_fcntls_get");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, fcntlrightsp", (int)entry.objectId);
+    } else {
+	printf("(%d, fcntlrightsp", (int)entry.objectId);
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -2117,7 +2697,10 @@ pretty_print_CAP_FCNTLS_GET(RRLogEntry entry)
 void
 pretty_print_BINDAT(RRLogEntry entry)
 {
-    printf("bindat(%d,_, _, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("bindat");
+    printf("(%d, _, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -2128,7 +2711,10 @@ pretty_print_BINDAT(RRLogEntry entry)
 void
 pretty_print_CONNECTAT(RRLogEntry entry)
 {
-    printf("connectat(%d,_, _, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("connectat");
+    printf("(%d, _, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -2139,7 +2725,10 @@ pretty_print_CONNECTAT(RRLogEntry entry)
 void
 pretty_print_CHFLAGSAT(RRLogEntry entry)
 {
-    printf("chflagsat(%d,_, _, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("chflagsat");
+    printf("(%d, _, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -2150,12 +2739,16 @@ pretty_print_CHFLAGSAT(RRLogEntry entry)
 void
 pretty_print_ACCEPT4(RRLogEntry entry)
 {
-    printf("accept4(%d,name, anamelen, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("accept4");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, name, anamelen, _", (int)entry.objectId);
+    } else {
+	printf("(%d, name, anamelen, _", (int)entry.objectId);
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -2164,12 +2757,16 @@ pretty_print_ACCEPT4(RRLogEntry entry)
 void
 pretty_print_PIPE2(RRLogEntry entry)
 {
-    printf("pipe2(fildes, _) = %d", (int)entry.value[0]);
+    printf("pipe2");
+    if ((int)entry.value[0] != -1) {
+	printf("(fildes, _");
+    } else {
+	printf("(fildes, _");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -2178,7 +2775,10 @@ pretty_print_PIPE2(RRLogEntry entry)
 void
 pretty_print_FDATASYNC(RRLogEntry entry)
 {
-    printf("fdatasync(%d,) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("fdatasync");
+    printf("(%d", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -2189,17 +2789,21 @@ pretty_print_FDATASYNC(RRLogEntry entry)
 void
 pretty_print_FSTAT(RRLogEntry entry)
 {
-    printf("fstat(%d,sb) = %d", (int)entry.objectId, (int)entry.value[0]);
-    if ((int)entry.value[0] == -1) {
-	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
+    printf("fstat");
     if ((int)entry.value[0] != -1) {
 	struct stat	sb;
-	char		str[255];
+	char		str0[255];
 	readData((uint8_t *) & sb, sizeof(sb));
-	castor_xlat_stat(sb, str);
-	printf("   [sb: %s]\n", str);
+	castor_xlat_stat(sb, str0);
+
+	printf("(%d, %s", (int)entry.objectId, str0);
+    } else {
+	printf("(%d, sb", (int)entry.objectId);
+    }
+    printf(") = %d", (int)entry.value[0]);
+
+    if ((int)entry.value[0] == -1) {
+	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
 
     printf("\n");
@@ -2208,17 +2812,21 @@ pretty_print_FSTAT(RRLogEntry entry)
 void
 pretty_print_FSTATAT(RRLogEntry entry)
 {
-    printf("fstatat(%d,_, buf, _) = %d", (int)entry.objectId, (int)entry.value[0]);
-    if ((int)entry.value[0] == -1) {
-	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
+    printf("fstatat");
     if ((int)entry.value[0] != -1) {
 	struct stat	buf;
-	char		str[255];
+	char		str0[255];
 	readData((uint8_t *) & buf, sizeof(buf));
-	castor_xlat_stat(buf, str);
-	printf("   [buf: %s]\n", str);
+	castor_xlat_stat(buf, str0);
+
+	printf("(%d, _, %s, _", (int)entry.objectId, str0);
+    } else {
+	printf("(%d, _, buf, _", (int)entry.objectId);
+    }
+    printf(") = %d", (int)entry.value[0]);
+
+    if ((int)entry.value[0] == -1) {
+	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
 
     printf("\n");
@@ -2227,17 +2835,21 @@ pretty_print_FSTATAT(RRLogEntry entry)
 void
 pretty_print_FHSTAT(RRLogEntry entry)
 {
-    printf("fhstat(_, sb) = %d", (int)entry.value[0]);
-    if ((int)entry.value[0] == -1) {
-	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
+    printf("fhstat");
     if ((int)entry.value[0] != -1) {
 	struct stat	sb;
-	char		str[255];
+	char		str0[255];
 	readData((uint8_t *) & sb, sizeof(sb));
-	castor_xlat_stat(sb, str);
-	printf("   [sb: %s]\n", str);
+	castor_xlat_stat(sb, str0);
+
+	printf("(_, %s", str0);
+    } else {
+	printf("(_, sb");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
+    if ((int)entry.value[0] == -1) {
+	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
 
     printf("\n");
@@ -2246,12 +2858,16 @@ pretty_print_FHSTAT(RRLogEntry entry)
 void
 pretty_print_GETDIRENTRIES(RRLogEntry entry)
 {
-    printf("getdirentries(%d,buf, _, basep) = %zd", (int)entry.objectId, (ssize_t) entry.value[0]);
+    printf("getdirentries");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, buf, _, basep", (int)entry.objectId);
+    } else {
+	printf("(%d, buf, _, basep", (int)entry.objectId);
+    }
+    printf(") = %zd", (ssize_t) entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -2260,17 +2876,21 @@ pretty_print_GETDIRENTRIES(RRLogEntry entry)
 void
 pretty_print_STATFS(RRLogEntry entry)
 {
-    printf("statfs(_, buf) = %d", (int)entry.value[0]);
-    if ((int)entry.value[0] == -1) {
-	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
+    printf("statfs");
     if ((int)entry.value[0] != -1) {
 	struct stat	buf;
-	char		str[255];
+	char		str0[255];
 	readData((uint8_t *) & buf, sizeof(buf));
-	castor_xlat_stat(buf, str);
-	printf("   [buf: %s]\n", str);
+	castor_xlat_stat(buf, str0);
+
+	printf("(_, %s", str0);
+    } else {
+	printf("(_, buf");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
+    if ((int)entry.value[0] == -1) {
+	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
 
     printf("\n");
@@ -2279,17 +2899,21 @@ pretty_print_STATFS(RRLogEntry entry)
 void
 pretty_print_FSTATFS(RRLogEntry entry)
 {
-    printf("fstatfs(%d,buf) = %d", (int)entry.objectId, (int)entry.value[0]);
-    if ((int)entry.value[0] == -1) {
-	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
+    printf("fstatfs");
     if ((int)entry.value[0] != -1) {
 	struct stat	buf;
-	char		str[255];
+	char		str0[255];
 	readData((uint8_t *) & buf, sizeof(buf));
-	castor_xlat_stat(buf, str);
-	printf("   [buf: %s]\n", str);
+	castor_xlat_stat(buf, str0);
+
+	printf("(%d, %s", (int)entry.objectId, str0);
+    } else {
+	printf("(%d, buf", (int)entry.objectId);
+    }
+    printf(") = %d", (int)entry.value[0]);
+
+    if ((int)entry.value[0] == -1) {
+	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
 
     printf("\n");
@@ -2298,12 +2922,16 @@ pretty_print_FSTATFS(RRLogEntry entry)
 void
 pretty_print_GETFSSTAT(RRLogEntry entry)
 {
-    printf("getfsstat(buf, _, _) = %d", (int)entry.value[0]);
+    printf("getfsstat");
+    if ((int)entry.value[0] != -1) {
+	printf("(buf, _, _");
+    } else {
+	printf("(buf, _, _");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -2312,17 +2940,21 @@ pretty_print_GETFSSTAT(RRLogEntry entry)
 void
 pretty_print_FHSTATFS(RRLogEntry entry)
 {
-    printf("fhstatfs(_, buf) = %d", (int)entry.value[0]);
-    if ((int)entry.value[0] == -1) {
-	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
+    printf("fhstatfs");
     if ((int)entry.value[0] != -1) {
 	struct stat	buf;
-	char		str[255];
+	char		str0[255];
 	readData((uint8_t *) & buf, sizeof(buf));
-	castor_xlat_stat(buf, str);
-	printf("   [buf: %s]\n", str);
+	castor_xlat_stat(buf, str0);
+
+	printf("(_, %s", str0);
+    } else {
+	printf("(_, buf");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
+    if ((int)entry.value[0] == -1) {
+	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
 
     printf("\n");
@@ -2331,7 +2963,10 @@ pretty_print_FHSTATFS(RRLogEntry entry)
 void
 pretty_print_MKNODAT(RRLogEntry entry)
 {
-    printf("mknodat(%d,_, _, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("mknodat");
+    printf("(%d, _, _, _", (int)entry.objectId);
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
@@ -2342,12 +2977,16 @@ pretty_print_MKNODAT(RRLogEntry entry)
 void
 pretty_print_KEVENT(RRLogEntry entry)
 {
-    printf("kevent(%d,_, _, eventlist, _, _) = %d", (int)entry.objectId, (int)entry.value[0]);
+    printf("kevent");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, _, _, eventlist, _, _", (int)entry.objectId);
+    } else {
+	printf("(%d, _, _, eventlist, _, _", (int)entry.objectId);
+    }
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
-    }
-
-    if ((int)entry.value[0] != -1) {
     }
 
     printf("\n");
@@ -2356,7 +2995,10 @@ pretty_print_KEVENT(RRLogEntry entry)
 void
 pretty_print_SWAPOFF(RRLogEntry entry)
 {
-    printf("swapoff(_, _) = %d", (int)entry.value[0]);
+    printf("swapoff");
+    printf("(_, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
