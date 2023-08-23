@@ -244,7 +244,7 @@ def generate_pretty_printer(spec):
 
     return_format = {'int':'%d', 'ssize_t':'%zd', 'long':'%ld',
             'pid_t':'%d','uid_t':'%d','gid_t':'%d', 'mode_t':'%d',
-            '__off_t':'%ld'}[return_type]
+            '__off_t':'%ld', 'off_t':'%ld'}[return_type]
 
     ppc_output("void")
     ppc_output("pretty_print_%s(RRLogEntry entry) {" % name.upper())
@@ -712,11 +712,31 @@ def clean_types(arg):
                     result = parts[:-1]
     return ' '.join(result)
 
+def read_syscall_type_signatures(specs):
+    type_signatures = {}
+
+    for spec in specs:
+        name = spec['name']
+        return_type = spec['return_type']
+        args = []
+        for spec_arg in spec['args_spec']:
+            args.append(spec_arg['type'])
+        if name in type_signatures:
+            current = type_signatures[name]
+            if (return_type != current['return_type'] or args != current['args']):
+                die("conficting type signatures for :" + name )
+
+        type_signatures[name] = {'name': name, 'return_type': return_type, 'args' : args}
+
+    debug("type_signatures:", type_signatures)
+    return type_signatures
+
 def read_libc_type_signatures():
     type_signatures = {}
     output_path = INCLUDES_PATH[:-1] + "E"
     subprocess.check_call(["cc","-E","-P", "-DGEN_SAL", INCLUDES_PATH, "-o", output_path])
     src_lines = []
+
     with open(output_path) as f:
         line = f.readline()
         while line != '':
@@ -829,9 +849,19 @@ def build_type_size_map(type_list):
 if __name__ == '__main__':
     generated = []
     parse_flags()
+    specs = parse_spec()
 
-    type_signatures = read_libc_type_signatures()
-    syscall_description_list = remove_duplicate_descriptions(parse_spec())
+    type_signatures_from_libc = read_libc_type_signatures()
+    type_signatures_from_syscall = read_syscall_type_signatures(specs)
+    type_signatures = {}
+
+    for sig in type_signatures_from_syscall:
+        if sig in type_signatures_from_libc:
+            type_signatures[sig] = type_signatures_from_libc[sig]
+        else:
+            type_signatures[sig] = type_signatures_from_syscall[sig]
+
+    syscall_description_list = remove_duplicate_descriptions(specs)
 
     all_syscalls_list = map(lambda x:x['name'], syscall_description_list)
 
