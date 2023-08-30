@@ -2993,6 +2993,17 @@ pretty_print_KEVENT(RRLogEntry entry)
 }
 
 void
+pretty_print_SHM_OPEN2(RRLogEntry entry)
+{
+    printf("shm_open2(_, _, _, _, _) = %d", (int)entry.value[0]);
+    if ((int)entry.value[0] == -1) {
+	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
+    }
+
+    printf("\n");
+}
+
+void
 pretty_print_SWAPOFF(RRLogEntry entry)
 {
     printf("swapoff");

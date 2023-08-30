@@ -84,4 +84,3 @@ gethostid
 cpuset_getdomain
 cpuset_setdomain
 shm_open
-shm_open2

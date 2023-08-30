@@ -33,22 +33,22 @@ extern int _libc_sem_timedwait_compat(sem_t * __restrict, const struct timespec 
 extern int _libc_sem_getvalue_compat(sem_t * __restrict, int * __restrict);
 
 int
-__rr_shm_open(const char *path, int flags, mode_t mode)
+__rr_shm_open2(const char *path, int flags, mode_t mode, int shmflags, const char *name)
 {
     int status;
 
     switch (rrMode) {
 	case RRMODE_NORMAL:
-	    return __rr_syscall(SYS_shm_open, path, flags, mode);
+	    return __rr_syscall(SYS_shm_open2, path, flags, mode, shmflags, name);
 	case RRMODE_RECORD: {
-	    status = __rr_syscall(SYS_shm_open, path, flags, mode);
-	    RRRecordI(RREVENT_SHM_OPEN, status);
+	    status = __rr_syscall(SYS_shm_open2, path, flags, mode, shmflags, name);
+	    RRRecordI(RREVENT_SHM_OPEN2, status);
 	    break;
 	}
 	case RRMODE_REPLAY:
-	    RRReplayI(RREVENT_SHM_OPEN, &status);
+	    RRReplayI(RREVENT_SHM_OPEN2, &status);
 	    if (status != -1) {
-		int fd = __rr_syscall(SYS_shm_open, path, flags, mode);
+		int fd = __rr_syscall(SYS_shm_open2, path, flags, mode, shmflags, name);
 		ASSERT_IMPLEMENTED(fd == status);
 		FDInfo_OpenShm(status, fd);
 	    }
@@ -304,7 +304,7 @@ __rr_sem_getvalue(sem_t *sem, int *sval)
     return status;
 }
 
-BIND_REF(shm_open);
+BIND_REF(shm_open2);
 BIND_REF(shm_unlink);
 BIND_REF(sem_init);
 BIND_REF(sem_destroy);

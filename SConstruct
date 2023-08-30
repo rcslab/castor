@@ -149,7 +149,7 @@ env.Append(CPPPATH = ["#include",
                       "#include/" + env["RR"],
                       "#include/" + env["ARCH"]])
 
-#env["SYSROOT"] = os.getcwd() + "/sysroot/usr/amd64-freebsd/"
+env["SYSROOT"] = os.getcwd() + "/sysroot/"
 env["BUILDROOT"] = os.getcwd() + "/lib/"
 
 # Configuration
