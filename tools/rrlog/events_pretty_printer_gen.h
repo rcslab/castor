@@ -176,6 +176,7 @@ extern void pretty_print_GETFSSTAT(RRLogEntry entry);
 extern void pretty_print_FHSTATFS(RRLogEntry entry);
 extern void pretty_print_MKNODAT(RRLogEntry entry);
 extern void pretty_print_KEVENT(RRLogEntry entry);
+extern void pretty_print_GETRANDOM(RRLogEntry entry);
 extern void pretty_print_SWAPOFF(RRLogEntry entry);
 extern void pretty_print_NULL_EVENT(RRLogEntry entry);
 extern void pretty_print_EXIT(RRLogEntry entry);

@@ -6128,6 +6128,44 @@ __rr_kevent(int fd, const struct kevent *changelist, int nchanges, struct kevent
 }
 
 int
+__rr_getrandom(void *buf, size_t buflen, unsigned int flags)
+{
+    int		    result;
+    RRLogEntry	   *e;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+	return __rr_syscall(SYS_getrandom, buf, buflen, flags);
+    case RRMODE_RECORD:
+	result = __rr_syscall(SYS_getrandom, buf, buflen, flags);
+	e = RRLog_Alloc(rrlog, getThreadId());
+	e->event = RREVENT_GETRANDOM;
+	e->value[0] = (uint64_t) result;
+	if (result == -1) {
+	    e->value[1] = (uint64_t) errno;
+	}
+	RRLog_Append(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) buf, (unsigned long)buflen);
+	}
+	break;
+    case RRMODE_REPLAY:
+	e = RRPlay_Dequeue(rrlog, getThreadId());
+	AssertEvent(e, RREVENT_GETRANDOM);
+	result = (int)e->value[0];
+	if (result == -1) {
+	    errno = e->value[1];
+	}
+	RRPlay_Free(rrlog, e);
+	if (result != -1) {
+	    logData((uint8_t *) buf, (unsigned long)buflen);
+	}
+	break;
+    }
+    return result;
+}
+
+int
 __rr_swapoff(const char *name, u_int flags)
 {
     int		    result;
@@ -6331,4 +6369,5 @@ BIND_REF(getfsstat);
 BIND_REF(fhstatfs);
 BIND_REF(mknodat);
 BIND_REF(kevent);
+BIND_REF(getrandom);
 BIND_REF(swapoff);

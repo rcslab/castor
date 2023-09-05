@@ -173,3 +173,4 @@ posix_fadvise
 posix_fallocate
 issetugid
 umask
+getrandom

@@ -334,6 +334,7 @@ __rr_writev(int fd, const struct iovec *iov, int iovcnt)
 	return __rr_syscall(SYS_writev, fd, iov, iovcnt);
     }
 
+    /* TODO: hash the actual data to survive the aslr */
     if (rrMode == RRMODE_RECORD) {
 	result = __rr_syscall(SYS_writev, fd, iov, iovcnt);
 

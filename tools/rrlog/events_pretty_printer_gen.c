@@ -2993,9 +2993,30 @@ pretty_print_KEVENT(RRLogEntry entry)
 }
 
 void
+pretty_print_GETRANDOM(RRLogEntry entry)
+{
+    printf("getrandom");
+    if ((int)entry.value[0] != -1) {
+	printf("(buf, _, _");
+    } else {
+	printf("(buf, _, _");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
+    if ((int)entry.value[0] == -1) {
+	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
+    }
+
+    printf("\n");
+}
+
+void
 pretty_print_SHM_OPEN2(RRLogEntry entry)
 {
-    printf("shm_open2(_, _, _, _, _) = %d", (int)entry.value[0]);
+    printf("shm_open2");
+    printf("(_, _, _, _, _");
+    printf(") = %d", (int)entry.value[0]);
+
     if ((int)entry.value[0] == -1) {
 	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
     }
