@@ -20,4 +20,5 @@ recvmsg
 recvfrom
 pipe2
 gettimeofday
+clock_gettime
 fork

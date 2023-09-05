@@ -20,6 +20,5 @@ thread_rwlock
 ; Turning on one-by-one
 sysv_sem
 sendfile
-time
 truncate
 directories

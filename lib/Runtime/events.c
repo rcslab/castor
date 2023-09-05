@@ -44,6 +44,9 @@
 #include "system.h"
 #include "util.h"
 
+extern int _gettimeofday(struct timeval *tv, struct timezone *tz);
+extern int _clock_gettime(clockid_t, struct timespec *ts);
+
 static inline int
 __rr_pipe2(int fildes[2], int flags)
 {
@@ -575,6 +578,95 @@ __rr_recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *
     return result;
 }
 
+int
+__rr_gettimeofday(struct timeval *tp, struct timezone *tzp)
+{
+    int result;
+    RRLogEntry *e;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return _gettimeofday(tp, tzp);
+	case RRMODE_RECORD:
+	    result = _gettimeofday(tp, tzp);
+
+	    e = RRLog_Alloc(rrlog, getThreadId());
+	    e->event = RREVENT_GETTIMEOFDAY;
+	    e->value[0] = (uint64_t)result;
+	    if (result == -1) {
+		e->value[1] = (uint64_t) errno;
+	    } else {
+		e->value[2] = (uint64_t)(tp->tv_sec);
+		e->value[3] = (uint64_t)(tp->tv_usec);
+	    }
+	    RRLog_Append(rrlog, e);
+
+	    if (result != -1 && tzp) {
+		logData((uint8_t *)tzp, sizeof(struct timezone));
+	    }
+	    break;
+	case RRMODE_REPLAY:
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
+	    AssertEvent(e, RREVENT_GETTIMEOFDAY);
+	    result = (int)e->value[0];
+	    if (result == -1) {
+		errno = e->value[1];
+	    } else {
+		tp->tv_sec = e->value[2];
+		tp->tv_usec = e->value[3];
+	    }
+	    RRPlay_Free(rrlog, e);
+
+	    if (result != -1 && tzp) {
+		logData((uint8_t *)tzp, sizeof(struct timezone));
+	    }
+	    break;
+    }
+
+    return result;
+}
+
+int
+__rr_clock_gettime(clockid_t id, struct timespec *tp)
+{
+    int result;
+    RRLogEntry *e;
+
+    switch (rrMode) {
+	case RRMODE_NORMAL:
+	    return _clock_gettime(id, tp);
+	case RRMODE_RECORD:
+	    result = _clock_gettime(id, tp);
+
+	    e = RRLog_Alloc(rrlog, getThreadId());
+	    e->event = RREVENT_CLOCK_GETTIME;
+	    e->objectId = id;
+	    e->value[0] = (uint64_t)result;
+	    if (result == -1) {
+		e->value[1] = (uint64_t) errno;
+	    } else {
+		e->value[2] = (uint64_t) tp->tv_sec;
+		e->value[3] = (uint64_t) tp->tv_nsec;
+	    }
+	    RRLog_Append(rrlog, e);
+	    break;
+	case RRMODE_REPLAY:
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
+	    AssertEvent(e, RREVENT_CLOCK_GETTIME);
+	    result = (int)e->value[0];
+	    if (result == -1) {
+		errno = e->value[1];
+	    } else {
+		tp->tv_sec = (time_t)e->value[2];
+		tp->tv_nsec = e->value[3];
+	    }
+	    RRPlay_Free(rrlog, e);
+	    break;
+    }
+
+    return result;
+}
+
 int __rr_fstatat(int fd, const char *path, struct stat *buf, int flag);
 
 int
@@ -617,6 +709,9 @@ BIND_REF(writev);
 BIND_REF(stat);
 BIND_REF(lstat);
 BIND_REF(getdents);
+
+__strong_reference(__rr_gettimeofday, gettimeofday);
+__strong_reference(__rr_clock_gettime, clock_gettime);
 
 //XXX: This is ugly, for some reason things sometimes break strangely when this lives in
 //its own object fil.

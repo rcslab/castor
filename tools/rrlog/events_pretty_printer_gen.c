@@ -1391,6 +1391,24 @@ pretty_print_SHMGET(RRLogEntry entry)
 }
 
 void
+pretty_print_CLOCK_GETTIME(RRLogEntry entry)
+{
+    printf("clock_gettime");
+    if ((int)entry.value[0] != -1) {
+	printf("(_, tp");
+    } else {
+	printf("(_, tp");
+    }
+    printf(") = %d", (int)entry.value[0]);
+
+    if ((int)entry.value[0] == -1) {
+	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
+    }
+
+    printf("\n");
+}
+
+void
 pretty_print_CLOCK_SETTIME(RRLogEntry entry)
 {
     printf("clock_settime");
