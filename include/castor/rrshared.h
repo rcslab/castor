@@ -67,6 +67,7 @@ typedef struct RRLogThreadInfo {
 
 typedef struct RRLog {
     uint64_t magic;				    // Magic
+    alignas(CACHELINE) atomic_uintptr_t dbgwait;    // Wait for debugger
     alignas(CACHELINE) volatile uint64_t nextEvent; // Next event to be read
     alignas(CACHELINE) volatile uint64_t lastEvent; // Last event to be allocated
     alignas(CACHELINE) atomic_uintptr_t freePtr;    // Next Free Region (4KB aligned)

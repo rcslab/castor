@@ -12,11 +12,12 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
 #include <sys/capsicum.h>
+#include <sys/ipc.h>
+#include <sys/mman.h>
+#include <sys/ptrace.h>
+#include <sys/stat.h>
+#include <sys/shm.h>
 
 #include <castor/debug.h>
 #include <castor/rr_debug.h>
@@ -84,6 +85,12 @@ log_init()
 	if (status != 0) {
 	    PERROR("cap_enter");
 	}
+    }
+
+    char *stopchild = __castor_getenv("CASTOR_STOPCHILD");
+    if (stopchild && strcmp(stopchild,"1") == 0) {
+	while (atomic_load(&rrlog->dbgwait) != 1)
+	    ;
     }
 
     if (strcmp(mode, "RECORD") == 0) {

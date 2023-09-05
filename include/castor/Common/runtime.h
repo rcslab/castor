@@ -7,6 +7,7 @@ void LogDone();
 void RecordLog();
 void ReplayLog();
 int QueueOne();
+void ResumeDebugWait();
 void DumpLog();
 void DumpLogDebug();
 

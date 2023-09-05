@@ -37,6 +37,7 @@ CLI_Help(int argc, char *argv[])
    printf("help		Display this message.\n");
    printf("step		Step one or more events.\n");
    printf("dump		Dump queues.\n");
+   printf("resume	Resume from waiting for debugger.\n");
 }
 
 void
@@ -65,6 +66,12 @@ CLI_Dump(int argc, char *argv[])
 }
 
 void
+CLI_Resume(int argc, char *argv[])
+{
+    ResumeDebugWait();
+}
+
+void
 CLI_Process(const char *line)
 {
     int argc;
@@ -83,6 +90,8 @@ CLI_Process(const char *line)
 	CLI_Step(argc, (char **)&argv);
     } else if (strcmp(argv[0], "dump") == 0) {
 	CLI_Dump(argc, (char **)&argv);
+    } else if (strcmp(argv[0], "resume") == 0) {
+	CLI_Resume(argc, (char **)&argv);
     } else if (strcmp(argv[0], "") != 0) {
 	printf("Unknown command %s\n", argv[0]);
     }

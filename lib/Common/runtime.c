@@ -494,6 +494,12 @@ OpenLog(const char *logfile, uintptr_t regionSz, uint32_t numEvents, bool forRec
 }
 
 void
+ResumeDebugWait()
+{
+    atomic_store(&rrlog->dbgwait, 1);
+}
+
+void
 LogDone()
 {
     int status;
