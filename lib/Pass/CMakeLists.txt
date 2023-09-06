@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.4.3)
 project(CastorPass CXX)
 
+if (EXISTS "../../llvm/build")
+list(APPEND CMAKE_PREFIX_PATH "../../llvm/build")
+else()
 list(APPEND CMAKE_PREFIX_PATH "/usr/local/llvm15")
+endif()
 
 find_package(LLVM REQUIRED CONFIG)
 
