@@ -263,7 +263,7 @@ __rr_semctl(int semid, int semnum, int cmd, ...)
 	return __rr_syscall(SYS___semctl, semid, semnum, cmd, ptr);
 }
 
-BIND_REF(semctl);
+BIND_REF(__semctl);
 BIND_REF(semop);
 BIND_REF(shmat);
 BIND_REF(shmget);

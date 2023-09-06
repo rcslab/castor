@@ -18,7 +18,6 @@ thread_mutex
 thread_spin
 thread_rwlock
 ; Turning on one-by-one
-sysv_sem
 sendfile
 truncate
 directories
