@@ -167,6 +167,14 @@ if not conf.CheckCC():
 if not conf.CheckCXX():
     CheckFailed("Your C++ compiler and/or environment is incorrectly configured.")
 
+if os.path.exists("llvm/build"):
+    print("Using the custom LLVM build for tests.")
+else:
+    print("Using the system's LLVM 15")
+    env["TESTCC"] = "clang15"
+    env["TESTCXX"] = "clang15++"
+    env["TESTLINK"] = "clang15"
+
 if sys.platform != "freebsd13":
     print("Current Castor release is tested on FreeBSD 13.1")
     print("Running on another version requires updating the system call definitions")
