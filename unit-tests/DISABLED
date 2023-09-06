@@ -4,7 +4,6 @@ thread_cond_broadcast
 mmap_shared_shm
 ;Fix rrmode global
 ;read
-hellodebug
 ;Turning off compiler stuff
 atomics
 inlineasm
