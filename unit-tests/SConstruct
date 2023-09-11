@@ -19,9 +19,10 @@ testbench_deps = [ "CastorRuntime",
                    Glob("#unit-tests/*.c") ]
 
 # Compiler pass
-#test_env.Append(CPPFLAGS = ["-Xclang", "-load", "-Xclang", "$CASTORPASS"])
-test_env.Append(LINKFLAGS = ["-Wl,-rpath=${BUILDROOT}lib/Runtime"])
-test_env.Append(LIBS = ["thr", "c"])
+#test_env.Append(CPPFLAGS = ["-fpass-plugin=$CASTORPASS"])
+test_env.Append(LIBPATH = ["${BUILDROOT}/../build/lib/Runtime", \
+                           "${BUILDROOT}/../build/lib/ThreadRuntime"])
+test_env.Append(LIBS = ["thr", "c", "CastorRuntime", "CastorThreadRuntime"])
 
 for t in tests:
     t = test_env.Program(t, [t+".c"])
