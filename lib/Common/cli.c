@@ -77,21 +77,21 @@ CLI_Process(const char *line)
     int argc;
     const char **argv;
 
-    Tokenizer *tok = tok_init("");
+    Tokenizer *tok = tok_init(NULL);
     tok_str(tok, line, &argc, &argv);
-
+	
     if (argv[0] == NULL) {
 	// Ignore
     } else if (strcmp(argv[0], "quit") == 0) {
-	CLI_Quit(argc, (char **)&argv);
+	CLI_Quit(argc, (char **)argv);
     } else if (strcmp(argv[0], "help") == 0) {
-	CLI_Help(argc, (char **)&argv);
+	CLI_Help(argc, (char **)argv);
     } else if (strcmp(argv[0], "step") == 0) {
-	CLI_Step(argc, (char **)&argv);
+	CLI_Step(argc, (char **)argv);
     } else if (strcmp(argv[0], "dump") == 0) {
-	CLI_Dump(argc, (char **)&argv);
+	CLI_Dump(argc, (char **)argv);
     } else if (strcmp(argv[0], "resume") == 0) {
-	CLI_Resume(argc, (char **)&argv);
+	CLI_Resume(argc, (char **)argv);
     } else if (strcmp(argv[0], "") != 0) {
 	printf("Unknown command %s\n", argv[0]);
     }
