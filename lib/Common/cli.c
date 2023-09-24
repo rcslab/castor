@@ -15,6 +15,7 @@
 
 #include <castor/Common/runtime.h>
 #include <castor/Common/cli.h>
+#include <castor/rrshared.h>
 
 #define MAX_LEN  64
 #define MAX_ARGS 5
@@ -62,7 +63,24 @@ CLI_Step(int argc, char *argv[])
 void
 CLI_Dump(int argc, char *argv[])
 {
-    DumpLog();
+    int thread = -1; // Don't print per-thread queue 
+    char *arg;
+    
+    if (argc == 2) {
+	if (strcmp(argv[1], "all") == 0) {
+	    thread = RRLOG_MAX_THREADS;
+	} else {
+	    arg = argv[1];
+	    // check if its a valid number
+	    thread = strtol(arg, &arg, 10);
+	    if (*arg != '\0') {
+		printf("Invalid argument for dump\n");
+		return;
+	    }
+	}
+    }
+
+    DumpLog(thread);
 }
 
 void

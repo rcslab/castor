@@ -29,6 +29,7 @@
 #include <castor/file_format.h>
 #include <castor/Common/runtime.h>
 #include <castor/Common/ft.h>
+#include <castor/rrshared.h>
 
 static RRLog *rrlog;
 static alignas(PAGESIZE) RRGlobalQueue rrgq;
@@ -292,7 +293,7 @@ QueueOne()
 }
 
 void
-dumpEntry(RRLogEntry *entry)
+dumpEntry(volatile RRLogEntry *entry)
 {
     int i;
     const char *evtStr = "UNKNOWN";
@@ -311,10 +312,11 @@ dumpEntry(RRLogEntry *entry)
 }
 
 void
-DumpLog()
+DumpLog(int thread)
 {
     uint64_t len;
     RRLogEntry *entry;
+    int thr_entry_st, thr_entry_ed;
 
     printf("Next Event: %08ld\n", rrlog->nextEvent);
     printf("Last Event: %08ld\n", rrlog->lastEvent);
@@ -342,6 +344,35 @@ DumpLog()
     printf("Head: %08ld Tail: %08ld\n", rrgq.head, rrgq.tail);
     for (uint64_t i = 0; i < len; i++) {
 	dumpEntry(&entry[i]);
+    }
+
+    if (thread == -1 || thread > RRLOG_MAX_THREADS ||
+	    (!RRShared_ThreadPresent(rrlog, thread) && thread != RRLOG_MAX_THREADS))
+	return;
+
+    printf("ThreadQueue:\n");
+
+    for (int i=0; i < RRLOG_MAX_THREADS; i++) {
+	if (i != thread && thread != RRLOG_MAX_THREADS) 
+	    continue;
+
+	RRLogThread *rrthr = RRShared_LookupThread(rrlog, i);
+	if (!RRShared_ThreadPresent(rrlog, i))
+	    continue;
+
+	printf("Thread %d\n", i);
+	printf("%-16s  %-8s  %-16s  %-16s  %-16s  %-16s  %-16s  %-16s  %-16s\n",
+	    "Event #", "Thread #", "Event", "Object ID",
+	    "Value[0]", "Value[1]", "Value[2]", "Value[3]", "Value[4]");
+
+	if (rrthr->freeOff > rrlog->numEvents)
+	    thr_entry_st = rrthr->freeOff - rrlog->numEvents;
+	else
+	    thr_entry_st = 0;
+	thr_entry_ed = rrthr->freeOff;
+	for (int j=thr_entry_st; j<thr_entry_ed;j++) {
+	    dumpEntry(&rrthr->entries[j % rrlog->numEvents]);
+	}
     }
 }
 

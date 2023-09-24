@@ -8,7 +8,7 @@ void RecordLog();
 void ReplayLog();
 int QueueOne();
 void ResumeDebugWait();
-void DumpLog();
+void DumpLog(int thread);
 void DumpLogDebug();
 
 #endif /* __CASTOR_RUNTIME_H__ */
