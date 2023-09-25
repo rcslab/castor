@@ -1,0 +1,18 @@
+--- ./fstatat.c.orig	2023-09-24 22:15:45.455965000 -0400
++++ ./fstatat.c	2023-09-24 23:26:43.812755000 -0400
+@@ -32,6 +32,9 @@
+ 
+ #include "libc_private.h"
+ 
++__weak_reference(__sys_fstatat, _fstatat);
++
++#pragma weak fstatat
+ int
+ fstatat(int fd, const char *path, struct stat *sb, int flag)
+ {
+@@ -45,3 +48,5 @@
+ 		__stat11_to_stat(&stat11, sb);
+ 	return (rv);
+ }
++
++

@@ -3439,3 +3439,21 @@ pretty_print_GETCWD(RRLogEntry entry)
 {
     printf("[builtin] getcwd()\n");
 }
+
+void
+pretty_print_STAT(RRLogEntry entry)
+{
+    printf("[builtin] stat()\n");
+}
+
+void
+pretty_print_LSTAT(RRLogEntry entry)
+{
+    printf("[builtin] lstat()\n");
+}
+
+void
+pretty_print_GETDENTS(RRLogEntry entry)
+{
+    printf("[builtin] getdents()\n");
+}

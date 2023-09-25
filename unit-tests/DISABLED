@@ -6,7 +6,3 @@ mmap_shared_shm
 ;read
 ; Config issue
 mmap_shared_anon
-; Turning on one-by-one
-sendfile
-truncate
-directories

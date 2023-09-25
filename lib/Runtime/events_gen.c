@@ -5865,7 +5865,9 @@ __rr_getdirentries(int fd, char *buf, size_t count, off_t * basep){
 	if (result == -1) {
 	    e->value[1] = (uint64_t) errno;
 	} else {
-	    e->value[2] = (uint64_t) (*basep);
+	    if (basep != NULL) {
+		e->value[2] = (uint64_t) (*basep);
+	    }
 	}
 	RRLog_Append(rrlog, e);
 	if (result != -1) {
@@ -5880,7 +5882,9 @@ __rr_getdirentries(int fd, char *buf, size_t count, off_t * basep){
 	if (result == -1) {
 	    errno = e->value[1];
 	} else {
-	    (*basep) = (off_t) e->value[2];
+	    if (basep != NULL) {
+		(*basep) = (off_t) e->value[2];
+	    }
 	}
 	RRPlay_Free(rrlog, e);
 	if (result != -1) {

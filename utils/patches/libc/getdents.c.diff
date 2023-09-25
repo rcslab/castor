@@ -1,0 +1,10 @@
+--- ./getdents.c.orig	2023-09-25 00:27:33.895314000 -0400
++++ ./getdents.c	2023-09-25 00:28:00.772881000 -0400
+@@ -33,6 +33,7 @@
+ #include <dirent.h>
+ #include "libc_private.h"
+ 
++#pragma weak getdents
+ ssize_t
+ getdents(int fd, char *buf, size_t nbytes)
+ {

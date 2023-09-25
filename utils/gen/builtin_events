@@ -64,3 +64,6 @@ pipe
 gettime
 sysctl
 getcwd
+stat
+lstat
+getdents
