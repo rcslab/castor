@@ -10,13 +10,6 @@ inlineasm
 rdtsc
 ; Config issue
 mmap_shared_anon
-; Some thread hooks missing
-semaphore_producer_consumer
-thread_print
-thread_barrier
-thread_mutex
-thread_spin
-thread_rwlock
 ; Turning on one-by-one
 sendfile
 truncate
