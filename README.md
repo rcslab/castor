@@ -25,7 +25,7 @@ you need to update util/llvm.sh to match your version before proceeding.
 scons sysroot
 ```
 
-### 3. Build the compiler
+### 3. Build the compiler (Skip this step if you have llvm15 installed)
 
 ```
 scons llvm
@@ -104,7 +104,6 @@ command e.g.
 
     rrlog default.rr
 
-
 ## Build Tips
 To see the different build options:
 
@@ -123,6 +122,15 @@ To create a release build, set the following lines in Local.sc
     BUILDTYPE="RELEASE"
     RR="tsx"
 
+## Matching Our Paper's Results
 
+Our paper's measurements were taken using a release build with the TSX 
+record/replay mode.  If you do not have Intel TSX support in your CPU, then the 
+TSC option is closest to our benchmark.  It will only differ for workloads that 
+make significant use of atomic instructions, which is not the case for any 
+benchmark we ran.  We still need to merge our branch that supports replaying 
+TSX/TSC modes by rewriting the timestamps into a sequence on replay.
 
+CTR mode is the default for development, which uses a global counter that 
+serializes all events.
 
