@@ -10,6 +10,7 @@ build
 build.log
 .sconsign.dblite
 .sconf_temp
+.cache
 config.log
 sysroot
 sysroot-src
