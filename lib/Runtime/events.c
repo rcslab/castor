@@ -54,7 +54,7 @@ __rr_pipe2(int fildes[2], int flags)
     RRLogEntry *e;
 
     if (rrMode == RRMODE_NORMAL) {
-	result = __rr_syscall(SYS_pipe2, fildes, flags);
+	return __rr_syscall(SYS_pipe2, fildes, flags);
     }
 
     if (rrMode == RRMODE_RECORD) {
