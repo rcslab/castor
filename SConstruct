@@ -204,8 +204,8 @@ env.Alias("CastorPass", "#lib/Pass/libCastorPass.so")
 VariantDir("build/unit-tests", "unit-tests")
 SConscript("#build/unit-tests/SConstruct")
 
-#VariantDir("build/perf", "perf")
-#SConscript("#build/perf/SConstruct")
+VariantDir("build/perf", "perf")
+SConscript("#build/perf/SConstruct")
 
 AlwaysBuild(Alias('sysroot', "", "utils/sysroot.sh"))
 AlwaysBuild(Alias('llvm', "", "utils/llvm.sh"))

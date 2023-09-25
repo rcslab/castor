@@ -21,23 +21,24 @@ for f in Glob('#perf/*.c'):
 
 perfbench_deps = [ "CastorRuntime",
                    "CastorThreadRuntime",
-                   "CastorPass",
-                   Glob("#perf/*.c") ]
+                   Glob("#unit-tests/*.c") ]
 
-rrperf_env.Append(CPPFLAGS = ["--sysroot=$SYSROOT",
-                              "-Xclang", "-load", "-Xclang", "$CASTORPASS"])
-rrperf_env.Append(LINKFLAGS = ["--sysroot=$SYSROOT"])
-rrperf_env.Append(LIBS = ["thr", "c"])
+# Compiler pass
+#test_env.Append(CPPFLAGS = ["-fpass-plugin=$CASTORPASS"])
+
+rrperf_env.Append(LIBPATH = ["${BUILDROOT}/../build/lib/Runtime", \
+                             "${BUILDROOT}/../build/lib/ThreadRuntime"])
+rrperf_env.Append(LIBS = ["thr", "c", "CastorRuntime", "CastorThreadRuntime"])
 perf_env.Append(LIBS = ["thr", "c"])
 
 for t in perfs:
     t = perf_env.Program(t, [ t+".c" ])
+    perf_env.Requires(t, perfbench_deps)
     perfbench_deps.append(t)
 
 for t in rrperfs:
-    rrperf_env.Depends(t+".o",
-                       ["CastorRuntime", "CastorThreadRuntime", "CastorPass"])
     t = rrperf_env.Program([t+".c"])
+    rrperf_env.Requires(t, perfbench_deps)
     perfbench_deps.append(t)
 
 AlwaysBuild(Alias('perfbench', perfbench_deps, "perf/perfbench.py"))

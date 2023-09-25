@@ -6,16 +6,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <unistd.h>
 #include <time.h>
 #include <pthread.h>
 #include <sys/mman.h>
 
+#define __castor_abort abort
 #include <castor/rrlog.h>
+
+#include "stopwatch.h"
 
 RRLog *rrlog;
 
 #define TEST_THREADS		2ULL
-#define EVENTS_PER_THREAD	100000000ULL
+#define EVENTS_PER_THREAD	10000000ULL
 
 void *
 test_producer(void *arg)
@@ -37,6 +41,7 @@ test_consumer()
 {
     uint64_t i;
 
+    uint64_t start = Stopwatch_Start();
     for (i = 0; i < TEST_THREADS * EVENTS_PER_THREAD; i++) {
 	RRLogEntry *entry = NULL;
 
@@ -46,6 +51,8 @@ test_consumer()
 
 	RRLog_Free(rrlog, entry);
     }
+    uint64_t stop = Stopwatch_Stop();
+    Stopwatch_Print(start, stop, TEST_THREADS * EVENTS_PER_THREAD);
 }
 
 int

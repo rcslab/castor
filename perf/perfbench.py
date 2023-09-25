@@ -138,7 +138,7 @@ for t in tests:
     RunTest(t)
 
 if len(failed) != 0:
-    print str(len(failed)) + " tests failed"
+    print(str(len(failed)) + " tests failed")
 
 sys.exit(len(failed))
 

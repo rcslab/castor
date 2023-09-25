@@ -19,14 +19,14 @@ readBench(size_t rdsz)
     uint64_t start, stop;
     char buf[16*1024];
 
-    start = __builtin_readcyclecounter();
+    start = Stopwatch_Start();
     for (int i = 0; i < (100*1024); i++)
     {
 	read(fd, (void *)&buf, rdsz);
     }
-    stop = __builtin_readcyclecounter();
+    stop = Stopwatch_Stop();
 
-    printf("%lu %lu\n", rdsz, TSCDiffToMS(stop - start));
+    Stopwatch_Print(start, stop, 100*1024);
 }
 
 int main(int argc, const char *argv[])
