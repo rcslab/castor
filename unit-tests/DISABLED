@@ -4,10 +4,6 @@ thread_cond_broadcast
 mmap_shared_shm
 ;Fix rrmode global
 ;read
-;Turning off compiler stuff
-atomics
-inlineasm
-rdtsc
 ; Config issue
 mmap_shared_anon
 ; Turning on one-by-one
