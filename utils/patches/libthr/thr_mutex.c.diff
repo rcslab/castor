@@ -1,61 +1,33 @@
-*** /usr/src/lib/libthr/thread/thr_mutex.c	Tue Aug  8 16:46:01 2023
---- ./thr_mutex.c	Mon Sep 18 22:30:40 2023
-***************
-*** 86,112 ****
-  static bool	is_pshared_mutex(struct pthread_mutex *m);
-  
-  __weak_reference(__Tthr_mutex_init, pthread_mutex_init);
-  __weak_reference(__Tthr_mutex_init, __pthread_mutex_init);
-! __strong_reference(__Tthr_mutex_init, _pthread_mutex_init);
-  __weak_reference(__Tthr_mutex_lock, pthread_mutex_lock);
-  __weak_reference(__Tthr_mutex_lock, __pthread_mutex_lock);
-  __weak_reference(__Tthr_mutex_lock, _pthread_mutex_lock);
-  __weak_reference(__pthread_mutex_timedlock, pthread_mutex_timedlock);
-! __strong_reference(__pthread_mutex_timedlock, _pthread_mutex_timedlock);
-  __weak_reference(__Tthr_mutex_trylock, pthread_mutex_trylock);
-  __weak_reference(__Tthr_mutex_trylock, __pthread_mutex_trylock);
-! __strong_reference(__Tthr_mutex_trylock, _pthread_mutex_trylock);
-  __weak_reference(_Tthr_mutex_consistent, pthread_mutex_consistent);
-  __weak_reference(_Tthr_mutex_consistent, _pthread_mutex_consistent);
-  __strong_reference(_Tthr_mutex_consistent, __pthread_mutex_consistent);
-  
-  /* Single underscore versions provided for libc internal usage: */
-  /* No difference between libc and application usage of these: */
-  __weak_reference(_thr_mutex_destroy, pthread_mutex_destroy);
-  __weak_reference(_thr_mutex_destroy, _pthread_mutex_destroy);
-  __weak_reference(_thr_mutex_unlock, pthread_mutex_unlock);
-  __weak_reference(_thr_mutex_unlock, _pthread_mutex_unlock);
-  
-  __weak_reference(_pthread_mutex_getprioceiling, pthread_mutex_getprioceiling);
-  __weak_reference(_pthread_mutex_setprioceiling, pthread_mutex_setprioceiling);
-  
---- 86,114 ----
-  static bool	is_pshared_mutex(struct pthread_mutex *m);
-  
-  __weak_reference(__Tthr_mutex_init, pthread_mutex_init);
-  __weak_reference(__Tthr_mutex_init, __pthread_mutex_init);
-! __weak_reference(__Tthr_mutex_init, _pthread_mutex_init);
-  __weak_reference(__Tthr_mutex_lock, pthread_mutex_lock);
-  __weak_reference(__Tthr_mutex_lock, __pthread_mutex_lock);
-  __weak_reference(__Tthr_mutex_lock, _pthread_mutex_lock);
-  __weak_reference(__pthread_mutex_timedlock, pthread_mutex_timedlock);
-! __weak_reference(__pthread_mutex_timedlock, _pthread_mutex_timedlock);
-  __weak_reference(__Tthr_mutex_trylock, pthread_mutex_trylock);
-  __weak_reference(__Tthr_mutex_trylock, __pthread_mutex_trylock);
-! __weak_reference(__Tthr_mutex_trylock, _pthread_mutex_trylock);
-  __weak_reference(_Tthr_mutex_consistent, pthread_mutex_consistent);
-  __weak_reference(_Tthr_mutex_consistent, _pthread_mutex_consistent);
-  __strong_reference(_Tthr_mutex_consistent, __pthread_mutex_consistent);
-  
-  /* Single underscore versions provided for libc internal usage: */
-  /* No difference between libc and application usage of these: */
-  __weak_reference(_thr_mutex_destroy, pthread_mutex_destroy);
-  __weak_reference(_thr_mutex_destroy, _pthread_mutex_destroy);
-+ __weak_reference(_thr_mutex_destroy, __pthread_mutex_destroy);
-  __weak_reference(_thr_mutex_unlock, pthread_mutex_unlock);
-  __weak_reference(_thr_mutex_unlock, _pthread_mutex_unlock);
-+ __weak_reference(_thr_mutex_unlock, __pthread_mutex_unlock);
-  
-  __weak_reference(_pthread_mutex_getprioceiling, pthread_mutex_getprioceiling);
-  __weak_reference(_pthread_mutex_setprioceiling, pthread_mutex_setprioceiling);
-  
+--- ./thr_mutex.c.orig	2023-09-26 00:03:22.886853000 -0400
++++ thr_mutex.c	2023-09-26 00:02:31.104942000 -0400
+@@ -87,15 +87,15 @@
+ 
+ __weak_reference(__Tthr_mutex_init, pthread_mutex_init);
+ __weak_reference(__Tthr_mutex_init, __pthread_mutex_init);
+-__strong_reference(__Tthr_mutex_init, _pthread_mutex_init);
++__weak_reference(__Tthr_mutex_init, _pthread_mutex_init);
+ __weak_reference(__Tthr_mutex_lock, pthread_mutex_lock);
+ __weak_reference(__Tthr_mutex_lock, __pthread_mutex_lock);
+-__strong_reference(__Tthr_mutex_lock, _pthread_mutex_lock);
++__weak_reference(__Tthr_mutex_lock, _pthread_mutex_lock);
+ __weak_reference(__pthread_mutex_timedlock, pthread_mutex_timedlock);
+-__strong_reference(__pthread_mutex_timedlock, _pthread_mutex_timedlock);
++__weak_reference(__pthread_mutex_timedlock, _pthread_mutex_timedlock);
+ __weak_reference(__Tthr_mutex_trylock, pthread_mutex_trylock);
+ __weak_reference(__Tthr_mutex_trylock, __pthread_mutex_trylock);
+-__strong_reference(__Tthr_mutex_trylock, _pthread_mutex_trylock);
++__weak_reference(__Tthr_mutex_trylock, _pthread_mutex_trylock);
+ __weak_reference(_Tthr_mutex_consistent, pthread_mutex_consistent);
+ __weak_reference(_Tthr_mutex_consistent, _pthread_mutex_consistent);
+ __strong_reference(_Tthr_mutex_consistent, __pthread_mutex_consistent);
+@@ -104,8 +104,10 @@
+ /* No difference between libc and application usage of these: */
+ __weak_reference(_thr_mutex_destroy, pthread_mutex_destroy);
+ __weak_reference(_thr_mutex_destroy, _pthread_mutex_destroy);
++__weak_reference(_thr_mutex_destroy, __pthread_mutex_destroy);
+ __weak_reference(_thr_mutex_unlock, pthread_mutex_unlock);
+ __weak_reference(_thr_mutex_unlock, _pthread_mutex_unlock);
++__weak_reference(_thr_mutex_unlock, __pthread_mutex_unlock);
+ 
+ __weak_reference(_pthread_mutex_getprioceiling, pthread_mutex_getprioceiling);
+ __weak_reference(_pthread_mutex_setprioceiling, pthread_mutex_setprioceiling);

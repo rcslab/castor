@@ -2,27 +2,82 @@
 
 ##Requirements
 
-Castor is only supported on FreeBSD 13.1 at this time, and has only been tested 
-with Clang 15.0. 
+Castor only supports FreeBSD 13.1, and is tested with Clang 15.
+
+For development, you should use a sysroot, chroot or jail environment.  
 
 ##Building Castor
 
 Following these steps will allow you to build Castor and run the test suite.
 
+### 0. Prepare the jail environment
+
+If you plan to use sysroot, skip to the next step.
+
+We recommend using iocage to manage the jail instance. To install iocage run 
+the following command as root:
+```
+pkg install py39-iocage
+```
+
+Create jail for Castor we can run the following as root:
+```
+iocage create -n <jail_name> -r 13.1-RELEASE
+iocage set allow_chflags=1 <jail_name>
+```
+You may want to setup the network for your jail. To do so, please refer
+the iocage manual or wiki.
+
+Enter the console inside the jail:
+```
+iocage console -f <jail_name>
+```
+You need to copy the Castor source into your jail before proceeding to the
+next step.
+
 ### 1. Install the packages needed to build Castor
 
 ```
-pkg install git python scons llvm15 ninja cmake curl
+pkg install git python scons-py39 llvm15 cmake curl
 ```
 
-Note: If ```clang15 --version``` does not match 15.0.x on your system and you still wish to proceed, then
-you need to update util/llvm.sh to match your version before proceeding.
+If ```clang15 --version``` does not match 15.0.x on your system and you still 
+wish to proceed, then you need to update util/llvm.sh to ignore our version 
+check.
 
 
-### 2. Create a sysroot with our patches by running
+### 2. Prepare the OS environment
 
+You may either use the sysroot or jail method to get your environment running.
+
+#### 2.1 Sysroot (Method 1)
+Create a sysroot with our patches by running
 ```
 scons sysroot
+```
+
+#### 2.2 Jail (Method 2)
+Checkout a copy of FreeBSD 13.1-RELEASE source code.
+```
+git clone https://github.com/freebsd/freebsd-src.git
+git checkout releng/13.1
+```
+
+Go to the root of your FreeBSD source folder, run script to patch files for Castor:
+```
+<castor_source_root>/utils/patches/patch.sh
+```
+
+And then:
+```
+make buildworld
+make installworld
+```
+
+After done, restart the iocage from host OS and reenter the console:
+```
+iocage restart <jail_name>
+iocage console <jail_name>
 ```
 
 ### 3. Build the compiler (Skip this step if you have llvm15 installed)
@@ -37,7 +92,29 @@ scons llvm
 scons
 ```
 
+### 5. Fix up the linker scripts (jail method only)
+After the compliation, insert the Castor library path into the the system's 
+libc.so linker script:
+```
+vim /usr/lib/libc.so
+```
+Insert the fullpath of libsys_castor.so into th group as shown below.
+```
+...
+GROUP ( <path_to_libsys_castor.a> ..other libc so.. )
+...
+```
+
+You also need to delete /usr/lib/libthr.so symbol link and replace it with a 
+group file with the following contents.
+```
+GROUP ( <path_to_libCastorThreadRuntime.a> /lib/libthr.so.3 )
+```
+
 ### 5. Run the testsuite
+
+You may need to rebuild the testsuite after updating the linker script above 
+using scons -c to clean the build and scons to rebuild everything.
 
 ```
 scons testbench
@@ -133,4 +210,10 @@ TSX/TSC modes by rewriting the timestamps into a sequence on replay.
 
 CTR mode is the default for development, which uses a global counter that 
 serializes all events.
+
+Local.sc contents:
+```
+BUILDTYPE="RELEASE"
+RR="tsx" # or "tsc" if you don't have Intel TSX
+```
 
