@@ -1,9 +1,17 @@
 #!/bin/csh -e
 
-set BASE=`pwd`
+echo
+echo "Castor sysroot installer"
+echo
+echo "Please enter your sudo password so that the installation will be finished automatically."
+echo "Otherwise you will be asked multiple times during the installation."
+echo "Please enter password for sudo: " 
+stty -echo 
+set SUDO_PASSWORD = $<
+stty echo
+echo
 
-echo "Name for Castor jail?"
-set JAIL_NAME = $<
+set BASE=`pwd`
 
 if ( ! -d $BASE/sysroot-src ) then
     echo "Requires FreeBSD source code to be installed."
@@ -13,6 +21,7 @@ endif
 set NCPU=`/sbin/sysctl -n hw.ncpu`
 set NCPU=`expr 2 \* $NCPU`
 
+#include Castor runtime at loadtime
 cd $BASE/sysroot-src/
 
 echo "Patching FreeBSD source.."
@@ -58,18 +67,34 @@ else
     exit 1
 endif
 
-
 echo "Building FreeBSD source.."
 cd $BASE/sysroot-src
-make -j $NCPU buildworld MAKEOBJDIRPREFIX=$BASE/sysroot-obj NO_FSCHG=YES
-make installworld DESTDIR=$BASE/sysroot 
+make -j $NCPU buildworld NO_FSCHG=YES
+echo "Installing FreeBSD into Castor sysroot.."
+if ( -z "$SUDO_PASSWORD" ) then
+    echo "$SUDO_PASSWORD" | sudo -S  make installworld DESTDIR=$BASE/sysroot 
+else
+    sudo make installworld DESTDIR=$BASE/sysroot 
+endif
 
 #include Castor runtime at loadtime
-echo "Patching Castor jail.."
-cd $BASE/sysroot
-sed -i .backup 's;(;( /usr/lib/libCastorRuntime.a;' usr/lib/libc.so
-rm usr/lib/libthr.so
-echo "GROUP ( /usr/lib/libCastorThreadRuntime.a /lib/libthr.so.3)" >> usr/lib/libthr.so
+echo "Patching Freebsd for Castor.."
+if ( -z "$SUDO_PASSWORD" ) then
+    echo "$SUDO_PASSWORD" | sudo -S sed -i .backup 's;(;( /usr/lib/libCastorRuntime.a;' $BASE/sysroot/usr/lib/libc.so
+    if ( -f "$BASE/sysroot/usr/lib/libthr.so" ) then
+	echo "$SUDO_PASSWORD" | sudo -S rm $BASE/sysroot/usr/lib/libthr.so
+    endif
+    echo "$SUDO_PASSWORD" | sudo -S touch $BASE/sysroot/usr/lib/libthr.so
+    echo "$SUDO_PASSWORD" | sudo -S chmod g+w $BASE/sysroot/usr/lib/libthr.so 
+    echo "$SUDO_PASSWORD" | sudo -S echo "GROUP ( /usr/lib/libCastorThreadRuntime.a /lib/libthr.so.3)" >> $BASE/sysroot/usr/lib/libthr.so
+else
+    sudo sed -i .backup 's;(;( /usr/lib/libCastorRuntime.a;' $BASE/sysroot/usr/lib/libc.so
+    if ( -f "$BASE/sysroot/usr/lib/libthr.so" ) then
+	sudo rm $BASE/sysroot/usr/lib/libthr.so
+    endif
+    sudo touch $BASE/sysroot/usr/lib/libthr.so
+    sudo chmod g+w $BASE/sysroot/usr/lib/libthr.so 
+    sudo echo "GROUP ( /usr/lib/libCastorThreadRuntime.a /lib/libthr.so.3)" >> $BASE/sysroot/usr/lib/libthr.so
+endif
 
 echo "SYSROOT Build Complete"
-

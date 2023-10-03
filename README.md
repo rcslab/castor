@@ -10,35 +10,10 @@ For development, you should use a sysroot, chroot or jail environment.
 
 Following these steps will allow you to build Castor and run the test suite.
 
-### 0. Prepare the jail environment
-
-If you plan to use sysroot, skip to the next step.
-
-We recommend using iocage to manage the jail instance. To install iocage run 
-the following command as root:
-```
-pkg install py39-iocage
-```
-
-Create jail for Castor we can run the following as root:
-```
-iocage create -n <jail_name> -r 13.1-RELEASE
-iocage set allow_chflags=1 <jail_name>
-```
-You may want to setup the network for your jail. To do so, please refer
-the iocage manual or wiki.
-
-Enter the console inside the jail:
-```
-iocage console -f <jail_name>
-```
-You need to copy the Castor source into your jail before proceeding to the
-next step.
-
 ### 1. Install the packages needed to build Castor
 
 ```
-pkg install git python scons-py39 llvm15 cmake curl
+pkg install git python scons-py39 llvm15 sudo cmake curl
 ```
 
 If ```clang15 --version``` does not match 15.0.x on your system and you still 
@@ -56,29 +31,11 @@ Create a sysroot with our patches by running
 scons sysroot
 ```
 
-#### 2.2 Jail (Method 2)
-Checkout a copy of FreeBSD 13.1-RELEASE source code.
-```
-git clone https://github.com/freebsd/freebsd-src.git
-git checkout releng/13.1
-```
+After building the sysroot, set the sysroot or jail to use the FreeBSD build in
+<Castor_Root_Dir>/sysroot/
 
-Go to the root of your FreeBSD source folder, run script to patch files for Castor:
-```
-<castor_source_root>/utils/patches/patch.sh
-```
-
-And then:
-```
-make buildworld
-make installworld
-```
-
-After done, restart the iocage from host OS and reenter the console:
-```
-iocage restart <jail_name>
-iocage console <jail_name>
-```
+You can use chroot or a FreeBSD jail to run inside the sysroot environment. 
+Please see the man pages or FreeBSD handbook for details on how to set that up.
 
 ### 3. Build the compiler (Skip this step if you have llvm15 installed)
 
