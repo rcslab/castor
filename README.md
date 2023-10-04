@@ -52,6 +52,7 @@ scons llvm
 ### 4. Build the system and associated tests
 
 ```
+(cd lib/Pass && cmake . && make)
 scons
 ```
 
