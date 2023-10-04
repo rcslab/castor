@@ -23,6 +23,12 @@ check.
 
 ### 2. Prepare the OS environment
 
+#### 2.0 Download FreeBSD source 
+After cloning the repository, you will need to download FreeBSD 13.1 source and place it under `sysroot-src`
+```
+git clone --depth=1 --branch release/13.1.0 https://github.com/freebsd/freebsd-src.git sysroot-src
+```
+
 You may either use the sysroot or jail method to get your environment running.
 
 #### 2.1 Sysroot (Method 1)
