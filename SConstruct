@@ -195,21 +195,21 @@ SConscript("#build/tools/record/SConstruct")
 SConscript("#build/tools/replay/SConstruct")
 SConscript("#build/tools/rrtool/SConstruct")
 
-cp = env.Command("#lib/Pass/libCastorPass.so",
-            [ "lib/Pass/CastorPass.cc", "lib/Pass/CastorPass.h",
-              "lib/Pass/CMakeLists.txt" ],
-            "cd lib/Pass && cmake . && cmake --build .")
-env.Alias("CastorPass", "#lib/Pass/libCastorPass.so")
+env.Command("lib/Pass/CMakeCache.txt",
+            [ "lib/Pass/CMakeLists.txt" ],
+            [ "cmake lib/Pass" ])
+
+cp = env.Command("lib/Pass/libCastorPass.so",
+            [ "lib/Pass/CMakeCache.txt", "lib/Pass/CastorPass.cc", "lib/Pass/CastorPass.h" ],
+            [ "cmake --build lib/Pass"])
+env.Alias("CastorPass", "lib/Pass/libCastorPass.so")
+Export('cp')
 
 VariantDir("build/unit-tests", "unit-tests")
 SConscript("#build/unit-tests/SConstruct")
 
 VariantDir("build/perf", "perf")
 SConscript("#build/perf/SConstruct")
-
-AlwaysBuild(Alias('sysroot', "", "utils/sysroot.sh"))
-AlwaysBuild(Alias('llvm', "", "utils/llvm.sh"))
-AlwaysBuild(Alias('rebuild-llvm', "", "cd llvm/build && cmake --build ."))
 
 compileDb = env.Alias("compiledb", env.CompilationDatabase('compile_commands.json'))
 if ("check" in BUILD_TARGETS):

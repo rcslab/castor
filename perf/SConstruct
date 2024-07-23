@@ -10,36 +10,23 @@ rrperf_env["CC"] = env["TESTCC"]
 rrperf_env["CXX"] = env["TESTCXX"]
 rrperf_env["LINK"] = env["TESTLINK"]
 
-rrperfs = [ ]
-perfs = [ ]
-for f in Glob('#perf/*.c'):
-    fn = os.path.basename(f.rstr()[0:-2])
-    if fn.startswith("rr_"):
-        rrperfs.append(fn)
-    else:
-        perfs.append(fn)
-
-perfbench_deps = [ "CastorRuntime",
-                   "CastorThreadRuntime",
-                   Glob("#unit-tests/*.c") ]
-
-# Compiler pass
-#test_env.Append(CPPFLAGS = ["-fpass-plugin=$CASTORPASS"])
+perfbench_deps = [ ]
 
 rrperf_env.Append(LIBPATH = ["${BUILDROOT}/../build/lib/Runtime", \
                              "${BUILDROOT}/../build/lib/ThreadRuntime"])
 rrperf_env.Append(LIBS = ["thr", "c", "CastorRuntime", "CastorThreadRuntime"])
 perf_env.Append(LIBS = ["thr", "c"])
 
-for t in perfs:
-    t = perf_env.Program(t, [ t+".c" ])
-    perf_env.Requires(t, perfbench_deps)
-    perfbench_deps.append(t)
+def NoRR(fl):
+    return filter(lambda f: not os.path.basename(f.rstr()).startswith("rr_"), fl)
 
-for t in rrperfs:
-    t = rrperf_env.Program([t+".c"])
-    rrperf_env.Requires(t, perfbench_deps)
-    perfbench_deps.append(t)
+for t in NoRR(Glob('#perf/*.c')):
+    d = perf_env.Program(t)
+    perfbench_deps.append(d)
+
+for t in Glob('#perf/rr_*.c'):
+    d = rrperf_env.Program(t)
+    perfbench_deps.append(d)
 
 AlwaysBuild(Alias('perfbench', perfbench_deps, "perf/perfbench.py"))
 
