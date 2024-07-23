@@ -41,7 +41,8 @@ __FBSDID("$FreeBSD: src/lib/libc/stdlib/getenv.c,v 1.4 2002/03/21 22:48:41 obrie
 #include <stddef.h>
 #include <string.h>
 
-inline char *__findenv(const char *, int *);
+inline char *__findenv(const char *name, int *offset);
+char *__castor_getenv(const char *name);
 
 /*
  * __findenv --
@@ -53,9 +54,7 @@ inline char *__findenv(const char *, int *);
  *	This routine *should* be a static; don't use it.
  */
 inline char *
-__findenv(name, offset)
-	const char *name;
-	int *offset;
+__findenv(const char *name, int *offset)
 {
 	extern char **environ;
 	int len, i;
@@ -84,8 +83,7 @@ __findenv(name, offset)
  *	Returns ptr to value associated with name, if any, else NULL.
  */
 char *
-__castor_getenv(name)
-	const char *name;
+__castor_getenv(const char *name)
 {
 	int offset;
 

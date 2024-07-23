@@ -25,6 +25,7 @@
 #include <libc_private.h>
 
 #include <castor/debug.h>
+#include <castor/rrshared.h>
 #include <castor/rrlog.h>
 #include <castor/rrplay.h>
 #include <castor/rrgq.h>
