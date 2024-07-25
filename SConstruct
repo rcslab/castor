@@ -41,15 +41,12 @@ opts.AddVariables(
     ("LINK", "Linker", "c++"),
     ("AR", "Archiver", "ar"),
     ("RANLIB", "Archiver Indexer", "ranlib"),
-    ("TESTCC", "C Compiler", "llvm/build/bin/clang"),
-    ("TESTCXX", "C++ Compiler", "llvm/build/bin/clang++"),
-    ("TESTLINK", "Linker", "llvm/build/bin/clang"),
     ("NUMCPUS", "Number of CPUs to use for build (0 means auto)", "0"),
     ("CLANGTIDY", "Clang Tidy", "clang-tidy40"),
     ("CTAGS", "Ctags", "exctags"),
     ("LOGFILE", "Output build log to a file", ""),
     EnumVariable("CLANGSAN", "Clang/LLVM Sanitizer", "", ["", "address", "thread", "leak"]),
-    ("CASTORPASS", "Castor LLVM IR Pass", "lib/Pass/libCastorPass.so"),
+    ("CASTORPASS", "Castor LLVM IR Pass", "build/lib/Pass/libCastorPass.so"),
     EnumVariable("VERBOSE", "Show full build information", "0", ["0", "1"]),
     EnumVariable("COLOR", "Color build output (breaks vim quickfix).", "yes", ["yes", "no"]),
     EnumVariable("BUILDTYPE", "Build Type", "DEBUG", ["DEBUG", "RELEASE"]),
@@ -66,8 +63,6 @@ env = Environment(options = opts,
 Help("""TARGETS:
 scons               Build castor
 scons sysroot       Build sysroot
-scons llvm          Grab llvm tar balls, unpack them, build, the whole nine yards.
-scons rebuild-llvm  Incremental rebuild of LLVM, handy if your hacking on the llvm runtime.
 scons install       Install castor
 scons testbench     Run tests
 scons perfbench     Run performance tests
@@ -155,11 +150,10 @@ env["BUILDROOT"] = os.getcwd() + "/lib/"
 # Configuration
 conf = env.Configure()
 
-# XXX: Hack to support clang static analyzer
 def CheckFailed(msg):
-    print(msg)
     if os.getenv('CCC_ANALYZER_OUTPUT_FORMAT') != None:
         return
+    print(msg)
     Exit(1)
 
 if not conf.CheckCC():
@@ -167,17 +161,11 @@ if not conf.CheckCC():
 if not conf.CheckCXX():
     CheckFailed("Your C++ compiler and/or environment is incorrectly configured.")
 
-if os.path.exists("llvm/build"):
-    print("Using the custom LLVM build for tests.")
-else:
-    print("Using the system's LLVM 15")
-    env["TESTCC"] = "clang15"
-    env["TESTCXX"] = "clang15++"
-    env["TESTLINK"] = "clang15"
-
 if sys.platform != "freebsd13":
     print("Current Castor release is tested on FreeBSD 13.1")
     print("Running on another version requires updating the system call definitions")
+    print("You may also need to manual patch several of the hand written")
+    print("calls if our test cases are not passing.")
     exit(1)
 
 conf.Finish()
@@ -195,13 +183,14 @@ SConscript("#build/tools/record/SConstruct")
 SConscript("#build/tools/replay/SConstruct")
 SConscript("#build/tools/rrtool/SConstruct")
 
-env.Command("lib/Pass/CMakeCache.txt",
+env.Command("build/lib/Pass/CMakeCache.txt",
             [ "lib/Pass/CMakeLists.txt" ],
-            [ "cmake lib/Pass" ])
+            [ "cmake -S lib/Pass -B build/lib/Pass" ])
 
 cp = env.Command("lib/Pass/libCastorPass.so",
-            [ "lib/Pass/CMakeCache.txt", "lib/Pass/CastorPass.cc", "lib/Pass/CastorPass.h" ],
-            [ "cmake --build lib/Pass"])
+            [ "build/lib/Pass/CMakeCache.txt",
+              "lib/Pass/CastorPass.cc", "lib/Pass/CastorPass.h" ],
+            [ "cmake --build build/lib/Pass"])
 env.Alias("CastorPass", "lib/Pass/libCastorPass.so")
 Export('cp')
 

@@ -6,10 +6,6 @@ Import('env')
 rrperf_env = env.Clone()
 perf_env = env.Clone()
 
-rrperf_env["CC"] = env["TESTCC"]
-rrperf_env["CXX"] = env["TESTCXX"]
-rrperf_env["LINK"] = env["TESTLINK"]
-
 perfbench_deps = [ ]
 
 rrperf_env.Append(LIBPATH = ["${BUILDROOT}/../build/lib/Runtime", \
