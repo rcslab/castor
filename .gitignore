@@ -33,3 +33,8 @@ lib/Pass/cmake_install.cmake
 lib/Pass/libCastorPass.so
 apps
 Local.sc
+unit-tests/*.o
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
