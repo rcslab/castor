@@ -3,25 +3,22 @@ import os
 
 Import('env')
 
-rrperf_env = env.Clone()
-perf_env = env.Clone()
-
 perfbench_deps = [ ]
-
-rrperf_env.Append(LIBPATH = ["${BUILDROOT}/../build/lib/Runtime", \
-                             "${BUILDROOT}/../build/lib/ThreadRuntime"])
-rrperf_env.Append(LIBS = ["thr", "c", "CastorRuntime", "CastorThreadRuntime"])
-perf_env.Append(LIBS = ["thr", "c"])
 
 def NoRR(fl):
     return filter(lambda f: not os.path.basename(f.rstr()).startswith("rr_"), fl)
 
-for t in NoRR(Glob('#perf/*.c')):
-    d = perf_env.Program(t)
+for t in NoRR(Glob('#build/perf/*.c')):
+    d = env.Program(t, LINKFLAGS = ["-static", "-pthread"])
+    Depends(t, "CastorRuntime")
     perfbench_deps.append(d)
 
-for t in Glob('#perf/rr_*.c'):
-    d = rrperf_env.Program(t)
+for t in Glob('#build/perf/rr_*.c'):
+    d = env.Program(t,
+                    #LINKFLAGS = ["-static"],
+                    LIBPATH = ["${BUILDROOT}/../build/lib/Runtime",
+                               "${BUILDROOT}/../build/lib/ThreadRuntime"],
+                    LIBS = ["CastorRuntime", "c", "thr", "CastorThreadRuntime"])
     perfbench_deps.append(d)
 
 AlwaysBuild(Alias('perfbench', perfbench_deps, "perf/perfbench.py"))

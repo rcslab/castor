@@ -42,7 +42,7 @@ opts.AddVariables(
     ("AR", "Archiver", "ar"),
     ("RANLIB", "Archiver Indexer", "ranlib"),
     ("NUMCPUS", "Number of CPUs to use for build (0 means auto)", "0"),
-    ("CLANGTIDY", "Clang Tidy", "clang-tidy40"),
+    ("CLANGTIDY", "Clang Tidy", "clang-tidy15"),
     ("CTAGS", "Ctags", "exctags"),
     ("LOGFILE", "Output build log to a file", ""),
     EnumVariable("CLANGSAN", "Clang/LLVM Sanitizer", "", ["", "address", "thread", "leak"]),
@@ -191,6 +191,7 @@ cp = env.Command("lib/Pass/libCastorPass.so",
             [ "build/lib/Pass/CMakeCache.txt",
               "lib/Pass/CastorPass.cc", "lib/Pass/CastorPass.h" ],
             [ "cmake --build build/lib/Pass"])
+Depends(cp, "#build/lib/Runtime/libCastorRuntime.a")
 env.Alias("CastorPass", "lib/Pass/libCastorPass.so")
 Export('cp')
 
@@ -203,7 +204,7 @@ SConscript("#build/perf/SConstruct")
 compileDb = env.Alias("compiledb", env.CompilationDatabase('compile_commands.json'))
 if ("check" in BUILD_TARGETS):
     Alias('check', AlwaysBuild(env.ClangCheckAll(
-            ["compile_commands.json", "#lib/Pass/compile_commands.json"])))
+            ["compile_commands.json"])))
 
 if ("tags" in BUILD_TARGETS):
     env.Command("tags", ["lib", "include", "tools"],

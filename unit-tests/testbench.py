@@ -41,7 +41,6 @@ def DeleteFile(name):
         pass
 
 def CleanTest(name):
-    DeleteFile(name)
     DeleteFile(name + ".normal")
     DeleteFile(name + ".record")
     DeleteFile(name + ".replay")

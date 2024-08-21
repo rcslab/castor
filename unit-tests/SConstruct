@@ -6,13 +6,15 @@ Import('cp')
 
 testbench_deps = [ ]
 
-for t in Glob('#unit-tests/*.c'):
+for t in Glob('#build/unit-tests/*.c'):
     env.Depends(t, cp)
     d = env.Program(t,
-		CPPFLAGS = ["-fpass-plugin=$CASTORPASS"],
-        LIBPATH = ["${BUILDROOT}/../build/lib/Runtime",
-                   "${BUILDROOT}/../build/lib/ThreadRuntime"],
-        LIBS = ["c", "CastorRuntime", "thr", "CastorThreadRuntime"])
+                    CPPFLAGS = ["-fpass-plugin=$CASTORPASS"],
+                    #LINKFLAGS = ["-static"],
+                    LIBPATH = ["${BUILDROOT}/../build/lib/Runtime",
+                               "${BUILDROOT}/../build/lib/ThreadRuntime"],
+                    LIBS = ["c", "CastorRuntime", "thr", 
+                            "CastorThreadRuntime"])
     testbench_deps.append(d)
 
 AlwaysBuild(Alias('testbench', testbench_deps, "unit-tests/testbench.py"))
