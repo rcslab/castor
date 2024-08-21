@@ -2,6 +2,6 @@
 Import('env')
 
 env.Program("record", ["record.c"],
+            LINKFLAGS = ["-static"],
             LIBPATH = ["#build/lib/Common"],
-            LIBS = ["CastorCommon", "elf", "execinfo", "edit", "pthread"])
-
+            LIBS = ["elf", "execinfo", "edit", "pthread", "CastorCommon"])

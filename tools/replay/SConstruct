@@ -2,6 +2,7 @@
 Import('env')
 
 env.Program("replay", ["replay.c"],
+            LINKFLAGS = ["-static"],
             LIBPATH = ["#build/lib/Common"],
-            LIBS = ["CastorCommon", "elf", "execinfo", "edit", "pthread"])
+            LIBS = ["elf", "execinfo", "edit", "pthread", "ncurses", "CastorCommon"])
 

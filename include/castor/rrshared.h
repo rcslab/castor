@@ -80,8 +80,8 @@ typedef struct RRLog {
     Mutex sysvlck;
 } RRLog;
 
-extern uint64_t (*getThreadId)();
-extern void (*setThreadId)(uint64_t);
+extern uint64_t getThreadId();
+extern void setThreadId(uint64_t);
 
 #define ROUNDUP(_x, _n) ((_x + _n - 1) & ~(_n - 1))
 

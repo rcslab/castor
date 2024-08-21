@@ -7,5 +7,5 @@ src = [
     "castor_xlat.c"
 ]
 
-env.Program("rrlog", src)
+env.Program("rrlog", src, LINKFLAGS = ["-static"])
 

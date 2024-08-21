@@ -6,6 +6,6 @@ src = [
 ]
 
 env.Program("rrtool", src,
+            LINKFLAGS = ["-static"],
             LIBPATH = ["#build/lib/Common"],
-            LIBS = ["CastorCommon", "execinfo", "c++"])
-
+            LIBS = ["elf", "execinfo", "edit", "c++", "CastorCommon"])
