@@ -21,6 +21,14 @@ recordtool = "../build/tools/record/record"
 replaytool = "../build/tools/replay/replay"
 os.environ["CASTORDIR"] = "../build/lib/Runtime"
 
+# Check ASLR
+aslrcheck = subprocess.run(["/sbin/sysctl", "-n", "kern.elf64.aslr.enable"], capture_output=True)
+if (aslrcheck.returncode == 0) and (aslrcheck.stdout != b"0\n"):
+    print("ASLR is enabled!")
+    sys.exit(1)
+
+print(aslrcheck)
+
 all_tests = []
 for f in sorted(os.listdir('unit-tests/')):
     if f.endswith(".c"):
@@ -165,10 +173,7 @@ if len(failed) != 0:
     signal.signal(signal.SIGTERM, signal.SIG_IGN)
     os.killpg(0, signal.SIGTERM)
     print("Cleaning any left over System V shared memory segments.")
-    t = subprocess.Popen(["ipcrm", "-W"],
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    t.wait()
+    subprocess.run(["ipcrm", "-W"])
 
 sys.exit(len(failed))
 
