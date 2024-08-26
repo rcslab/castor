@@ -164,7 +164,8 @@ __rr_wait(int *status)
     return pid;
 }
 
-BIND_REF(exit);
+__strong_reference(__rr_exit, _exit);
+__strong_reference(__rr_exit, __sys_exit);
 BIND_REF(wait);
 BIND_REF(fork);
 

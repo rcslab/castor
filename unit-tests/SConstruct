@@ -10,11 +10,10 @@ for t in Glob('#build/unit-tests/*.c'):
     env.Depends(t, cp)
     d = env.Program(t,
                     CPPFLAGS = ["-fpass-plugin=$CASTORPASS"],
-                    #LINKFLAGS = ["-static"],
+                    LINKFLAGS = ["-static"],
                     LIBPATH = ["${BUILDROOT}/../build/lib/Runtime",
                                "${BUILDROOT}/../build/lib/ThreadRuntime"],
-                    LIBS = ["c", "CastorRuntime", "thr", 
-                            "CastorThreadRuntime"])
+                    LIBS = ["CastorRuntime", "c", "CastorThreadRuntime", "thr"])
     testbench_deps.append(d)
 
 AlwaysBuild(Alias('testbench', testbench_deps, "unit-tests/testbench.py"))

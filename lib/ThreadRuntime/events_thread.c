@@ -1187,40 +1187,58 @@ pthread_join(pthread_t thread, void **value_ptr)
 }
 
 int
-_pthread_timedjoin_np(pthread_t thread, void **value_ptr,
+pthread_timedjoin_np(pthread_t thread, void **value_ptr,
          const struct timespec *abstime)
 {
     int result = 0;
+    struct timespec ts;
     RRLogEntry *e;
 
     switch (rrMode) {
 	case RRMODE_NORMAL: {
-	    result = _pthread_join(thread, value_ptr);
+	    result = _pthread_timedjoin_np(thread, value_ptr, abstime);
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    result = _pthread_join(thread, value_ptr);
-	    e = RRLog_Alloc(rrlog, getThreadId());
+	    RRLog_LEnter(getThreadId(), (uint64_t)thread);
+	    result = _pthread_timedjoin_np(thread, value_ptr, abstime);
+	    e = RRLog_LAlloc(getThreadId());
 	    e->event = RREVENT_THREAD_TIMEDJOIN;
+	    e->objectId = (uint64_t)thread;
 	    e->value[0] = (uint64_t)result;
 	    e->value[4] = __builtin_readcyclecounter();
-	    RRLog_Append(rrlog, e);
+	    RRLog_LAppend(e);
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    e = RRPlay_Dequeue(rrlog, getThreadId());
+	    RRPlay_LEnter(getThreadId(), (uint64_t)thread);
+
+	    /* Call timedjoin to simulate the timeout case */
+	    ts.tv_sec = 0;
+	    ts.tv_nsec = 0;
+	    if (abstime == NULL)
+		result = _pthread_timedjoin_np(thread, value_ptr, abstime);
+	    else 
+		result = _pthread_timedjoin_np(thread, value_ptr, &ts);
+	    ASSERT(result == ETIMEDOUT || result == 0 || result == EINVAL);
+
+	    e = RRPlay_LDequeue(getThreadId());
 	    AssertEvent(e, RREVENT_THREAD_TIMEDJOIN);
+	    
+	    /* 
+	     * Assert the wrong case where the thread joins on replay phase but
+	     * not on record phase 
+	     */
+	    ASSERT(!(result == 0 && e->value[0] != 0));
 
-      /* Record call was successful, wait until replay call matches */
-      if (e->value[0] == 0) {
-        while (result != 0) {
-          result = _pthread_join(thread, value_ptr);
-        }
-      } else {
-        result = e->value[0];
-      }
+	    if (e->value[0] != (uint64_t)result) {
+		if (e->value[0] == 0) {
+		    _pthread_join(thread, value_ptr);
+		}
+	    }
 
-	    RRPlay_Free(rrlog, e);
+	    result = e->value[0];
+	    RRPlay_LFree(e);
 	    break;
 	}
     }
