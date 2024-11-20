@@ -33,7 +33,7 @@ int main(int argc, const char *argv[])
 	    /* Child */
 	    char *c_argv[24];
 	    int c_arg = 0;
-	    c_argv[c_arg++] = "./fork_exec";
+	    c_argv[c_arg++] = (char *)argv[0];
 	    c_argv[c_arg++] = "1";
 	    c_argv[c_arg++] = NULL;
 

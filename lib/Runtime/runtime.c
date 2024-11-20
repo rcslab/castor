@@ -35,6 +35,24 @@ extern char * __castor_getenv(const char * name);
 RRLog *rrlog;
 enum RRMODE rrMode = RRMODE_NORMAL;
 
+static int
+LookupThreadId()
+{
+    int pid;
+    long tid;
+
+    pid = __rr_syscall(SYS_getpid);
+    __rr_syscall(SYS_thr_self, &tid);
+
+    for (int i = 0; i < RRLOG_MAX_THREADS; i++) {
+	if (rrlog->threadInfo[i].pid == pid &&
+	    rrlog->threadInfo[i].tid == tid)
+	    return i;
+    }
+
+    return -1;
+}
+
 __attribute__((constructor)) void
 log_init()
 {
@@ -73,8 +91,14 @@ log_init()
 	PERROR("shmat");
     }
 
-    RRShared_SetupThread(rrlog, 0);
-    setThreadId(0);
+    int thrNo = LookupThreadId();
+
+    if (thrNo == -1) {
+	RRShared_SetupThread(rrlog, 0);
+	setThreadId(0);
+    } else {
+	setThreadId(thrNo);
+    }
 
     // XXX: Need to remap the region again to the right size
     rr_assert(RRLOG_DEFAULT_REGIONSZ == rrlog->regionSz);

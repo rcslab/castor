@@ -80,7 +80,10 @@ __rr_fork(void)
 	    PERROR("Unable to fork on replay!");
 	}
 
-	if (rstatus != 0) {
+	if (rstatus == 0) {
+	    setThreadId(thrNo);
+	    result = 0;
+	} else {
 	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_FORKEND);
 	    result = (int)e->value[0];
@@ -88,9 +91,6 @@ __rr_fork(void)
 		errno = (int)e->value[1];
 	    }
 	    RRPlay_Free(rrlog, e);
-	} else {
-	    setThreadId(thrNo);
-	    result = 0;
 	}
     }
 

@@ -12,11 +12,11 @@ int main(int argc, char *argv[]) {
     if (argc > 1) {
 	printf("execv done\n");
     } else {
-	c_argv[c_arg++] = "./execv";
+	c_argv[c_arg++] = (char *)argv[0];
         c_argv[c_arg++] = "1";
         c_argv[c_arg++] = NULL;
         status = execv(c_argv[0], c_argv);
-	assert(status == -1);
+	assert(0);
     }
 }
 

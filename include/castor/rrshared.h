@@ -61,6 +61,8 @@ static_assert(alignof(RRLogThread) == CACHELINE, "RRLogThread must be page align
 
 typedef struct RRLogThreadInfo {
     atomic_uintptr_t				offset; // Offset to RRLogThread struct
+    int						pid;
+    int						tid;
 } RRLogThreadInfo;
 
 #define RRLOG_MAGIC		0x436173746f724654
