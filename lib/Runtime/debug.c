@@ -120,22 +120,40 @@ void Debug_LogHex(char *buf, size_t len)
     size_t bufoff = 0;
 
     for (off = 0; off < len;) {
-	for (size_t i = 0; i < 16 && off+i < len; i++) {
+	size_t i;
+	bufoff = 0;
+
+	for (i = 0; i < 16 && off+i < len; i++) {
 	    rr_snprintf(hbuf + bufoff, 128UL - bufoff, "%02X ", buf[off + i]);
+	    bufoff += 3;
+	}
+	for (; i < 16; i++) {
+	    rr_snprintf(hbuf + bufoff, 128UL - bufoff, "   ");
 	    bufoff += 3;
 	}
 
 	hbuf[bufoff] = '|';
 	bufoff++;
-	for (size_t i = 0; i < 16 && off < len; i++) {
-	    rr_snprintf(hbuf + bufoff, 128UL - bufoff, "%c", buf[off]);
+	for (i = 0; i < 16 && off < len; i++) {
+	    char c = buf[off];
+	    if (c < 0x20 || c >= 0x7F)
+		c = ' ';
+	    rr_snprintf(hbuf + bufoff, 128UL - bufoff, "%c", c);
 	    bufoff += 1;
 	    off += 1;
 	}
+	for (; i < 16; i++) {
+	    rr_snprintf(hbuf + bufoff, 128UL - bufoff, " ");
+	    bufoff += 1;
+	}
+
 	hbuf[bufoff] = '|';
 	bufoff++;
+	hbuf[bufoff] = '\n';
+	bufoff++;
+	hbuf[bufoff] = 0;
 
-	Debug_Log(LEVEL_LOG, "%s\n", buf);
+	SystemWrite(STDERR_FILENO, hbuf, strlen(hbuf));
     }
 }
 
