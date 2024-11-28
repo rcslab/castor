@@ -18,7 +18,7 @@ for t in Glob('#build/perf/rr_*.c'):
                     #LINKFLAGS = ["-static"],
                     LIBPATH = ["${BUILDROOT}/../build/lib/Runtime",
                                "${BUILDROOT}/../build/lib/ThreadRuntime"],
-                    LIBS = ["CastorRuntime", "c", "thr", "CastorThreadRuntime"])
+                    LIBS = ["CastorRuntime", "c", "thr", "CastorThreadRuntime", "execinfo"])
     perfbench_deps.append(d)
 
 AlwaysBuild(Alias('perfbench', perfbench_deps, "perf/perfbench.py"))

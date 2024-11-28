@@ -13,7 +13,7 @@ for t in Glob('#build/unit-tests/*.c'):
                     LINKFLAGS = ["-static"],
                     LIBPATH = ["${BUILDROOT}/../build/lib/Runtime",
                                "${BUILDROOT}/../build/lib/ThreadRuntime"],
-                    LIBS = ["CastorRuntime", "c", "CastorThreadRuntime", "thr"])
+                    LIBS = ["CastorRuntime", "c", "CastorThreadRuntime", "thr", "execinfo", "elf"])
     testbench_deps.append(d)
 
 AlwaysBuild(Alias('testbench', testbench_deps, "unit-tests/testbench.py"))
