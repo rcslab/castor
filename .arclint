@@ -2,7 +2,7 @@
     "exclude": ["(sysroot*|llvm|apps)", "(lib/Runtime/xxhash.[ch])"],
     "linters": { "cppcheck": {
 	    "type": "cppcheck",
-	    "include": ["(include)", "(lib)", "(tools)"]
+	    "include": ["(include)", "(lib)", "(tools)", "(\\.h$)"]
 	},
 	"spelling": {
 	    "type": "spelling"

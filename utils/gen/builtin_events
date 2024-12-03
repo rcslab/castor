@@ -11,6 +11,7 @@ mutex_trylock
 mutex_unlock
 thread_create
 forkend
+procinfo
 cond_init
 cond_destroy
 cond_wait

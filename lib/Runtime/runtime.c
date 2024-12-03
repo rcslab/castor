@@ -57,6 +57,7 @@ __attribute__((constructor)) void
 log_init()
 {
     int status;
+    RRLogEntry *e;
 
     char *shmpath = __castor_getenv("CASTOR_SHMPATH");
     if (shmpath == NULL) {
@@ -95,9 +96,9 @@ log_init()
 
     if (thrNo == -1) {
 	RRShared_SetupThread(rrlog, 0);
-	setThreadId(0);
+	setThreadId(0, -1);
     } else {
-	setThreadId(thrNo);
+	setThreadId(thrNo, rrlog->threadInfo[thrNo].recordedPid);
     }
 
     // XXX: Need to remap the region again to the right size
@@ -123,5 +124,26 @@ log_init()
     } else if (strcmp(mode, "REPLAY") == 0) {
 	rr_fdprintf(STDERR_FILENO, "REPLAY\n");
 	rrMode = RRMODE_REPLAY;
+    }
+
+    /* Always generate procinfo event for the process */
+    if (thrNo == -1) {
+	switch (rrMode) {
+	case RRMODE_RECORD:
+	    e = RRLog_Alloc(rrlog, 0);
+	    e->event = RREVENT_PROCINFO;
+	    e->value[0] = __rr_syscall(SYS_getpid);
+	    RRLog_Append(rrlog, e);
+	    break;
+	case RRMODE_REPLAY:
+	    e = RRPlay_Dequeue(rrlog, 0);
+	    AssertEvent(e, RREVENT_PROCINFO);
+	    setRecordedPid(e->value[0]);
+	    RRPlay_Free(rrlog, e);
+	    break;
+	default:
+	    /* Do nothing. */
+	    break;
+	}
     }
 }

@@ -60,9 +60,13 @@ typedef struct RRLogThread {
 static_assert(alignof(RRLogThread) == CACHELINE, "RRLogThread must be page aligned");
 
 typedef struct RRLogThreadInfo {
-    atomic_uintptr_t				offset; // Offset to RRLogThread struct
+    /* Offset to RRLogThread struct. */
+    atomic_uintptr_t				offset; 
+    /* The real pid of the running process. */
     int						pid;
     int						tid;
+    /* The pid used during record phase. Used in replay only. */
+    int						recordedPid; 
 } RRLogThreadInfo;
 
 #define RRLOG_MAGIC		0x436173746f724654
@@ -83,7 +87,9 @@ typedef struct RRLog {
 } RRLog;
 
 extern uint64_t getThreadId();
-extern void setThreadId(uint64_t);
+extern uint64_t getRecordedPid();
+extern void setRecordedPid(uint64_t);
+extern void setThreadId(uint64_t, uint64_t);
 
 #define ROUNDUP(_x, _n) ((_x + _n - 1) & ~(_n - 1))
 

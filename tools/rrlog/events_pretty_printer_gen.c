@@ -3141,6 +3141,12 @@ pretty_print_FORKEND(RRLogEntry entry)
 }
 
 void
+pretty_print_PROCINFO(RRLogEntry entry)
+{
+    printf("[builtin] procinfo()\n");
+}
+
+void
 pretty_print_COND_INIT(RRLogEntry entry)
 {
     printf("[builtin] cond_init()\n");

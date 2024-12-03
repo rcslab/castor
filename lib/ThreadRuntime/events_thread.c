@@ -84,14 +84,22 @@ typedef struct ThreadState {
     void	*arg;
 } ThreadState;
 
+struct ProcThreadInfo {
+    uint64_t recordPid;
+    uint64_t thrNo;
+};
+
 static ThreadState threadState[RRLOG_MAX_THREADS];
 
 void *
 thrwrapper(void *arg)
 {
-    uintptr_t thrNo = (uintptr_t)arg;
+    struct ProcThreadInfo *ptInfo = (struct ProcThreadInfo *)arg;
+    //uintptr_t thrNo = (uintptr_t)arg;
+    uintptr_t thrNo = ptInfo->thrNo;
 
-    setThreadId(thrNo);
+    setThreadId(thrNo, ptInfo->recordPid);
+    free(ptInfo);
 
     return (threadState[thrNo].start)(threadState[thrNo].arg);
 }
@@ -107,21 +115,27 @@ pthread_create(pthread_t * thread, const pthread_attr_t * attr,
 {
     int result;
     uintptr_t thrNo;
+    struct ProcThreadInfo *ptInfo;
     RRLogEntry *e;
 
     if (rrMode == RRMODE_NORMAL) {
 	return _pthread_create(thread, attr, start_routine, arg);
     }
 
+    ptInfo = malloc(sizeof(struct ProcThreadInfo));
     if (rrMode == RRMODE_RECORD) {
 	e = RRLog_Alloc(rrlog, getThreadId());
 	e->event = RREVENT_THREAD_CREATE;
 	thrNo = RRShared_AllocThread(rrlog);
+	ptInfo->recordPid = 0;
+	ptInfo->thrNo = thrNo;
 	e->value[1] = thrNo;
 	RRLog_Append(rrlog, e);
     } else {
 	e = RRPlay_Dequeue(rrlog, getThreadId());
 	thrNo = e->value[1];
+	ptInfo->recordPid = getRecordedPid();
+	ptInfo->thrNo = thrNo;
 	AssertEvent(e, RREVENT_THREAD_CREATE);
 	RRPlay_Free(rrlog, e);
 	RRShared_SetupThread(rrlog, thrNo);
@@ -129,7 +143,7 @@ pthread_create(pthread_t * thread, const pthread_attr_t * attr,
 
     threadState[thrNo].start = start_routine;
     threadState[thrNo].arg = arg;
-    result = _pthread_create(thread, attr, thrwrapper, (void *)thrNo);
+    result = _pthread_create(thread, attr, thrwrapper, (void *)ptInfo);
     ASSERT_IMPLEMENTED(result == 0);
     return result;
 }

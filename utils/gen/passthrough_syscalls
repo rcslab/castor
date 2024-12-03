@@ -9,7 +9,6 @@ setpgid
 pdfork
 pdgetpid
 pdkill
-kill
 killpg
 vfork
 rfork

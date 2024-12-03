@@ -57,7 +57,12 @@ __rr_fork(void)
 	result = __rr_syscall(SYS_fork);
 
 	if (result == 0) {
-	    setThreadId(thrNo);
+	    setThreadId(thrNo, 0);
+
+	    e = RRLog_Alloc(rrlog, getThreadId());
+	    e->event = RREVENT_PROCINFO;
+	    e->value[0] = __rr_syscall(SYS_getpid);
+	    RRLog_Append(rrlog, e);
 	} else {
 	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_FORKEND;
@@ -81,14 +86,20 @@ __rr_fork(void)
 	}
 
 	if (rstatus == 0) {
-	    setThreadId(thrNo);
+	    setThreadId(thrNo, -1);
+
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
+	    AssertEvent(e, RREVENT_PROCINFO);
+	    setRecordedPid((uint64_t)e->value[0]);
+	    RRPlay_Free(rrlog, e);
+
 	    result = 0;
 	} else {
 	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_FORKEND);
 	    result = (int)e->value[0];
 	    if (result == -1) {
-		errno = (int)e->value[1];
+		    errno = (int)e->value[1];
 	    }
 	    RRPlay_Free(rrlog, e);
 	}

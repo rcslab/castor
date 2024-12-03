@@ -189,6 +189,7 @@ extern void pretty_print_MUTEX_TRYLOCK(RRLogEntry entry);
 extern void pretty_print_MUTEX_UNLOCK(RRLogEntry entry);
 extern void pretty_print_THREAD_CREATE(RRLogEntry entry);
 extern void pretty_print_FORKEND(RRLogEntry entry);
+extern void pretty_print_PROCINFO(RRLogEntry entry);
 extern void pretty_print_COND_INIT(RRLogEntry entry);
 extern void pretty_print_COND_DESTROY(RRLogEntry entry);
 extern void pretty_print_COND_WAIT(RRLogEntry entry);
