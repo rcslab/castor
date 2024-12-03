@@ -1915,6 +1915,24 @@ pretty_print_EXTATTR_DELETE_LINK(RRLogEntry entry)
 }
 
 void
+pretty_print_SIGACTION(RRLogEntry entry)
+{
+    printf("sigaction");
+    if ((int)entry.value[0] != -1) {
+	printf("(%d, _, oact", (int)entry.objectId);
+    } else {
+	printf("(%d, _, oact", (int)entry.objectId);
+    }
+    printf(") = %d", (int)entry.value[0]);
+
+    if ((int)entry.value[0] == -1) {
+	printf(" [errno: %s]", castor_xlat_errno((int)entry.value[1]));
+    }
+
+    printf("\n");
+}
+
+void
 pretty_print_EXTATTR_LIST_FD(RRLogEntry entry)
 {
     printf("extattr_list_fd");

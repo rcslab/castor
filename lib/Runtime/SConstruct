@@ -8,6 +8,7 @@ src = [
     "util.c",
     "fdinfo.c",
     "events.c",
+    "events_signals.c",
     "events_freebsd.c",
     "events_mem.c",
     "events_posix.c",

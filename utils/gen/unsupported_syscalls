@@ -1,5 +1,4 @@
 ;no signals
-sigaction
 sigaltstack
 sigblock
 sigpending

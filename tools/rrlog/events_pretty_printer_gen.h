@@ -266,4 +266,5 @@ extern void pretty_print_PIPE2(RRLogEntry entry);
 extern void pretty_print_GETTIMEOFDAY(RRLogEntry entry);
 extern void pretty_print_CLOCK_GETTIME(RRLogEntry entry);
 extern void pretty_print_FORK(RRLogEntry entry);
+extern void pretty_print_SIGACTION(RRLogEntry entry);
 #endif
