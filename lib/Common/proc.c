@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <sys/param.h>
 #include <sys/cpuset.h>
+#include <sys/procctl.h>
 #include <sys/capsicum.h>
 
 #include <castor/debug.h>
@@ -58,6 +59,10 @@ Spawn(bool pinned, int maxcpus, char *const argv[])
 {
     int pid;
 
+    if (procctl(P_PID, getpid(), PROC_REAP_ACQUIRE, NULL) == -1) {
+	PERROR("procctl PROC_REAP_ACQUIRE");
+    }
+
     pid = fork();
     if (pid == -1) {
 	PERROR("fork");
@@ -71,12 +76,7 @@ Spawn(bool pinned, int maxcpus, char *const argv[])
     }
 
     execvp(*argv, argv);
-
-    // PERROR("execv");
-	char pstr[64];
-	strerror_r(errno, &pstr[0], sizeof(pstr));
-	Debug_Log(LEVEL_SYS, "execvp: %s\n", pstr);
-	abort();
+    PERROR("execvp");
 
     return -1;
 }
