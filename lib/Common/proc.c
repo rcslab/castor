@@ -12,6 +12,8 @@
 #include <sys/procctl.h>
 #include <sys/capsicum.h>
 
+#include <pthread.h>
+
 #include <castor/debug.h>
 
 void

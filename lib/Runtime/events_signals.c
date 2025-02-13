@@ -59,6 +59,7 @@ rr_sigaction_handler(int sig, siginfo_t *info, void *ctx)
 		rr_signal_table[sig].handler(sig);
 	    }
 	}
+	
 	break;
     }
 }
@@ -106,5 +107,31 @@ __rr_sigaction(int sig, const struct sigaction *restrict act,
     return status;
 }
 
+/*
+ * TODO: simulate the error case in kill
+ *
+ */
+int 
+__rr_kill(pid_t pid, int sig) 
+{
+    int status;
+    pid_t realpid;
+
+    switch (rrMode) {
+    case RRMODE_NORMAL:
+    case RRMODE_RECORD:
+	status = __rr_syscall(SYS_kill, pid, sig);
+	break;
+    case RRMODE_REPLAY:
+	// Replace the recorded pid with the real pid
+	realpid = RRShared_FindRealPidFromRecordedPid(rrlog, pid);
+	status = __rr_syscall(SYS_kill, realpid, sig);
+	break;
+    }
+
+    return status;
+}
+
+BIND_REF(kill);
 BIND_REF(sigaction);
 

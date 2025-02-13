@@ -62,5 +62,11 @@ Mutex_Unlock(Mutex *m)
 	atomic_store(&m->thr, 0UL);
 }
 
+static inline void
+Mutex_Assert(Mutex *m)
+{
+    ASSERT(atomic_load(&m->lck) > 0UL);
+}
+
 #endif /* __CASTOR_MTX_H__ */
 

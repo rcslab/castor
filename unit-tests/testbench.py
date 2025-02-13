@@ -134,6 +134,8 @@ def RunTest(name):
     write(CLEAR)
     write(TFORMAT % (name, GREEN, "Completed", norm_time, rec_time, rep_time))
     write("\n")
+    subprocess.run(["ipcrm", "-W"])
+
 
 basedir = os.getcwd()
 if (basedir.split('/')[-1] != 'unit-tests'):

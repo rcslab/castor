@@ -31,7 +31,9 @@ RRLog_Init(RRLog *rrlog, uint32_t numEvents)
     rrlog->numThreads = RRLOG_MAX_THREADS;
     rrlog->numEvents = numEvents;
 
+    Mutex_Init(&rrlog->threadInfoMtx);
     for (int i = 0; i < RRLOG_MAX_THREADS; i++) {
+	rrlog->threadInfo[i].enabled = 0;
 	rrlog->threadInfo[i].offset = 0;
     }
 
@@ -47,6 +49,7 @@ RRLog_Alloc(RRLog *rrlog, uint32_t threadId)
     volatile RRLogEntry *rrentry;
 
 #ifdef RRLOG_DEBUG
+    ASSERT((void *)rrthr != (void *)rrlog);
     if (rrthr->status == 1) {
 	__castor_abort();
     }
@@ -96,11 +99,10 @@ RRLog_Dequeue(RRLog *rrlog)
     RRLogEntry *entry;
 
     for (uint32_t i = 0; i < RRLOG_MAX_THREADS; i++) {
-	if (rrlog->threadInfo[i].offset != 0) {
+	if (rrlog->threadInfo[i].enabled && rrlog->threadInfo[i].offset != 0) {
 	    RRLogThread *rrthr = RRShared_LookupThread(rrlog, i);
 
 	    entry = RRLogThreadDequeue(rrlog, rrthr);
-
 	    if (entry && entry->eventId == nextEvent) {
 		rrlog->nextEvent += 1;
 		return entry;

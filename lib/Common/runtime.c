@@ -17,6 +17,7 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 
 #include <sys/syscall.h>
 
@@ -37,6 +38,7 @@ static int logfd;
 static int shmid = -1;
 pthread_t rrthr;
 pthread_t gqthr;
+pthread_t wpthr; // process monitoring thread
 
 bool ftMode = false;
 
@@ -132,7 +134,6 @@ DrainQueue(void *arg)
 	RRLog_Free(rrlog, entry);
     }
 
-    //printf("Consumer Done\n");
     return NULL;
 }
 
@@ -193,13 +194,13 @@ FeedQueue(void *arg)
 	    if (!RRShared_ThreadPresent(rrlog, entry[i].threadId)) {
 		RRShared_SetupThread(rrlog, entry[i].threadId);
 	    }
+
 	    RRPlay_AppendThread(rrlog, &entry[i]);
 	    if (entry[i].event == RREVENT_FORK) {
 		procs++;
 	    } else if (entry[i].event == RREVENT_EXIT) {
 		procs--;
 		if (procs == 0) {
-		    //printf("Feed Done\n");
 		    pthread_exit(NULL);
 		    __builtin_unreachable();
 		}
@@ -440,8 +441,10 @@ SignalCloseLog(int sig)
 
     pthread_cancel(rrthr);
     pthread_cancel(gqthr);
+    pthread_cancel(wpthr);
     pthread_join(rrthr, NULL);
     pthread_join(gqthr, NULL);
+    pthread_join(wpthr, NULL);
 
     RRLog *rl = rrlog;
     if (rl != NULL) {
@@ -531,35 +534,73 @@ ResumeDebugWait()
 }
 
 void
-LogDone()
+LogDone(int *status)
 {
-    int status;
+    int shm_status;
+    void *rt;
 
     pthread_join(rrthr, NULL);
     pthread_join(gqthr, NULL);
-    status = shmdt(rrlog);
+    pthread_join(wpthr, &rt);
+
+    status = (int *)rt;
+
+    shm_status = shmdt(rrlog);
     rrlog = NULL;
-    if (status == -1) {
+    if (shm_status == -1) {
 	PERROR("shmdt");
     }
-    status = shmctl(shmid, IPC_RMID, NULL);
-    if (status == -1) {
+   shm_status = shmctl(shmid, IPC_RMID, NULL);
+    if (shm_status == -1) {
 	PERROR("shmctl");
     }
 }
 
-void
-RecordLog()
+void *
+WaitProcess(void *arg)
 {
-    pthread_create(&rrthr, NULL, DrainQueue, NULL);
-    pthread_create(&gqthr, NULL, TXGQProc, NULL);
+    int status;
+
+    while (1) {
+	pid_t p = wait(&status);
+	if (p == -1) {
+	    if (errno == ECHILD) {
+		/* Clean threads belong to the returned pid */
+		RRShared_CleanThread(rrlog, 0);
+
+		/* assert all threadinfo are in disabled state */
+		RRShared_AssertThreadAtExit(rrlog);
+		break;
+	    }
+	    PERROR("wait");
+	}
+	if (WIFSIGNALED(status)) {
+	    int signum = WTERMSIG(status);
+            WARNING("Child exited unexpectedly, recieved: SIG%s - %s",
+                    sys_signame[signum], strsignal(signum));
+            exit(1);
+        }
+
+	RRShared_CleanThread(rrlog, p);
+    }
+
+    pthread_exit((void *)(long)status);
 }
 
 void
-ReplayLog()
+RecordLog(pid_t *pid)
+{
+    pthread_create(&rrthr, NULL, DrainQueue, NULL);
+    pthread_create(&gqthr, NULL, TXGQProc, NULL);
+    pthread_create(&wpthr, NULL, WaitProcess, pid);
+}
+
+void
+ReplayLog(pid_t *pid)
 {
     pthread_create(&rrthr, NULL, FeedQueue, NULL);
     pthread_create(&gqthr, NULL, RXGQProc, NULL);
+    pthread_create(&wpthr, NULL, WaitProcess, pid);
 }
 
 

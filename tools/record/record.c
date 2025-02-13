@@ -109,24 +109,8 @@ main(int argc, char *argv[])
 
     setproctitle("Castor pid=%d log=%s", pid, logfile);
     
-    RecordLog();
-
-    while (1) {
-	pid_t p = wait(&status);
-	if (p == -1) {
-	    if (errno == ECHILD)
-		break;
-	    PERROR("wait");
-	}
-	if (WIFSIGNALED(status)) {
-	    int signum = WTERMSIG(status);
-	    WARNING("Child exited unexpectedly, recieved: SIG%s - %s",
-		    sys_signame[signum], strsignal(signum));
-	    exit(1);
-	}
-    }
-
-    LogDone();
+    RecordLog(&pid);
+    LogDone(&status);
 
     return WEXITSTATUS(status);
 }

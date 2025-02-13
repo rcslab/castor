@@ -60,6 +60,7 @@ typedef struct RRLogThread {
 static_assert(alignof(RRLogThread) == CACHELINE, "RRLogThread must be page aligned");
 
 typedef struct RRLogThreadInfo {
+    atomic_uintptr_t				enabled;
     /* Offset to RRLogThread struct. */
     atomic_uintptr_t				offset; 
     /* The real pid of the running process. */
@@ -82,6 +83,7 @@ typedef struct RRLog {
     uint64_t numThreads;			    // Max number of threads
     uint64_t numEvents;				    // Max number of events
     RRLogThreadInfo threadInfo[RRLOG_MAX_THREADS];
+    Mutex threadInfoMtx;
     atomic_uintptr_t sysvmap;
     Mutex sysvlck;
 } RRLog;
@@ -104,11 +106,33 @@ RRShared_AllocRegion(RRLog *rrlog, uintptr_t sz)
     return offset;
 }
 
+static inline int
+RRShared_FindRealPidFromRecordedPid(RRLog *rrlog, int rpid)
+{
+    int pid = -1;
+
+    for (int i=0;i<RRLOG_MAX_THREADS;i++) {
+	if (rrlog->threadInfo[i].recordedPid != rpid)
+	    continue;
+
+	pid = rrlog->threadInfo[i].pid;
+	break;
+    }
+
+    assert(pid != -1);
+    return pid;
+}
+
+static inline bool
+RRShared_CheckThreadReusable(RRLog *rrlog, uint32_t threadId)
+{
+    return rrlog->threadInfo[threadId].offset != 0 && rrlog->threadInfo[threadId].enabled == 0;
+}
+
 static inline bool
 RRShared_ThreadPresent(RRLog *rrlog, uint32_t threadId)
 {
-
-    return rrlog->threadInfo[threadId].offset != 0;
+    return rrlog->threadInfo[threadId].offset != 0 && rrlog->threadInfo[threadId].enabled == 1;
 }
 
 static inline RRLogThread *
@@ -126,36 +150,69 @@ RRShared_ThreadSize(RRLog *rrlog)
 static inline void
 RRShared_SetupThread(RRLog *rrlog, uint32_t tid)
 {
-    uintptr_t offset = RRShared_AllocRegion(rrlog, RRShared_ThreadSize(rrlog));
-    RRLogThread *thr = (RRLogThread *)((uintptr_t)rrlog + offset);
-    uintptr_t expected = 0;
+    uintptr_t offset;
+    int reused = 0;
+    RRLogThread *thr;
 
-    //LOG("SetupThread %p", thr);
+    Mutex_Lock(&rrlog->threadInfoMtx);
 
-    thr->freeOff = 0;
-    thr->usedOff = 0;
-    thr->status = 0;
-    for (uint64_t i = 0; i < rrlog->numEvents; i++) {
-	memset((void *)&thr->entries[i], 0, sizeof(RRLogEntry));
+    if (RRShared_ThreadPresent(rrlog, tid)) {
+	Mutex_Unlock(&rrlog->threadInfoMtx);
+	return;
     }
 
-    if (!atomic_compare_exchange_weak(&rrlog->threadInfo[tid].offset, &expected, offset)) {
-	return;
+    if (RRShared_CheckThreadReusable(rrlog, tid)) {
+	offset = rrlog->threadInfo[tid].offset;
+	reused = 1;
     } else {
-	//LOG("SetupThread Fail %d, %p", tid, RRShared_LookupThread(rrlog, 
-	//tid));
-	return;
+	offset = RRShared_AllocRegion(rrlog, RRShared_ThreadSize(rrlog));
     }
+    thr = (RRLogThread *)((uintptr_t)rrlog + offset);
+
+    /*
+     * Keep the pointer and entry for reused threadInfo as the these info were
+     * loaded already.
+     */
+    thr->status = 0;
+    if (!reused) {
+	thr->freeOff = 0;
+	thr->usedOff = 0;
+	for (uint64_t i = 0; i < rrlog->numEvents; i++) {
+	    memset((void *)&thr->entries[i], 0, sizeof(RRLogEntry));
+	}
+    }
+
+    rrlog->threadInfo[tid].enabled = 1;
+    rrlog->threadInfo[tid].offset = offset;
+
+    Mutex_Unlock(&rrlog->threadInfoMtx);
+    return;
 }
 
 static inline uint32_t
 RRShared_AllocThread(RRLog *rrlog)
 {
-    uintptr_t offset = RRShared_AllocRegion(rrlog, RRShared_ThreadSize(rrlog));
-    RRLogThread *thr = (RRLogThread *)((uintptr_t)rrlog + offset);
+    uintptr_t offset = 0;
+    RRLogThread *thr; 
+    int thrNum = -1;
 
-    //LOG("AllocThread %p", thr);
+    Mutex_Lock(&rrlog->threadInfoMtx);
 
+    for (int i=0;i<RRLOG_MAX_THREADS;i++) {
+	if (!RRShared_CheckThreadReusable(rrlog, i))
+	    continue;
+
+	rrlog->threadInfo[i].enabled = 1;
+	offset = rrlog->threadInfo[i].offset;
+	thrNum = i;
+	break;
+    }
+
+    if (!offset) {
+	offset = RRShared_AllocRegion(rrlog, RRShared_ThreadSize(rrlog));
+    }
+
+    thr = (RRLogThread *)((uintptr_t)rrlog + offset);
     thr->freeOff = 0;
     thr->usedOff = 0;
     thr->status = 0;
@@ -163,16 +220,61 @@ RRShared_AllocThread(RRLog *rrlog)
 	memset((void *)&thr->entries[i], 0, sizeof(RRLogEntry));
     }
 
-    for (uint32_t i = 0; i < RRLOG_MAX_THREADS; i++) {
-	uintptr_t expected = 0;
+    if (thrNum == -1) {
+	for (uint32_t i = 0; i < RRLOG_MAX_THREADS; i++) {
+	    if (rrlog->threadInfo[i].enabled || rrlog->threadInfo[i].offset)
+		continue;
 
-	if (atomic_compare_exchange_weak(&rrlog->threadInfo[i].offset, &expected, offset)) {
-	    //LOG("LookupThread %p", RRShared_LookupThread(rrlog, i));
-	    return i;
+	    rrlog->threadInfo[i].enabled = 1;
+	    rrlog->threadInfo[i].offset = offset;
+	    thrNum = i;
+	    break;
 	}
     }
 
-    return 0;
+    assert(thrNum != -1);
+    Mutex_Unlock(&rrlog->threadInfoMtx);
+
+    return thrNum;
+}
+
+/*
+ * The parameter pid is the real pid.
+ * If parameter pid is 0, all threads are cleaned.
+ */
+static inline void
+RRShared_CleanThread(RRLog *rrlog, uint32_t pid)
+{
+    Mutex_Lock(&rrlog->threadInfoMtx);
+
+    for (int i = 0;i < RRLOG_MAX_THREADS;i++) {
+	if (rrlog->threadInfo[i].pid != (int)pid && pid != 0)
+	    continue;
+	
+	rrlog->threadInfo[i].enabled = 0;
+    }
+    Mutex_Unlock(&rrlog->threadInfoMtx);
+}
+
+/*
+ * Debugging purpose, disable in release
+ */
+static inline void
+RRShared_AssertThreadAtExit(RRLog *rrlog)
+{
+#ifdef CASTOR_DEBUG
+    int count = 0;
+    for (int i = 0;i < RRLOG_MAX_THREADS;i++) {
+	if (rrlog->threadInfo[i].enabled == 0)
+	    continue;
+
+	if (rrlog->threadInfo[i].enabled) {
+	    count++;
+	}
+
+	ASSERT(count == 0);
+    }
+#endif
 }
 
 #endif /* __CASTOR_RRSHARED_H__ */

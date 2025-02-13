@@ -125,17 +125,8 @@ main(int argc, char *argv[])
     if (interactive) {
 	CLI_Start();
     } else {
-	ReplayLog();
-    
-	wait(&status);
-	if (WIFSIGNALED(status)) {
-	    int signum = WTERMSIG(status);
-	    WARNING("Child exited unexpectedly, recieved: SIG%s - %s",
-		    sys_signame[signum], strsignal(signum));
-	    exit(1);
-	}
-
-	LogDone();
+	ReplayLog(&pid);
+	LogDone(&status);
 
 	// XXX: Handle forking programs better especially background ones
 

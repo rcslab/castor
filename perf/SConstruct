@@ -9,8 +9,11 @@ def NoRR(fl):
     return filter(lambda f: not os.path.basename(f.rstr()).startswith("rr_"), fl)
 
 for t in NoRR(Glob('#build/perf/*.c')):
-    d = env.Program(t, LINKFLAGS = ["-static", "-pthread"])
-    Depends(t, "CastorRuntime")
+    d = env.Program(t,
+                    LINKFLAGS = ["-static", "-pthread"],
+                    LIBPATH = ["${BUILDROOT}/../build/lib/Common"],
+                    LIBS = ["CastorCommon", "c", "thr", "elf", "execinfo"])
+    Depends(t, "CastorCommon")
     perfbench_deps.append(d)
 
 for t in Glob('#build/perf/rr_*.c'):

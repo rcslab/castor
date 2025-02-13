@@ -93,7 +93,6 @@ log_init()
     }
 
     int thrNo = LookupThreadId();
-
     if (thrNo == -1) {
 	RRShared_SetupThread(rrlog, 0);
 	setThreadId(0, -1);
@@ -126,7 +125,7 @@ log_init()
 	rrMode = RRMODE_REPLAY;
     }
 
-    /* Always generate procinfo event for the process */
+    /* Always generate procinfo event for the forked process */
     if (thrNo == -1) {
 	switch (rrMode) {
 	case RRMODE_RECORD:
