@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <semaphore.h>
 
 #include <unistd.h>
 #include <pthread.h>
@@ -13,7 +14,7 @@
 #include <sys/types.h>
 
 //read/write example derived from BSD ipc tutorial.
-
+sem_t ready;
 #define DATA "The sea is calm tonight, the tide is full . . ."
 
 int create_sock()
@@ -49,6 +50,8 @@ void * read_recvmsg(void *arg)
     int sock = create_sock();
     bind_sock(sock);
 
+    sem_post(&ready);
+
     //recvmsg dance.
     char buffer[128];
     struct sockaddr_storage src_addr;
@@ -81,6 +84,9 @@ void * read_select_recvfrom(void * arg)
     puts("read_select_recvfrom");
     int sock = create_sock();
     bind_sock(sock);
+
+    sem_post(&ready);
+
     fd_set readfds;
 
     FD_ZERO(&readfds);
@@ -114,6 +120,9 @@ write_sendto(void *arg)
     bcopy(hp->h_addr, (struct sockaddr *)&name.sin_addr, (size_t)hp->h_length);
     name.sin_family = AF_INET;
     name.sin_port = 5555;
+
+    sem_wait(&ready);
+
     int result = sendto(sock, DATA, sizeof(DATA), 0, (struct sockaddr *) &name,
 	    sizeof(name));
 
@@ -137,6 +146,8 @@ write_sendmsg(void *arg)
     bcopy(hp->h_addr, (struct sockaddr *)&dst_addr.sin_addr, (size_t)hp->h_length);
     dst_addr.sin_family = AF_INET;
     dst_addr.sin_port = 5555;
+
+    sem_wait(&ready);
 
     char buffer[128];
     strlcpy(buffer, DATA, sizeof(DATA));
@@ -168,13 +179,18 @@ int
 main(void) 
 {
     pthread_t read_thread, write_thread;
+
+    sem_init(&ready, 0, 0);
     pthread_create(&read_thread, NULL, read_recvmsg, NULL);
     pthread_create(&write_thread, NULL, write_sendto, NULL);
     pthread_join(read_thread, NULL);
     pthread_join(write_thread, NULL);
+
     pthread_create(&read_thread, NULL, read_select_recvfrom, NULL);
     pthread_create(&write_thread, NULL, write_sendmsg, NULL);
     pthread_join(read_thread, NULL);
     pthread_join(write_thread, NULL);
+    sem_destroy(&ready);
+
     return 0;
 }
