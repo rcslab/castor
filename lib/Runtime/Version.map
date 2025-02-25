@@ -2,6 +2,8 @@ CASTORprivate {
 global:
 	getThreadId;
 	setThreadId;
+	getRecordedPid;
+	setRecordedPid;
 	setThreadFunc;
 	AssertEvent;
 	Debug_Log;
@@ -10,6 +12,17 @@ global:
 	lockTable;
 	rrMode;
 	rrlog;
+	__castor_store_begin;
+	__castor_store_end;
+	__castor_load_begin;
+	__castor_load_end;
+	__castor_rmw_begin;
+	__castor_rmw_end;
+	__castor_cmpxchg_begin;
+	__castor_cmpxchg_end;
+	__castor_asm_begin;
+	__castor_asm_end;
+	__castor_rdtsc;
 };
 
 FBSD_1.0 {

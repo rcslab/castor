@@ -36,8 +36,8 @@ env_libsys["ASFLAGS"].append("-DPIC")
 env_libsys["LINKFLAGS"].append("-nodefaultlibs")
 env_libsys["LINKFLAGS"].append("-Wl,--version-script=lib/Runtime/Version.map")
 
-env_libsys.ObjectLibrary("CastorRuntime", src)
-rt = env_libsys.StaticLibrary("CastorRuntime", "CastorRuntime.o")
+rt = env_libsys.SharedLibrary("CastorRuntime", src, LIBS = ["compiler_rt",
+                                                                  "execinfo"])
 
 env.Alias("CastorRuntime", rt)
 

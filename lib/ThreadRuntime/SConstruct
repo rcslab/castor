@@ -8,7 +8,9 @@ src = [
 # Made global to make compilation_db work
 env["CPPPATH"].append("/usr/src/lib/libc/include")
 
-rt = env.StaticLibrary("CastorThreadRuntime", src)
+rt = env.SharedLibrary("CastorThreadRuntime", src, 
+                       LIBS = ["compiler_rt", "CastorRuntime"],
+                       LIBPATH = ["${BUILDROOT}/../build/lib/Runtime"])
 
 env.Alias("CastorThreadRuntime", rt)
 

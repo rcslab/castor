@@ -191,7 +191,7 @@ cp = env.Command("lib/Pass/libCastorPass.so",
             [ "build/lib/Pass/CMakeCache.txt",
               "lib/Pass/CastorPass.cc", "lib/Pass/CastorPass.h" ],
             [ "cmake --build build/lib/Pass"])
-Depends(cp, "#build/lib/Runtime/libCastorRuntime.a")
+Depends(cp, "#build/lib/Runtime/libCastorRuntime.so")
 env.Alias("CastorPass", "lib/Pass/libCastorPass.so")
 Export('cp')
 

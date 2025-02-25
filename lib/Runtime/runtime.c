@@ -19,6 +19,8 @@
 #include <sys/stat.h>
 #include <sys/shm.h>
 
+#include <libc_private.h>
+
 #include <castor/debug.h>
 #include <castor/rr_debug.h>
 #include <castor/rrlog.h>
@@ -31,6 +33,11 @@
 #include "util.h"
 
 extern char * __castor_getenv(const char * name);
+
+extern interpos_func_t __libc_interposing[] __hidden;
+extern int __rr_sigaction(int sig, const struct sigaction *restrict act, 
+    struct sigaction *restrict oact);
+
 
 RRLog *rrlog;
 enum RRMODE rrMode = RRMODE_NORMAL;
@@ -51,6 +58,12 @@ LookupThreadId()
     }
 
     return -1;
+}
+
+static void
+event_init()
+{
+    *(__libc_interposing_slot(INTERPOS_sigaction)) = (interpos_func_t)&__rr_sigaction;
 }
 
 __attribute__((constructor)) void
@@ -110,6 +123,8 @@ log_init()
 	    PERROR("cap_enter");
 	}
     }
+
+    event_init();
 
     char *stopchild = __castor_getenv("CASTOR_STOPCHILD");
     if (stopchild && strcmp(stopchild,"1") == 0) {

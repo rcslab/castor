@@ -28,6 +28,7 @@
 #include <libc_private.h>
 
 #include <castor/debug.h>
+#include <castor/rrshared.h>
 #include <castor/rrlog.h>
 #include <castor/rrplay.h>
 #include <castor/rrgq.h>
@@ -1198,7 +1199,6 @@ pthread_timedjoin_np(pthread_t thread, void **value_ptr,
          const struct timespec *abstime)
 {
     int result = 0;
-    struct timespec ts;
     RRLogEntry *e;
 
     switch (rrMode) {
@@ -1220,28 +1220,18 @@ pthread_timedjoin_np(pthread_t thread, void **value_ptr,
 	case RRMODE_REPLAY: {
 	    RRPlay_LEnter(getThreadId(), (uint64_t)thread);
 
-	    /* Call timedjoin to simulate the timeout case */
-	    ts.tv_sec = 0;
-	    ts.tv_nsec = 0;
-	    if (abstime == NULL)
-		result = _pthread_timedjoin_np(thread, value_ptr, abstime);
-	    else 
-		result = _pthread_timedjoin_np(thread, value_ptr, &ts);
-	    ASSERT(result == ETIMEDOUT || result == 0 || result == EINVAL);
+	    /* Dequeue until we reaches the TIMEDJOIN event*/
+	    while (true) {
+		e = RRPlay_Dequeue(rrlog, getThreadId());
+		if (e->event == RREVENT_THREAD_TIMEDJOIN)
+		    break; 
+		/* We should only see CLCOK_GETTIME event */
+		AssertEvent(e, RREVENT_CLOCK_GETTIME);
+		RRPlay_Free(rrlog, e);
+	    }
 
-	    e = RRPlay_LDequeue(getThreadId());
-	    AssertEvent(e, RREVENT_THREAD_TIMEDJOIN);
-	    
-	    /* 
-	     * Assert the wrong case where the thread joins on replay phase but
-	     * not on record phase 
-	     */
-	    ASSERT(!(result == 0 && e->value[0] != 0));
-
-	    if (e->value[0] != (uint64_t)result) {
-		if (e->value[0] == 0) {
-		    _pthread_join(thread, value_ptr);
-		}
+	    if (e->value[0] == 0) {
+		_pthread_join(thread, value_ptr);
 	    }
 
 	    result = e->value[0];
