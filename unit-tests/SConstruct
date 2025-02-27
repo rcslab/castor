@@ -9,7 +9,7 @@ testbench_deps = [ ]
 for t in Glob('#build/unit-tests/*.c'):
     env.Depends(t, cp)
     d = env.Program(t,
-                    CPPFLAGS = ["-fpass-plugin=$CASTORPASS"],
+                    CPPFLAGS = ["-fpass-plugin=$CASTORPASS"] + env["CPPFLAGS"],
                     LIBS = ["c", "thr", "elf", "execinfo"])
     testbench_deps.append(d)
 

@@ -12,11 +12,9 @@
 
 int main(int argc, const char *argv[])
 {
-	pid_t pid, cpid;
+	pid_t pid;
 	int status;
-	pthread_t t1;
 	int no_fork = 0;
-	uid_t uid;
 
 	if (argc > 1) {
 	    printf("Last fork start.\n");
@@ -43,7 +41,6 @@ int main(int argc, const char *argv[])
 	    printf("execv status %d, errno %u\n", status, errno);
 	    assert(status != -1);
 	} else {
-	    int status;
 	    if (!no_fork) {
 		printf("Main process quits.\n");
 	    } else {

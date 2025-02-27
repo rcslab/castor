@@ -18,7 +18,6 @@ for t in NoRR(Glob('#build/perf/*.c')):
 
 for t in Glob('#build/perf/rr_*.c'):
     d = env.Program(t,
-                    #LINKFLAGS = ["-static"],
                     LIBPATH = ["${BUILDROOT}/../build/lib/Runtime",
                                "${BUILDROOT}/../build/lib/ThreadRuntime"],
                     LIBS = ["CastorRuntime", "c", "thr", "CastorThreadRuntime", "execinfo"])

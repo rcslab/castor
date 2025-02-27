@@ -22,20 +22,20 @@ routine(void *arg) {
 	size = rand() % SIZE_THRESH + 1; 
 	if (i!=0 && i%STEP==0) {
 	    for (int j=0;j<STEP;j++) {
-	    	printf("[%ld] Free 0x%x..\n", thr_no, mem[j]);
+	    	printf("[%ld] Free 0x%p..\n", thr_no, mem[j]);
 	   	free(mem[j]);
 	    	mem[j] = NULL;
 	    	printf("[%ld] Freed.\n", thr_no);
 	    }
 	}
 	mem[i%STEP] = malloc(size);
-	printf("[%ld] Allocated %d byte memory @ 0x%x..\n", thr_no, size, mem[i%STEP]);
+	printf("[%ld] Allocated %d byte memory @ 0x%p..\n", thr_no, size, mem[i%STEP]);
     }
 
     for (int j=0;j<STEP;j++) {
 	if (mem[j]) {
 	    free(mem[j]);
-	    printf("[%ld] Freed 0x%x..\n", thr_no, mem[j]);
+	    printf("[%ld] Freed 0x%p..\n", thr_no, mem[j]);
 	}
     }
 

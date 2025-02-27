@@ -12,11 +12,9 @@
 
 int main(int argc, const char *argv[])
 {
-	pid_t pid, cpid;
+	pid_t pid;
 	int status;
-	pthread_t t1;
 	int no_fork = 0;
-	uid_t uid;
 
 	if (argc > 1) {
 	    printf("Last fork start.\n");
@@ -53,7 +51,7 @@ int main(int argc, const char *argv[])
 		assert(getThreadId() == 0);
 
 		printf("Waiting for child..\n");
-		cpid = wait(&status);
+		wait(&status);
 		printf("Bye.\n");
 	    } else {
 		assert(getThreadId() != 0);
