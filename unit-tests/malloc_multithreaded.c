@@ -2,11 +2,12 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <time.h>
+#include <string.h>
 
 #include <pthread.h>
 
-#define TOTAL_ITER 3 //512
-#define STEP 2 //16
+#define TOTAL_ITER 512
+#define STEP 10
 #define SIZE_THRESH 4096
 #define THREAD_COUNT 8
 
@@ -18,29 +19,26 @@ routine(void *arg) {
 
     printf("Thread %ld started..\n", thr_no);
 
-    for (i=0;i<TOTAL_ITER;i++) {
+    while (i++<TOTAL_ITER) {
 	size = rand() % SIZE_THRESH + 1; 
-	if (i!=0 && i%STEP==0) {
-	    for (int j=0;j<STEP;j++) {
-	    	printf("[%ld] Free 0x%p..\n", thr_no, mem[j]);
-	   	free(mem[j]);
-	    	mem[j] = NULL;
-	    	printf("[%ld] Freed.\n", thr_no);
-	    }
+	
+	printf("[%d] Allocating %d byte memory..\n", i, size);
+	if (i % STEP == 0) {
+		printf("Cleaning..\n");
+		for (int j=0;j<STEP;j++) {
+			free(mem[j]);
+		}
+		memset(mem, 0, sizeof(mem));
 	}
 	mem[i%STEP] = malloc(size);
-	printf("[%ld] Allocated %d byte memory @ 0x%p..\n", thr_no, size, mem[i%STEP]);
+	printf("Allocated %d at %p\n", size, mem[i%STEP]);
     }
 
     for (int j=0;j<STEP;j++) {
-	if (mem[j]) {
-	    free(mem[j]);
-	    printf("[%ld] Freed 0x%p..\n", thr_no, mem[j]);
-	}
+	free(mem[j]);
     }
 
     printf("Thread %ld exiting..\n", thr_no);
-
     return NULL;
 }
 

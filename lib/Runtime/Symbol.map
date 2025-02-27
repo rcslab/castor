@@ -155,7 +155,6 @@ FBSD_1.0 {
 	link;
 	lio_listio;
 	listen;
-	lstat; /* XXX: SHOULD BE IN 1.5 */
 	lutimes;
 	mac_syscall;
 	madvise;
@@ -317,7 +316,6 @@ FBSD_1.1 {
 	fchmodat;
 	fchownat;
 	fexecve;
-	fstatat; /* XXX should be 1.5? */
 	futimesat;
 	jail_get;
 	jail_set;
@@ -390,14 +388,14 @@ FBSD_1.5 {
 	fhstat;
 	fhstatfs;
 	fstat;
-	/* XXX: fstatat; */
+	fstatat;
 	fstatfs;
 	getdents;
 	getdirentries;
 	getfsstat;
 	getrandom;
 	kevent;
-	/* XXX: lstat; */
+	lstat;
 	mknod;
 	mknodat;
 	stat;
