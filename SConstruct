@@ -183,15 +183,16 @@ SConscript("#build/tools/record/SConstruct")
 SConscript("#build/tools/replay/SConstruct")
 SConscript("#build/tools/rrtool/SConstruct")
 
-env.Command("build/lib/Pass/CMakeCache.txt",
+cpconf = env.Command("build/lib/Pass/CMakeCache.txt",
             [ "lib/Pass/CMakeLists.txt" ],
             [ "cmake -S lib/Pass -B build/lib/Pass" ])
+Depends(cpconf, "#build/lib/Runtime/libCastorRuntime.so")
+Depends(cpconf, "#build/lib/ThreadRuntime/libCastorThreadRuntime.so")
 
 cp = env.Command("lib/Pass/libCastorPass.so",
             [ "build/lib/Pass/CMakeCache.txt",
               "lib/Pass/CastorPass.cc", "lib/Pass/CastorPass.h" ],
             [ "cmake --build build/lib/Pass"])
-Depends(cp, "#build/lib/Runtime/libCastorRuntime.so")
 env.Alias("CastorPass", "lib/Pass/libCastorPass.so")
 Export('cp')
 

@@ -27,8 +27,6 @@ if (aslrcheck.returncode == 0) and (aslrcheck.stdout != b"0\n"):
     print("ASLR is enabled!")
     sys.exit(1)
 
-print(aslrcheck)
-
 all_tests = []
 for f in sorted(os.listdir('unit-tests/')):
     if f.endswith(".c"):
