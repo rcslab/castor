@@ -59,14 +59,20 @@ server(void *arg)
     status = getpeername(fd, (struct sockaddr *)&name, &namelen);
     assert(status == 0);
     char *ip = inet_ntoa(name.sin_addr);
-    assert(!strcmp(ip, "127.0.0.1"));
+    /*
+     * XXX: Only works in vnet jails
+     * assert(!strcmp(ip, "127.0.0.1"));
+     */
     printf("getpeername() %s:%hu\n", ip, ntohs(name.sin_port));
 
     status = getsockname(fd, (struct sockaddr *)&name, &namelen);
     assert(status == 0);
     ip = inet_ntoa(name.sin_addr);
     uint16_t port = ntohs(name.sin_port);
-    assert(!strcmp(ip, "127.0.0.1"));
+    /*
+     * XXX: Only works in vnet jails
+     * assert(!strcmp(ip, "127.0.0.1"));
+     */
     assert(port == 7777);
     printf("getsockname() %s:%hu\n", ip, port);
 

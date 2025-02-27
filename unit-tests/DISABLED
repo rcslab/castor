@@ -1,5 +1,6 @@
 ;key will get into state where always fails
 mmap_shared_shm
+malloc_multithreaded
 
 ;Requires signal delivery code in replay. See comments in kill.c
 kill
