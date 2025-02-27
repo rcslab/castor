@@ -7,14 +7,16 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-int done = 0;
+#include <semaphore.h>
+
+sem_t ready;
 
 void 
 signal_handler(int sig) 
 {
     printf("Child: received signal %d\n", sig);
     if (sig == SIGUSR1) {
-	done = 1;
+	sem_post(&ready);
     }
 }
 
@@ -25,11 +27,14 @@ main()
 
     pid = fork();
     if (pid == 0) {
+	sem_init(&ready, 0, 0);
+
+	printf("Child: running..\n");
 	signal(SIGUSR1, signal_handler);
-	while (done != 1) {
-	    sleep(1);
-	}
+	sem_wait(&ready);
 	printf("Child: bye!\n");
+
+	sem_destroy(&ready);
     } else {
 	printf("Main: child pid is %d\n", pid);
 	sleep(1);
