@@ -38,6 +38,16 @@ extern interpos_func_t __libc_interposing[] __hidden;
 extern int __rr_sigaction(int sig, const struct sigaction *restrict act, 
     struct sigaction *restrict oact);
 
+struct {
+    uint32_t	evtid;
+    const char* str;
+} rreventTable[] =
+{
+#define RREVENT(_a, _b) { RREVENT_##_a, #_a },
+    RREVENT_TABLE
+#undef RREVENT
+    { 0, 0 }
+};
 
 RRLog *rrlog;
 enum RRMODE rrMode = RRMODE_NORMAL;
@@ -66,6 +76,67 @@ event_init()
     *(__libc_interposing_slot(INTERPOS_sigaction)) = (interpos_func_t)&__rr_sigaction;
 }
 
+void
+dumpEntry(volatile RRLogEntry *entry)
+{
+    int i;
+    const char *evtStr = "UNKNOWN";
+
+    for (i = 0; rreventTable[i].str != 0; i++) {
+	if (rreventTable[i].evtid == entry->event) {
+	    evtStr = rreventTable[i].str;
+	    break;
+	}
+    }
+
+    LOG("%016ld  %08x  %-16s  %016lx  %016lx  %016lx  %016lx  %016lx  %016lx",
+	    entry->eventId, entry->threadId, evtStr, entry->objectId,
+	    entry->value[0], entry->value[1], entry->value[2],
+	    entry->value[3], entry->value[4]);
+}
+
+void
+dumpLog()
+{
+    int thr_entry_st, thr_entry_ed;
+
+    LOG("Next Event: %08ld", rrlog->nextEvent);
+    LOG("Last Event: %08ld", rrlog->lastEvent);
+
+    LOG("ThreadQueue:");
+    for (int i=0; i < RRLOG_MAX_THREADS; i++) {
+	RRLogThread *rrthr = RRShared_LookupThread(rrlog, i);
+	if (!RRShared_ThreadPresent(rrlog, i))
+	    continue;
+
+	LOG("Thread %d", i);
+	LOG("  Offsets Free: %02ld Used: %02ld",
+	    rrthr->freeOff, rrthr->usedOff);
+	LOG("  Status: %016lx", rrthr->status);
+	LOG("%-16s  %-8s  %-16s  %-16s  %-16s  %-16s  %-16s  %-16s  %-16s",
+	    "Event #", "Thread #", "Event", "Object ID",
+	    "Value[0]", "Value[1]", "Value[2]", "Value[3]", "Value[4]");
+
+	if (rrthr->freeOff > rrlog->numEvents)
+	    thr_entry_st = rrthr->freeOff - rrlog->numEvents;
+	else
+	    thr_entry_st = 0;
+	thr_entry_ed = rrthr->freeOff;
+	for (int j=thr_entry_st; j<thr_entry_ed;j++) {
+	    dumpEntry(&rrthr->entries[j % rrlog->numEvents]);
+	}
+	LOG("\n");
+    }
+}
+
+extern void Debug_Sighandler(int signal);
+
+void
+dump_siginfo(int signal)
+{
+    dumpLog();
+}
+
 __attribute__((constructor)) void
 log_init()
 {
@@ -84,6 +155,7 @@ log_init()
     }
 
     Debug_Init("castor.log");
+    signal(SIGINFO, dump_siginfo);
 
     LOG("shmpath = %s", shmpath);
     LOG("mode = %s", mode);
@@ -161,3 +233,4 @@ log_init()
 	}
     }
 }
+
