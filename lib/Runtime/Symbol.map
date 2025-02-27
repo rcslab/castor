@@ -1117,6 +1117,8 @@ CASTORprivate {
 	AssertEvent;
 	Debug_Log;
 	Debug_LogBacktrace;
+	__rr_assert;
+	rr_fdprintf;
 	__castor_abort;
 	lockTable;
 	rrMode;

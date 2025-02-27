@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <pthread.h>
 
+#include <castor/rr_debug.h>
 #include <castor/rrshared.h>
 
 int main(int argc, const char *argv[])
@@ -36,7 +37,7 @@ int main(int argc, const char *argv[])
 	    c_argv[c_arg++] = NULL;
 
 	    printf("execv..\n");
-	    assert(getThreadId() != 0);
+	    rr_assert(getThreadId() != 0);
 	    status = execv(c_argv[0], c_argv);
 	    printf("execv status %d, errno %u\n", status, errno);
 	    assert(status != -1);
@@ -47,7 +48,8 @@ int main(int argc, const char *argv[])
 		/* execv'd process */
 		sleep(1);
 		printf("daemon is up, ppid is %d\n", getppid());
-		assert(getppid() != 1);
+		// Should be reparented to record/replay during rr
+		rr_assert(getppid() != 1);
 	    }
 	}
 }

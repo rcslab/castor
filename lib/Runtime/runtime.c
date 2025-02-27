@@ -114,7 +114,7 @@ log_init()
     }
 
     // XXX: Need to remap the region again to the right size
-    rr_assert(RRLOG_DEFAULT_REGIONSZ == rrlog->regionSz);
+    ASSERT(RRLOG_DEFAULT_REGIONSZ == rrlog->regionSz);
 
     char *sandbox = __castor_getenv("CASTOR_SANDBOX");
     if (sandbox) {

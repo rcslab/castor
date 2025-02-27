@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <pthread.h>
 
+#include <castor/rr_debug.h>
 #include <castor/rrshared.h>
 
 int main(int argc, const char *argv[])
@@ -36,7 +37,7 @@ int main(int argc, const char *argv[])
 	    c_argv[c_arg++] = NULL;
 
 	    printf("execv..\n");
-	    assert(getThreadId() != 0);
+	    rr_assert(getThreadId() != 0);
 	    status = execv(c_argv[0], c_argv);
 	    printf("execv status %d, errno %u\n", status, errno);
 	    assert(status != -1);
@@ -48,13 +49,13 @@ int main(int argc, const char *argv[])
 	     * syscalls here, the child cannot append the log and breaks the log. 
 	     */
 	    if (!no_fork) {
-		assert(getThreadId() == 0);
+		rr_assert(getThreadId() == 0);
 
 		printf("Waiting for child..\n");
 		wait(&status);
 		printf("Bye.\n");
 	    } else {
-		assert(getThreadId() != 0);
+		rr_assert(getThreadId() != 0);
 		printf("Last fork done.\n");
 	    }
 	}

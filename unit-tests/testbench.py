@@ -68,9 +68,9 @@ def BuildTest(name):
         sys.exit(1)
     write(CLEAR)
 
-def ReportError(name):
+def ReportError(name, msg):
     write(CLEAR)
-    write(FORMAT % (name, RED, "Failed") + "\n")
+    write(FORMAT % (name, RED, msg) + "\n")
     failed.append(name)
 
 def ReportTimeout(name):
@@ -93,8 +93,11 @@ def Run(tool, sname, name, output):
         t.poll()
         if t.returncode == 0:
             return (time.time() - start)
+        if os.path.isfile(sname + ".core"):
+            ReportError(sname, "Failed C")
+            return None
         if t.returncode != None:
-            ReportError(sname)
+            ReportError(sname, "Failed")
             return None
         if (time.time() - start) > TIMEOUT:
             t.kill()

@@ -6,7 +6,9 @@
 int main(int argc, const char *argv[])
 {
     printf("Hello World!\n");
-    //rr_printf("Hello Replay\n");
-    //rr_assert("batman" != "miley cyrus");
+    rr_printf("Hello R/R\n");
+    replay_printf("Hello Replay\n");
+    rr_assert(0 != 1);
+    replay_assert(0 != 1);
 }
 
