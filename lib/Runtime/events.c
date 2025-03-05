@@ -476,6 +476,12 @@ __rr_fcntl(int fd, int cmd, ...)
 	// XXX: a big switch statement should take care of separate flags first
 	// categorize flags into normal case or other cases
 	// then have the record/replay switch inside.
+	    if (cmd == F_GETLK) {
+		LOG("CHECK: upper app is calling F_GETLK\n");
+	    }
+	    if (cmd == F_SETLK) {
+		LOG("CHECK: upper app is calling F_SETLK\n");
+	    }
 	    ASSERT_IMPLEMENTED((cmd == F_GETFL)  || (cmd == F_SETFL) ||
 			               (cmd == F_GETFD)  || (cmd == F_SETFD) ||
 			               (cmd == F_DUPFD)  || (cmd == F_DUPFD_CLOEXEC) ||
@@ -483,7 +489,8 @@ __rr_fcntl(int fd, int cmd, ...)
 			               (cmd == F_GETOWN) || (cmd == F_SETOWN) ||
 			               (cmd == F_RDAHEAD)|| (cmd == F_READAHEAD) ||
 	    //XXX: neither of these are correctly implemented yet, but probably won't break often.
-			               (cmd == F_GETLK)  || (cmd == F_SETLK));
+			               (cmd == F_GETLK)  || (cmd == F_SETLK) ||
+				       (cmd == F_ISUNIONSTACK));
 	    result = __rr_syscall(SYS_fcntl, fd, cmd, arg);
 	    RRRecordOI(RREVENT_FCNTL, fd, result);
 	    break;
