@@ -8,6 +8,8 @@ testbench_deps = [ ]
 
 for t in Glob('#build/unit-tests/*.c'):
     env.Depends(t, cp)
+    env.Depends(t, "Runtime")
+    env.Depends(t, "ThreadRuntime")
     d = env.Program(t,
                     CPPFLAGS = ["-fpass-plugin=$CASTORPASS"] + env["CPPFLAGS"],
                     LIBS = ["c", "thr", "elf", "execinfo"])

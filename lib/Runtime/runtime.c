@@ -127,6 +127,18 @@ dumpLog()
 	}
 	LOG("\n");
     }
+
+    LOG("SyncTable:");
+    LOG("%-16s  %-8s  %-16s  %-16s", "Address", "Type", "Epoch", "Owner");
+    for (int i=0; i < RRLOG_SYNCTABLE_SIZE; i++) {
+	const char *Types[] = { "Null", "Mutex", "Spinlock", "RWLock" };
+	RRSyncEntry *s = &rrlog->syncTable.entries[i];
+
+	if (s->addr != 0) {
+	    LOG("%016lx  %-8s  %016lx  %016lx",
+		s->addr, Types[s->type], s->epoch, s->owner);
+	}
+    }
 }
 
 extern void Debug_Sighandler(int signal);

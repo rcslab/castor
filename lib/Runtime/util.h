@@ -16,6 +16,7 @@ extern Mutex lockTable[LOCKTABLE_SIZE];
     __strong_reference(__rr_ ## _name, _ ## _name); \
     __strong_reference(__rr_ ## _name, __sys_ ## _name)
 
+void dumpLog();
 #if defined(CASTOR_DEBUG)
 void AssertObject(RRLogEntry *e, uint64_t od);
 void AssertEvent(RRLogEntry *e, uint32_t evt);

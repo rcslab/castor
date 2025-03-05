@@ -58,6 +58,7 @@ AssertEvent(RRLogEntry *e, uint32_t evt)
 	SYSERROR("Event #%lu, Thread #%d", e->eventId, e->threadId);
 	SYSERROR("NextEvent #%lu, LastEvent #%lu",
 			rrlog->nextEvent, rrlog->lastEvent);
+	dumpLog();
 	PANIC();
     }
 }
@@ -73,6 +74,7 @@ AssertObject(RRLogEntry *e, uint64_t od)
 	SYSERROR("Event #%lu, Thread #%d", e->eventId, e->threadId);
 	SYSERROR("NextEvent #%lu, LastEvent #%lu",
 			rrlog->nextEvent, rrlog->lastEvent);
+	dumpLog();
 	PANIC();
     }
 }

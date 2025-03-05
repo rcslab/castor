@@ -114,6 +114,10 @@ main(int argc, char *argv[])
 	pthread_attr_destroy(&attr);
 	pthread_mutex_destroy(&count_mutex);
 	pthread_cond_destroy(&count_threshold_cv);
-	pthread_exit(NULL);
 
+	// XXX: This calls into libunwind that triggers a divergence post new 
+	// locks approach
+	//pthread_exit(NULL);
+
+	return 0;
 }

@@ -215,11 +215,21 @@ pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
       
 	    result = _pthread_cond_wait(cond, mutex);
 
-      	    e = RRLog_Alloc(rrlog, getThreadId());
-	    e->event = RREVENT_COND_WAIT;
-	    e->objectId = (uint64_t)cond;
+	    RRSyncEntry *s = RRShared_LookupSync(rrlog, (uintptr_t)mutex);
+	    if (s->type == 0)
+		s->type = RRSync_Mutex;
+
+	    e = RRLog_Alloc(rrlog, getThreadId());
+	    e->event = RREVENT_MUTEX_LOCK;
+	    e->objectId = (uint64_t)mutex;
 	    e->value[0] = (uint64_t)result;
+	    e->value[3] = atomic_load(&s->epoch);
+	    e->value[4] = __builtin_readcyclecounter(); //XXX: where is this used?
 	    RRLog_Append(rrlog, e);
+
+	    s->owner = getThreadId();
+	    atomic_fetch_add(&s->epoch, 1);
+
 	    break;
 	}
 	case RRMODE_REPLAY: {
@@ -227,13 +237,31 @@ pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
 	    AssertEvent(e, RREVENT_COND_WAIT);
 	    RRPlay_Free(rrlog, e);
 
-	    int cw_result = _pthread_cond_wait(cond, mutex);
+	    int tmpresult = __pthread_mutex_unlock(mutex);
+	    ASSERT(tmpresult == 0);
+
+	    RRSyncEntry *s = RRShared_LookupSync(rrlog, (uintptr_t)mutex);
+	    if (s->type == 0)
+		s->type = RRSync_Mutex;
 
 	    e = RRPlay_Dequeue(rrlog, getThreadId());
-	    result = (int)e->value[0];
-	    AssertEvent(e, RREVENT_COND_WAIT);
-	    ASSERT(cw_result == result);
+	    AssertEvent(e, RREVENT_MUTEX_LOCK);
+	    result = e->value[0];
+	    uint64_t epoch = e->value[3];
 	    RRPlay_Free(rrlog, e);
+
+	    while (epoch != atomic_load(&s->epoch)) {
+		// pause
+	    }
+	    if (result != 0) {
+		atomic_fetch_add(&s->epoch, 1);
+		return result;
+	    }
+
+	    result = __pthread_mutex_lock(mutex);
+	    ASSERT(result == 0);
+	    s->owner = getThreadId();
+	    atomic_fetch_add(&s->epoch, 1);
 
 	    break;
 	}
@@ -455,44 +483,54 @@ __rr_mutex_lock(pthread_mutex_t *mtx)
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    RRLog_LEnter(getThreadId(), (uint64_t)mtx);
-
 	    result = __pthread_mutex_lock(mtx);
 
-	    e = RRLog_LAlloc(getThreadId());
+	    RRSyncEntry *s = RRShared_LookupSync(rrlog, (uintptr_t)mtx);
+	    if (s->type == 0)
+		s->type = RRSync_Mutex;
+	    ASSERT(s->type == RRSync_Mutex);
+
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_MUTEX_LOCK;
 	    e->objectId = (uint64_t)mtx;
 	    e->value[0] = (uint64_t)result;
+	    e->value[3] = atomic_load(&s->epoch);
 	    e->value[4] = __builtin_readcyclecounter(); //XXX: where is this used?
-	    RRLog_LAppend(e);
+	    RRLog_Append(rrlog, e);
+
+	    if (result == 0) {
+		s->owner = getThreadId();
+		atomic_fetch_add(&s->epoch, 1);
+	    }
+
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    RRPlay_LEnter(getThreadId(), (uint64_t)mtx);
+	    RRSyncEntry *s = RRShared_LookupSync(rrlog, (uintptr_t)mtx);
+	    if (s->type == 0)
+		s->type = RRSync_Mutex;
+	    ASSERT(s->type == RRSync_Mutex);
+
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
+	    AssertEvent(e, RREVENT_MUTEX_LOCK);
+	    result = e->value[0];
+	    uint64_t epoch = e->value[3];
+	    RRPlay_Free(rrlog, e);
+	    if (result != 0) {
+		return result;
+	    }
+
+	    while (epoch != atomic_load(&s->epoch)) {
+		// pause
+	    }
 
 	    result = __pthread_mutex_lock(mtx);
+	    ASSERT(result == 0);
+	    s->owner = getThreadId();
+	    atomic_fetch_add(&s->epoch, 1);
 
-	    e = RRPlay_LDequeue(getThreadId());
-	    AssertEvent(e, RREVENT_MUTEX_LOCK);
-	    // ASSERT result = e->value[0];
-	    RRPlay_LFree(e);
 	    break;
 	}
-	/*
-	 * case RRMODE_FDREPLAY: {
-	 *     e = RRLog_Alloc(rrlog, getThreadId());
-	 *     e->objectId = 1;
-	 *     result = _pthread_mutex_lock(mtx);
-	 *     RRLog_Append(rrlog, e);
-	 *     break;
-	 * }
-	 * case RRMODE_FTREPLAY: {
-	 *     e = RRPlay_Dequeue(rrlog, getThreadId());
-	 *     result = _pthread_mutex_lock(mtx);
-	 *     RRPlay_Free(rrlog, e);
-	 *     break;
-	 * }
-	 */
     }
 
     return result;
@@ -510,22 +548,52 @@ __rr_mutex_trylock(pthread_mutex_t *mtx)
 	    break;
 	}
 	case RRMODE_RECORD: {
+	    result = __pthread_mutex_lock(mtx);
+
+	    RRSyncEntry *s = RRShared_LookupSync(rrlog, (uintptr_t)mtx);
+	    if (s->type == 0)
+		s->type = RRSync_Mutex;
+	    ASSERT(s->type == RRSync_Mutex);
+
 	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_MUTEX_TRYLOCK;
 	    e->objectId = (uint64_t)mtx;
-	    result = __pthread_mutex_trylock(mtx);
 	    e->value[0] = (uint64_t)result;
+	    e->value[3] = atomic_load(&s->epoch);
+	    e->value[4] = __builtin_readcyclecounter(); //XXX: where is this used?
 	    RRLog_Append(rrlog, e);
+
+	    if (result == 0) {
+		s->owner = getThreadId();
+		atomic_fetch_add(&s->epoch, 1);
+	    }
+
 	    break;
 	}
 	case RRMODE_REPLAY: {
+	    RRSyncEntry *s = RRShared_LookupSync(rrlog, (uintptr_t)mtx);
+	    if (s->type == 0)
+		s->type = RRSync_Mutex;
+	    ASSERT(s->type == RRSync_Mutex);
+
 	    e = RRPlay_Dequeue(rrlog, getThreadId());
-      	    AssertEvent(e, RREVENT_MUTEX_TRYLOCK);
-	    result = (int)e->value[0];
-	    if (result == 0) {
-		ASSERT(__pthread_mutex_lock(mtx) == 0);
-	    }
+	    AssertEvent(e, RREVENT_MUTEX_TRYLOCK);
+	    uint64_t epoch = e->value[3];
+	    result = e->value[0];
 	    RRPlay_Free(rrlog, e);
+	    if (result != 0) {
+		return result;
+	    }
+
+	    while (epoch != atomic_load(&s->epoch)) {
+		// pause
+	    }
+
+	    result = __pthread_mutex_lock(mtx);
+	    ASSERT(result == 0);
+	    s->owner = getThreadId();
+	    atomic_fetch_add(&s->epoch, 1);
+
 	    break;
 	}
     }
@@ -558,64 +626,75 @@ __rr_mutex_unlock(pthread_mutex_t *mtx)
 	    result = __pthread_mutex_unlock(mtx);
 	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_MUTEX_UNLOCK);
-	    // ASSERT result = e->value[0];
+	    ASSERT(result == (int)e->value[0]);
 	    RRPlay_Free(rrlog, e);
 	    break;
 	}
-	/*
-	 * case RRMODE_FDREPLAY: {
-	 *     result = _pthread_mutex_unlock(mtx);
-	 *     break;
-	 * }
-	 * case RRMODE_FTREPLAY: {
-	 *     result = _pthread_mutex_unlock(mtx);
-	 *     break;
-	 * }
-	 */
     }
 
     return result;
 }
 
 int 
-pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct timespec *abs_timeout)
+pthread_mutex_timedlock(pthread_mutex_t *mtx, const struct timespec *abs_timeout)
 {
     int result = -1;
     RRLogEntry *e;
 
     switch (rrMode) {
 	case RRMODE_NORMAL: {
-	    result = _pthread_mutex_timedlock(mutex, abs_timeout);
+	    result = _pthread_mutex_timedlock(mtx, abs_timeout);
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    RRLog_LEnter(getThreadId(), (uint64_t)mutex);
+	    result = __pthread_mutex_lock(mtx);
 
-	    result = _pthread_mutex_timedlock(mutex, abs_timeout);
+	    RRSyncEntry *s = RRShared_LookupSync(rrlog, (uintptr_t)mtx);
+	    if (s->type == 0)
+		s->type = RRSync_Mutex;
+	    ASSERT(s->type == RRSync_Mutex);
 
-	    e = RRLog_LAlloc(getThreadId());
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_MUTEX_TIMEDLOCK;
-	    e->objectId = (uint64_t)mutex;
+	    e->objectId = (uint64_t)mtx;
 	    e->value[0] = (uint64_t)result;
-	    e->value[4] = __builtin_readcyclecounter();
-	    RRLog_LAppend(e);
+	    e->value[3] = atomic_load(&s->epoch);
+	    e->value[4] = __builtin_readcyclecounter(); //XXX: where is this used?
+	    RRLog_Append(rrlog, e);
+
+	    if (result == 0) {
+		s->owner = getThreadId();
+		atomic_fetch_add(&s->epoch, 1);
+	    }
+
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    RRPlay_LEnter(getThreadId(), (uint64_t)mutex);
-	    e = RRPlay_LDequeue(getThreadId());
-	    AssertEvent(e, RREVENT_MUTEX_TIMEDLOCK);
-      
-      /* Record call was successful, wait until replay call matches */
-      if (e->value[0] == 0) {
-        while (result != 0) {
-          result = _pthread_mutex_timedlock(mutex, abs_timeout);
-        }
-      } else {
-        result = e->value[0];
-      }
+	    RRSyncEntry *s = RRShared_LookupSync(rrlog, (uintptr_t)mtx);
+	    if (s->type == 0)
+		s->type = RRSync_Mutex;
+	    ASSERT(s->type == RRSync_Mutex);
 
-	    RRPlay_LFree(e);
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
+	    AssertEvent(e, RREVENT_MUTEX_TIMEDLOCK);
+	    result = e->value[0];
+	    uint64_t epoch = e->value[3];
+	    RRPlay_Free(rrlog, e);
+	    if (result != 0) {
+		return result;
+	    }
+
+	    while (epoch != atomic_load(&s->epoch)) {
+		// pause
+	    }
+
+	    do {
+		result = _pthread_mutex_timedlock(mtx, abs_timeout);
+	    } while (result != 0);
+	    ASSERT(result == 0);
+	    s->owner = getThreadId();
+	    atomic_fetch_add(&s->epoch, 1);
+
 	    break;
 	}
     }
@@ -682,27 +761,52 @@ pthread_spin_lock(pthread_spinlock_t *lock)
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    RRLog_LEnter(getThreadId(), (uint64_t)lock);
-
 	    result = _pthread_spin_lock(lock);
 
-	    e = RRLog_LAlloc(getThreadId());
+	    RRSyncEntry *s = RRShared_LookupSync(rrlog, (uintptr_t)lock);
+	    if (s->type == 0)
+		s->type = RRSync_Spinlock;
+	    ASSERT(s->type == RRSync_Spinlock);
+
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_SPIN_LOCK;
 	    e->objectId = (uint64_t)lock;
 	    e->value[0] = (uint64_t)result;
-	    e->value[4] = __builtin_readcyclecounter();
-	    RRLog_LAppend(e);
+	    e->value[3] = atomic_load(&s->epoch);
+	    e->value[4] = __builtin_readcyclecounter(); //XXX: where is this used?
+	    RRLog_Append(rrlog, e);
+
+	    if (result == 0) {
+		s->owner = getThreadId();
+		atomic_fetch_add(&s->epoch, 1);
+	    }
+
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    RRPlay_LEnter(getThreadId(), (uint64_t)lock);
+	    RRSyncEntry *s = RRShared_LookupSync(rrlog, (uintptr_t)lock);
+	    if (s->type == 0)
+		s->type = RRSync_Spinlock;
+	    ASSERT(s->type == RRSync_Spinlock);
+
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
+	    AssertEvent(e, RREVENT_SPIN_LOCK);
+	    result = e->value[0];
+	    uint64_t epoch = e->value[3];
+	    RRPlay_Free(rrlog, e);
+	    if (result != 0) {
+		return result;
+	    }
+
+	    while (epoch != atomic_load(&s->epoch)) {
+		// pause
+	    }
 
 	    result = _pthread_spin_lock(lock);
+	    ASSERT(result == 0);
+	    s->owner = getThreadId();
+	    atomic_fetch_add(&s->epoch, 1);
 
-	    e = RRPlay_LDequeue(getThreadId());
-	    AssertEvent(e, RREVENT_SPIN_LOCK);
-	    // ASSERT result = e->value[0];
-	    RRPlay_LFree(e);
 	    break;
 	}
     }
@@ -722,19 +826,50 @@ pthread_spin_trylock(pthread_spinlock_t *lock)
 	    break;
 	}
 	case RRMODE_RECORD: {
+	    result = _pthread_spin_lock(lock);
+
+	    RRSyncEntry *s = RRShared_LookupSync(rrlog, (uintptr_t)lock);
+	    if (s->type == 0)
+		s->type = RRSync_Spinlock;
+	    ASSERT(s->type == RRSync_Spinlock);
+
 	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_SPIN_TRYLOCK;
 	    e->objectId = (uint64_t)lock;
-	    result = _pthread_spin_trylock(lock);
 	    e->value[0] = (uint64_t)result;
+	    e->value[3] = atomic_load(&s->epoch);
+	    e->value[4] = __builtin_readcyclecounter(); //XXX: where is this used?
 	    RRLog_Append(rrlog, e);
+
+	    if (result == 0) {
+		s->owner = getThreadId();
+		atomic_fetch_add(&s->epoch, 1);
+	    }
 	    break;
 	}
 	case RRMODE_REPLAY: {
+	    RRSyncEntry *s = RRShared_LookupSync(rrlog, (uintptr_t)lock);
+	    if (s->type == 0)
+		s->type = RRSync_Spinlock;
+	    ASSERT(s->type == RRSync_Spinlock);
+
 	    e = RRPlay_Dequeue(rrlog, getThreadId());
-      AssertEvent(e, RREVENT_SPIN_TRYLOCK);
-	    result = (int)e->value[0];
+	    AssertEvent(e, RREVENT_SPIN_TRYLOCK);
+	    result = e->value[0];
+	    uint64_t epoch = e->value[3];
 	    RRPlay_Free(rrlog, e);
+	    if (result != 0) {
+		return result;
+	    }
+
+	    while (epoch != atomic_load(&s->epoch)) {
+		// pause
+	    }
+
+	    result = _pthread_spin_lock(lock);
+	    ASSERT(result == 0);
+	    s->owner = getThreadId();
+	    atomic_fetch_add(&s->epoch, 1);
 	    break;
 	}
   }
@@ -835,27 +970,51 @@ pthread_rwlock_rdlock(pthread_rwlock_t *lock)
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    RRLog_LEnter(getThreadId(), (uint64_t)lock);
-
 	    result = _pthread_rwlock_rdlock(lock);
 
-	    e = RRLog_LAlloc(getThreadId());
+	    RRSyncEntry *s = RRShared_LookupSync(rrlog, (uintptr_t)lock);
+	    if (s->type == 0)
+		s->type = RRSync_RWLock;
+	    ASSERT(s->type == RRSync_RWLock);
+
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_RWLOCK_RDLOCK;
 	    e->objectId = (uint64_t)lock;
 	    e->value[0] = (uint64_t)result;
-	    e->value[4] = __builtin_readcyclecounter();
-	    RRLog_LAppend(e);
+	    e->value[3] = atomic_load(&s->epoch);
+	    e->value[4] = __builtin_readcyclecounter(); //XXX: where is this used?
+	    RRLog_Append(rrlog, e);
+
+	    if (result == 0) {
+		s->owner = getThreadId();
+		atomic_fetch_add(&s->epoch, 1);
+	    }
+
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    RRPlay_LEnter(getThreadId(), (uint64_t)lock);
+	    RRSyncEntry *s = RRShared_LookupSync(rrlog, (uintptr_t)lock);
+	    if (s->type == 0)
+		s->type = RRSync_RWLock;
+	    ASSERT(s->type == RRSync_RWLock);
+
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
+	    AssertEvent(e, RREVENT_RWLOCK_RDLOCK);
+	    result = e->value[0];
+	    uint64_t epoch = e->value[3];
+	    RRPlay_Free(rrlog, e);
+	    if (result != 0) {
+		return result;
+	    }
+
+	    while (epoch != atomic_load(&s->epoch)) {
+		// pause
+	    }
 
 	    result = _pthread_rwlock_rdlock(lock);
-
-	    e = RRPlay_LDequeue(getThreadId());
-	    AssertEvent(e, RREVENT_RWLOCK_RDLOCK);
-	    // ASSERT result = e->value[0];
-	    RRPlay_LFree(e);
+	    ASSERT(result == 0);
+	    s->owner = getThreadId();
+	    atomic_fetch_add(&s->epoch, 1);
 	    break;
 	}
     }
@@ -885,6 +1044,7 @@ pthread_rwlock_timedrdlock(pthread_rwlock_t *lock, const struct timespec *abs_ti
 	    e->value[0] = (uint64_t)result;
 	    e->value[4] = __builtin_readcyclecounter();
 	    RRLog_LAppend(e);
+	    ASSERT(false);
 	    break;
 	}
 	case RRMODE_REPLAY: {
@@ -892,14 +1052,15 @@ pthread_rwlock_timedrdlock(pthread_rwlock_t *lock, const struct timespec *abs_ti
 	    e = RRPlay_LDequeue(getThreadId());
 	    AssertEvent(e, RREVENT_RWLOCK_TIMEDRDLOCK);
 
-      /* Record call was successful, wait until replay call matches */
-      if (e->value[0] == 0) {
-        while (result != 0) {
-          result = _pthread_rwlock_timedrdlock(lock, abs_timeout);
-        }
-      } else {
-        result = e->value[0];
-      }
+	    ASSERT(false);
+	    /* Record call was successful, wait until replay call matches */
+	    if (e->value[0] == 0) {
+		while (result != 0) {
+		    result = _pthread_rwlock_timedrdlock(lock, abs_timeout);
+		}
+	    } else {
+		result = e->value[0];
+	    }
 
 	    RRPlay_LFree(e);
 	    break;
@@ -921,6 +1082,7 @@ pthread_rwlock_tryrdlock(pthread_rwlock_t *lock)
 	    break;
 	}
 	case RRMODE_RECORD: {
+	    ASSERT(false);
 	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_RWLOCK_TRYRDLOCK;
 	    e->objectId = (uint64_t)lock;
@@ -930,8 +1092,9 @@ pthread_rwlock_tryrdlock(pthread_rwlock_t *lock)
 	    break;
 	}
 	case RRMODE_REPLAY: {
+	    ASSERT(false);
 	    e = RRPlay_Dequeue(rrlog, getThreadId());
-      AssertEvent(e, RREVENT_RWLOCK_TRYRDLOCK);
+	    AssertEvent(e, RREVENT_RWLOCK_TRYRDLOCK);
 	    result = (int)e->value[0];
 	    RRPlay_Free(rrlog, e);
 	    break;
@@ -953,27 +1116,51 @@ pthread_rwlock_wrlock(pthread_rwlock_t *lock)
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    RRLog_LEnter(getThreadId(), (uint64_t)lock);
-
 	    result = _pthread_rwlock_wrlock(lock);
 
-	    e = RRLog_LAlloc(getThreadId());
+	    RRSyncEntry *s = RRShared_LookupSync(rrlog, (uintptr_t)lock);
+	    if (s->type == 0)
+		s->type = RRSync_RWLock;
+	    ASSERT(s->type == RRSync_RWLock);
+
+	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_RWLOCK_WRLOCK;
 	    e->objectId = (uint64_t)lock;
 	    e->value[0] = (uint64_t)result;
-	    e->value[4] = __builtin_readcyclecounter();
-	    RRLog_LAppend(e);
+	    e->value[3] = atomic_load(&s->epoch);
+	    e->value[4] = __builtin_readcyclecounter(); //XXX: where is this used?
+	    RRLog_Append(rrlog, e);
+
+	    if (result == 0) {
+		s->owner = getThreadId();
+		atomic_fetch_add(&s->epoch, 1);
+	    }
+
 	    break;
 	}
 	case RRMODE_REPLAY: {
-	    RRPlay_LEnter(getThreadId(), (uint64_t)lock);
+	    RRSyncEntry *s = RRShared_LookupSync(rrlog, (uintptr_t)lock);
+	    if (s->type == 0)
+		s->type = RRSync_RWLock;
+	    ASSERT(s->type == RRSync_RWLock);
+
+	    e = RRPlay_Dequeue(rrlog, getThreadId());
+	    AssertEvent(e, RREVENT_RWLOCK_WRLOCK);
+	    result = e->value[0];
+	    uint64_t epoch = e->value[3];
+	    RRPlay_Free(rrlog, e);
+	    if (result != 0) {
+		return result;
+	    }
+
+	    while (epoch != atomic_load(&s->epoch)) {
+		// pause
+	    }
 
 	    result = _pthread_rwlock_wrlock(lock);
-
-	    e = RRPlay_LDequeue(getThreadId());
-	    AssertEvent(e, RREVENT_RWLOCK_WRLOCK);
-	    // ASSERT result = e->value[0];
-	    RRPlay_LFree(e);
+	    ASSERT(result == 0);
+		s->owner = getThreadId();
+	    atomic_fetch_add(&s->epoch, 1);
 	    break;
 	}
     }
@@ -1003,6 +1190,7 @@ pthread_rwlock_timedwrlock(pthread_rwlock_t *lock, const struct timespec *abs_ti
 	    e->value[0] = (uint64_t)result;
 	    e->value[4] = __builtin_readcyclecounter();
 	    RRLog_LAppend(e);
+	    ASSERT(false);
 	    break;
 	}
 	case RRMODE_REPLAY: {
@@ -1010,13 +1198,14 @@ pthread_rwlock_timedwrlock(pthread_rwlock_t *lock, const struct timespec *abs_ti
 	    e = RRPlay_LDequeue(getThreadId());
 	    AssertEvent(e, RREVENT_RWLOCK_TIMEDWRLOCK);
 
-      /* Record call was successful, wait until replay call matches */
-      if (e->value[0] == 0) {
-        while (result != 0) {
-          result = _pthread_rwlock_timedwrlock(lock, abs_timeout);
-        }
-      } else {
-        result = e->value[0];
+	    ASSERT(false);
+	    /* Record call was successful, wait until replay call matches */
+	    if (e->value[0] == 0) {
+		while (result != 0) {
+		    result = _pthread_rwlock_timedwrlock(lock, abs_timeout);
+		}
+	    } else {
+		result = e->value[0];
 	    }
 
 	    RRPlay_LFree(e);
@@ -1039,6 +1228,7 @@ pthread_rwlock_trywrlock(pthread_rwlock_t *lock)
 	    break;
 	}
 	case RRMODE_RECORD: {
+	    ASSERT(false);
 	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_RWLOCK_TRYWRLOCK;
 	    e->objectId = (uint64_t)lock;
@@ -1048,6 +1238,7 @@ pthread_rwlock_trywrlock(pthread_rwlock_t *lock)
 	    break;
 	}
 	case RRMODE_REPLAY: {
+	    ASSERT(false);
 	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_RWLOCK_TRYWRLOCK);
 	    result = (int)e->value[0];

@@ -24,6 +24,7 @@ using namespace std;
 
 #include "debug.h"
 #include "mtx.h"
+#include "hash.h"
 
 enum RRMODE {
     RRMODE_NORMAL, // Normal
@@ -70,6 +71,30 @@ typedef struct RRLogThreadInfo {
     int						recordedPid; 
 } RRLogThreadInfo;
 
+enum RRSyncType {
+    RRSync_Null = 0,
+    RRSync_Mutex,
+    RRSync_Spinlock,
+    RRSync_RWLock
+};
+
+#ifndef atomic_uint64_t
+typedef atomic_uint_fast64_t atomic_uint64_t;
+#endif
+
+typedef struct RRSyncEntry {
+    atomic_uintptr_t addr;
+    uintptr_t type;
+    atomic_uint64_t epoch;
+    uint64_t owner;
+} RRSyncEntry;
+
+#define RRLOG_SYNCTABLE_SIZE 4096
+
+typedef struct RRSyncTable {
+    RRSyncEntry entries[RRLOG_SYNCTABLE_SIZE];
+} RRSyncTable;
+
 #define RRLOG_MAGIC		0x436173746f724654
 
 typedef struct RRLog {
@@ -84,6 +109,7 @@ typedef struct RRLog {
     uint64_t numEvents;				    // Max number of events
     RRLogThreadInfo threadInfo[RRLOG_MAX_THREADS];
     Mutex threadInfoMtx;
+    RRSyncTable syncTable;
     atomic_uintptr_t sysvmap;
     Mutex sysvlck;
 } RRLog;
@@ -275,6 +301,26 @@ RRShared_AssertThreadAtExit(RRLog *rrlog)
 	ASSERT(count == 0);
     }
 #endif
+}
+
+// XXX: Add a way to destroy entries
+static inline RRSyncEntry *
+RRShared_LookupSync(RRLog *rrlog, uintptr_t addr)
+{
+    int b = Hash_Mix64(addr) % RRLOG_SYNCTABLE_SIZE;
+
+    while (1) {
+	if (rrlog->syncTable.entries[b].addr == addr)
+	    return &(rrlog->syncTable.entries[b]);
+
+	if (rrlog->syncTable.entries[b].addr == 0) {
+	    uintptr_t v = 0;
+	    atomic_compare_exchange_strong(&rrlog->syncTable.entries[b].addr, &v, addr);
+	    continue;
+	}
+
+	b = (b + 1) % RRLOG_SYNCTABLE_SIZE;
+    }
 }
 
 #endif /* __CASTOR_RRSHARED_H__ */
