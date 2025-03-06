@@ -10,6 +10,9 @@
 #define assert rr_assert
 #endif
 
+#include <sys/syscall.h>
+#include <unistd.h>
+
 #include <stdalign.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -21,6 +24,10 @@ using namespace std;
 #endif
 #include <string.h>
 #include <stdlib.h>
+
+#if defined(__amd64__)
+#include <immintrin.h>
+#endif
 
 #include "debug.h"
 #include "mtx.h"
@@ -305,22 +312,60 @@ RRShared_AssertThreadAtExit(RRLog *rrlog)
 
 // XXX: Add a way to destroy entries
 static inline RRSyncEntry *
-RRShared_LookupSync(RRLog *rrlog, uintptr_t addr)
+RRShared_SyncLookup(RRLog *rrlog, uintptr_t addr, uint64_t type)
 {
-    int b = Hash_Mix64(addr) % RRLOG_SYNCTABLE_SIZE;
+    int bStart = Hash_Mix64(addr) % RRLOG_SYNCTABLE_SIZE;
+    int b = bStart;
 
     while (1) {
-	if (rrlog->syncTable.entries[b].addr == addr)
+	if (rrlog->syncTable.entries[b].addr == addr) {
+#ifdef CASTOR_DEBUG
+	    uint64_t stype = rrlog->syncTable.entries[b].type;
+	    /*
+	     * Either it should be the right type or null if racing with 
+	     * allocation.
+	     */
+	    ASSERT(stype == type || stype == 0);
+#endif
 	    return &(rrlog->syncTable.entries[b]);
+	}
 
 	if (rrlog->syncTable.entries[b].addr == 0) {
 	    uintptr_t v = 0;
 	    atomic_compare_exchange_strong(&rrlog->syncTable.entries[b].addr, &v, addr);
+	    rrlog->syncTable.entries[b].type = type;
 	    continue;
 	}
 
 	b = (b + 1) % RRLOG_SYNCTABLE_SIZE;
+
+	// Out of space
+	if (b == bStart) {
+	    PANIC();
+	}
     }
+}
+
+static inline void
+RRShared_SyncWait(RRSyncEntry *s, uint64_t epoch)
+{
+    uint64_t count = 0;
+
+    while (epoch != atomic_load(&s->epoch)) {
+#if defined(__amd64__)
+	_mm_pause();
+#endif
+	if (count++ > 50) {
+	    syscall(SYS_sched_yield);
+	}
+    }
+}
+
+static inline void
+RRShared_SyncInc(RRSyncEntry *s)
+{
+    s->owner = getThreadId();
+    atomic_fetch_add(&s->epoch, 1);
 }
 
 #endif /* __CASTOR_RRSHARED_H__ */

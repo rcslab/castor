@@ -40,6 +40,14 @@ RRLog_Init(RRLog *rrlog, uint32_t numEvents)
     // System V
     rrlog->sysvmap = 0;
     Mutex_Init(&rrlog->sysvlck);
+
+    // Synchronization
+    for (int i = 0; i < RRLOG_SYNCTABLE_SIZE; i++) {
+	rrlog->syncTable.entries[i].addr = 0;
+	rrlog->syncTable.entries[i].type = 0;
+	rrlog->syncTable.entries[i].epoch = 0;
+	rrlog->syncTable.entries[i].owner = 0;
+    }
 }
 
 static inline RRLogEntry *
