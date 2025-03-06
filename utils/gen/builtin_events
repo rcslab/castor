@@ -13,6 +13,7 @@ thread_create
 forkend
 procinfo
 cond_init
+cond_lazyinit
 cond_destroy
 cond_wait
 cond_signal
@@ -27,6 +28,7 @@ spin_trylock
 spin_lock
 spin_unlock
 rwlock_init
+rwlock_lazyinit
 rwlock_destroy
 rwlock_unlock
 rwlock_rdlock

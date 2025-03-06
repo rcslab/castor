@@ -3153,6 +3153,12 @@ pretty_print_COND_INIT(RRLogEntry entry)
 }
 
 void
+pretty_print_COND_LAZYINIT(RRLogEntry entry)
+{
+    printf("[builtin] cond_lazyinit()\n");
+}
+
+void
 pretty_print_COND_DESTROY(RRLogEntry entry)
 {
     printf("[builtin] cond_destroy()\n");
@@ -3234,6 +3240,12 @@ void
 pretty_print_RWLOCK_INIT(RRLogEntry entry)
 {
     printf("[builtin] rwlock_init()\n");
+}
+
+void
+pretty_print_RWLOCK_LAZYINIT(RRLogEntry entry)
+{
+    printf("[builtin] rwlock_lazyinit()\n");
 }
 
 void

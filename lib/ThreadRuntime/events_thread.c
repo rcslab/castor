@@ -208,14 +208,25 @@ pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
 	    break;
 	}
 	case RRMODE_RECORD: {
+	    RRSyncEntry *s = RRShared_SyncLookup(rrlog, (uintptr_t)mutex, RRSync_Mutex);
+
 	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_COND_WAIT;
 	    e->objectId = (uint64_t)cond;
 	    RRLog_Append(rrlog, e);
+
+	    if (*cond == PTHREAD_COND_INITIALIZER) {
+		RRShared_SyncLock(s);
+		if (*cond == PTHREAD_COND_INITIALIZER) {
+		    e = RRLog_Alloc(rrlog, getThreadId());
+		    e->event = RREVENT_COND_LAZYINIT;
+		    RRLog_Append(rrlog, e);
+		    pthread_cond_init(cond, NULL);
+		}
+		RRShared_SyncUnlock(s);
+	    }
       
 	    result = _pthread_cond_wait(cond, mutex);
-
-	    RRSyncEntry *s = RRShared_SyncLookup(rrlog, (uintptr_t)mutex, RRSync_Mutex);
 
 	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_MUTEX_LOCK;
@@ -232,14 +243,29 @@ pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
 	    break;
 	}
 	case RRMODE_REPLAY: {
+	    RRSyncEntry *s = RRShared_SyncLookup(rrlog, (uintptr_t)mutex, RRSync_Mutex);
+
 	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_COND_WAIT);
 	    RRPlay_Free(rrlog, e);
 
+	    if (*cond == PTHREAD_COND_INITIALIZER) {
+		while ((e = RRLogThreadDequeue(rrlog, RRShared_LookupThread(rrlog, getThreadId()))) == NULL)
+		{
+		}
+
+		if (e->event == RREVENT_COND_LAZYINIT) {
+		    RRShared_SyncLock(s);
+		    e = RRPlay_Dequeue(rrlog, getThreadId());
+		    AssertEvent(e, RREVENT_COND_LAZYINIT);
+		    RRPlay_Free(rrlog, e);
+		    pthread_cond_init(cond, NULL);
+		    RRShared_SyncUnlock(s);
+		}
+	    }
+ 
 	    int tmpresult = __pthread_mutex_unlock(mutex);
 	    ASSERT(tmpresult == 0);
-
-	    RRSyncEntry *s = RRShared_SyncLookup(rrlog, (uintptr_t)mutex, RRSync_Mutex);
 
 	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_MUTEX_LOCK);
@@ -913,9 +939,20 @@ pthread_rwlock_rdlock(pthread_rwlock_t *lock)
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    result = _pthread_rwlock_rdlock(lock);
-
 	    RRSyncEntry *s = RRShared_SyncLookup(rrlog, (uintptr_t)lock, RRSync_RWLock);
+
+	    if (*lock == PTHREAD_RWLOCK_INITIALIZER) {
+		RRShared_SyncLock(s);
+		if (*lock == PTHREAD_RWLOCK_INITIALIZER) {
+		    e = RRLog_Alloc(rrlog, getThreadId());
+		    e->event = RREVENT_RWLOCK_LAZYINIT;
+		    RRLog_Append(rrlog, e);
+		    pthread_rwlock_init(lock, NULL);
+		}
+		RRShared_SyncUnlock(s);
+	    }
+
+	    result = _pthread_rwlock_rdlock(lock);
 
 	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_RWLOCK_RDLOCK;
@@ -933,6 +970,21 @@ pthread_rwlock_rdlock(pthread_rwlock_t *lock)
 	}
 	case RRMODE_REPLAY: {
 	    RRSyncEntry *s = RRShared_SyncLookup(rrlog, (uintptr_t)lock, RRSync_RWLock);
+
+	    if (*lock == PTHREAD_RWLOCK_INITIALIZER) {
+		while ((e = RRLogThreadDequeue(rrlog, RRShared_LookupThread(rrlog, getThreadId()))) == NULL)
+		{
+		}
+
+		if (e->event == RREVENT_RWLOCK_LAZYINIT) {
+		    RRShared_SyncLock(s);
+		    e = RRPlay_Dequeue(rrlog, getThreadId());
+		    AssertEvent(e, RREVENT_RWLOCK_LAZYINIT);
+		    RRPlay_Free(rrlog, e);
+		    pthread_rwlock_init(lock, NULL);
+		    RRShared_SyncUnlock(s);
+		}
+	    }
 
 	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_RWLOCK_RDLOCK);
@@ -1049,9 +1101,20 @@ pthread_rwlock_wrlock(pthread_rwlock_t *lock)
 	    break;
 	}
 	case RRMODE_RECORD: {
-	    result = _pthread_rwlock_wrlock(lock);
-
 	    RRSyncEntry *s = RRShared_SyncLookup(rrlog, (uintptr_t)lock, RRSync_RWLock);
+
+	    if (*lock == PTHREAD_RWLOCK_INITIALIZER) {
+		RRShared_SyncLock(s);
+		if (*lock == PTHREAD_RWLOCK_INITIALIZER) {
+		    e = RRLog_Alloc(rrlog, getThreadId());
+		    e->event = RREVENT_RWLOCK_LAZYINIT;
+		    RRLog_Append(rrlog, e);
+		    pthread_rwlock_init(lock, NULL);
+		}
+		RRShared_SyncUnlock(s);
+	    }
+
+	    result = _pthread_rwlock_wrlock(lock);
 
 	    e = RRLog_Alloc(rrlog, getThreadId());
 	    e->event = RREVENT_RWLOCK_WRLOCK;
@@ -1069,6 +1132,21 @@ pthread_rwlock_wrlock(pthread_rwlock_t *lock)
 	}
 	case RRMODE_REPLAY: {
 	    RRSyncEntry *s = RRShared_SyncLookup(rrlog, (uintptr_t)lock, RRSync_RWLock);
+
+	    if (*lock == PTHREAD_RWLOCK_INITIALIZER) {
+		while ((e = RRLogThreadDequeue(rrlog, RRShared_LookupThread(rrlog, getThreadId()))) == NULL)
+		{
+		}
+
+		if (e->event == RREVENT_RWLOCK_LAZYINIT) {
+		    RRShared_SyncLock(s);
+		    e = RRPlay_Dequeue(rrlog, getThreadId());
+		    AssertEvent(e, RREVENT_RWLOCK_LAZYINIT);
+		    RRPlay_Free(rrlog, e);
+		    pthread_rwlock_init(lock, NULL);
+		    RRShared_SyncUnlock(s);
+		}
+	    }
 
 	    e = RRPlay_Dequeue(rrlog, getThreadId());
 	    AssertEvent(e, RREVENT_RWLOCK_WRLOCK);

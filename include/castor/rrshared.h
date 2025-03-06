@@ -86,12 +86,14 @@ enum RRSyncType {
 };
 
 #ifndef atomic_uint64_t
+typedef atomic_uint_fast32_t atomic_uint32_t;
 typedef atomic_uint_fast64_t atomic_uint64_t;
 #endif
 
 typedef struct RRSyncEntry {
     atomic_uintptr_t addr;
-    uintptr_t type;
+    uint32_t type;
+    atomic_uint32_t lock;
     atomic_uint64_t epoch;
     uint64_t owner;
 } RRSyncEntry;
@@ -366,6 +368,22 @@ RRShared_SyncInc(RRSyncEntry *s)
 {
     s->owner = getThreadId();
     atomic_fetch_add(&s->epoch, 1);
+}
+
+static inline void
+RRShared_SyncLock(RRSyncEntry *s)
+{
+    while (atomic_exchange(&s->lock, 1) == 1) {
+#if defined(__amd64__)
+	_mm_pause();
+#endif
+    }
+}
+
+static inline void
+RRShared_SyncUnlock(RRSyncEntry *s)
+{
+    atomic_store(&s->lock, 0);
 }
 
 #endif /* __CASTOR_RRSHARED_H__ */
