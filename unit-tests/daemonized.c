@@ -46,7 +46,7 @@ int main(int argc, const char *argv[])
 		printf("Main process quits.\n");
 	    } else {
 		/* execv'd process */
-		sleep(1);
+		usleep(20000);
 		printf("daemon is up, ppid is %d\n", getppid());
 		// Should be reparented to record/replay during rr
 		rr_assert(getppid() != 1);

@@ -37,7 +37,7 @@ main()
 	sem_destroy(&ready);
     } else {
 	printf("Main: child pid is %d\n", pid);
-	sleep(1);
+	usleep(20000);
 	kill(pid, SIGUSR1);
 	waitpid(pid, 0, 0);
 	printf("Main: bye!\n");

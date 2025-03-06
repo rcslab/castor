@@ -13,8 +13,8 @@ void *
 routine(void *arg)
 {
     intptr_t dur = (intptr_t)arg;
-    printf("Sleep %ld seconds..\n", dur);
-    sleep(dur);
+    printf("Sleep %ld microseconds..\n", dur);
+    usleep(dur);
     printf("Up\n");
     return NULL;
 }
@@ -25,9 +25,9 @@ int main(int argc, const char *argv[])
     struct timespec tmout;
     pthread_t t1, t2, t3;
 
-    status = pthread_create(&t1, NULL, &routine, (void *)10);
+    status = pthread_create(&t1, NULL, &routine, (void *)50000);
     assert(status == 0);
-    status = pthread_create(&t2, NULL, &routine, (void *)1);
+    status = pthread_create(&t2, NULL, &routine, (void *)1000);
     assert(status == 0);
     status = pthread_create(&t3, NULL, &routine, (void *)0);
     assert(status == 0);
@@ -35,7 +35,8 @@ int main(int argc, const char *argv[])
     if (clock_gettime(CLOCK_REALTIME, &tmout) == -1) {
 	assert(0);
     }
-    tmout.tv_sec += 2;
+    tmout.tv_sec += 0;
+    tmout.tv_nsec += 20000000;
 
     status = pthread_timedjoin_np(t1, NULL, &tmout);
     assert(status == ETIMEDOUT);
