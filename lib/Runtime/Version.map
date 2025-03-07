@@ -14,6 +14,7 @@ global:
 	lockTable;
 	rrMode;
 	rrlog;
+	log_init;
 	__castor_store_begin;
 	__castor_store_end;
 	__castor_load_begin;

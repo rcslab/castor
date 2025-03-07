@@ -149,11 +149,15 @@ dump_siginfo(int signal)
     dumpLog();
 }
 
-__attribute__((constructor)) void
+void
 log_init()
 {
     int status;
     RRLogEntry *e;
+
+    castor_dummy();
+    if (rrMode != RRMODE_NORMAL)
+	return;
 
     char *shmpath = __castor_getenv("CASTOR_SHMPATH");
     if (shmpath == NULL) {
