@@ -84,9 +84,8 @@ __rr_sigaction(int sig, const struct sigaction *restrict act,
 	break;
     case RRMODE_RECORD:
     case RRMODE_REPLAY:
-	sah = act->sa_handler;
-
 	if (act) {
+	    sah = act->sa_handler;
 	    memcpy(&rr_act, act, sizeof(struct sigaction));
 	    rr_act.sa_handler = &rr_signal_handler;
 	    in = &rr_act;
