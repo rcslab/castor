@@ -25,7 +25,7 @@ int main(int argc, const char *argv[])
     struct timespec tmout;
     pthread_t t1, t2, t3;
 
-    status = pthread_create(&t1, NULL, &routine, (void *)50000);
+    status = pthread_create(&t1, NULL, &routine, (void *)50000000);
     assert(status == 0);
     status = pthread_create(&t2, NULL, &routine, (void *)1000);
     assert(status == 0);
