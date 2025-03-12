@@ -11,8 +11,7 @@
 #define NC          3           /* total number of consumers */
 #define NITERS      4           /* number of items produced/consumed */
 
-typedef struct
-{
+typedef struct {
     int buf[BUFF_SIZE];   /* shared var */
     int in;               /* buf[in%BUFF_SIZE] is the first empty slot */
     int out;              /* buf[out%BUFF_SIZE] is the first full slot */
@@ -26,17 +25,14 @@ typedef struct
 sbuf_t shared;
 
 
-void *Producer(void *arg)
-{
+void * 
+Producer(void *arg) {
     int i, item;
     intptr_t index;
 
     index = (intptr_t)arg;
 
-
-    for (i=0; i < NITERS; i++)
-    {
-
+    for (i=0; i < NITERS; i++) {
         /* Produce item */
         item = i;
 
@@ -61,8 +57,8 @@ void *Producer(void *arg)
     return NULL;
 }
 
-void *Consumer(void *arg)
-{
+void *
+Consumer(void *arg) {
     int i, item;
     intptr_t index;
 
@@ -86,27 +82,30 @@ void *Consumer(void *arg)
     return NULL;
 }
 
-int main()
-{
-    pthread_t idP, idC;
+int 
+main() {
+    pthread_t idP[NP], idC[NC];
     int64_t index;
 
     sem_init(&shared.full, 0, 0);
     sem_init(&shared.empty, 0, BUFF_SIZE);
     pthread_mutex_init(&shared.mutex, NULL);
-    for (index = 0; index < NP; index++)
-    {
+    for (index = 0; index < NP; index++) {
         /* Create a new producer */
-        pthread_create(&idP, NULL, Producer, (void*)index);
+        pthread_create(&idP[index], NULL, Producer, (void*)index);
     }
     /*create a new Consumer*/
-    for(index=0; index<NC; index++)
-    {
-        pthread_create(&idC, NULL, Consumer, (void*)index);
+    for(index=0; index<NC; index++) {
+        pthread_create(&idC[index], NULL, Consumer, (void*)index);
+    }
+
+    for (index = 0; index < NP; index++) {
+        pthread_join(idP[index], NULL);
+    }
+
+    for (index = 0; index < NC; index++) {
+	pthread_join(idC[index], NULL);
     }
 
     return 0;
-
-    // XXX: pthread_exit contains a race in libthr from what I can tell
-    pthread_exit(NULL);
 }
