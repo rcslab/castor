@@ -76,6 +76,7 @@ typedef struct RRLogThreadInfo {
     int						tid;
     /* The pid used during record phase. Used in replay only. */
     int						recordedPid; 
+    int						rrMode;
 } RRLogThreadInfo;
 
 enum RRSyncType {
@@ -129,6 +130,8 @@ extern void setRecordedPid(uint64_t);
 extern void setThreadId(uint64_t, uint64_t);
 extern void log_init();
 extern void castor_dummy();
+extern int getRRMode();
+extern void setRRMode(int mode);
 
 #define ROUNDUP(_x, _n) ((_x + _n - 1) & ~(_n - 1))
 

@@ -9,7 +9,7 @@
 #include <castor/archconfig.h>
 #include <castor/rr_fdprintf.h>
 
-extern enum RRMODE rrMode;
+extern thread_local enum RRMODE rrMode;
 
 void __rr_assert(const char *, const char *, int, const char *) __dead2;
 

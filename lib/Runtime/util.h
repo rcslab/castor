@@ -7,7 +7,7 @@
 
 #define LOCKTABLE_SIZE 4096
 
-extern enum RRMODE rrMode;
+extern thread_local enum RRMODE rrMode;
 extern RRLog *rrlog;
 extern Mutex lockTable[LOCKTABLE_SIZE];
 

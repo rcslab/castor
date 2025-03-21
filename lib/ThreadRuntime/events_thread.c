@@ -91,7 +91,10 @@ void *
 thrwrapper(void *arg)
 {
     uintptr_t thrNo = (uintptr_t)arg;
+
     setThreadId(thrNo, rrlog->threadInfo[thrNo].recordedPid);
+    rrMode = rrlog->threadInfo[thrNo].rrMode;
+
     return (threadState[thrNo].start)(threadState[thrNo].arg);
 }
 
@@ -129,6 +132,7 @@ pthread_create(pthread_t * thread, const pthread_attr_t * attr,
 	RRShared_SetupThread(rrlog, thrNo);
     }
 
+    rrlog->threadInfo[thrNo].rrMode = rrMode;
     rrlog->threadInfo[thrNo].recordedPid = recordedPid;
     threadState[thrNo].start = start_routine;
     threadState[thrNo].arg = arg;

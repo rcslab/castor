@@ -5,6 +5,7 @@ import os
 import signal
 import time
 import subprocess
+import psutil
 
 TIMEOUT = 3.0
 
@@ -100,8 +101,12 @@ def Run(tool, sname, name, output):
             ReportError(sname, "Failed")
             return None
         if (time.time() - start) > TIMEOUT:
+            p = psutil.Process(t.pid)
+            for c in p.children(recursive=True):
+                c.kill()
             t.kill()
             ReportTimeout(sname)
+            subprocess.run(["ipcrm", "-W"])
             return None
 
 def read_disabled_list():
@@ -131,11 +136,9 @@ def RunTest(name):
     if rep_time is None:
         return
 
-
     write(CLEAR)
     write(TFORMAT % (name, GREEN, "Completed", norm_time, rec_time, rep_time))
     write("\n")
-    subprocess.run(["ipcrm", "-W"])
 
 
 basedir = os.getcwd()

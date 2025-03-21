@@ -50,7 +50,19 @@ struct {
 };
 
 RRLog *rrlog;
-enum RRMODE rrMode = RRMODE_NORMAL;
+thread_local enum RRMODE rrMode = RRMODE_NORMAL;
+
+int
+getRRMode()
+{
+    return rrMode;
+}
+
+void 
+setRRMode(int mode)
+{
+    rrMode = mode;
+}
 
 static int
 LookupThreadId()
