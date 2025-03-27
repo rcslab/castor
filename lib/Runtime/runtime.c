@@ -242,6 +242,8 @@ log_init()
 
     /* Always generate procinfo event for the forked process */
     if (thrNo == -1) {
+	rrlog->threadInfo[0].rrMode = rrMode;
+
 	switch (rrMode) {
 	case RRMODE_RECORD:
 	    e = RRLog_Alloc(rrlog, 0);
@@ -259,6 +261,8 @@ log_init()
 	    /* Do nothing. */
 	    break;
 	}
+    } else {
+	rrlog->threadInfo[thrNo].rrMode = rrMode;
     }
 }
 
