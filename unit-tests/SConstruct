@@ -8,8 +8,9 @@ testbench_deps = [ ]
 
 for t in Glob('#build/unit-tests/*.c'):
     env.Depends(t, cp)
-    env.Depends(t, "Runtime")
-    env.Depends(t, "ThreadRuntime")
+    env.Depends(t, "CastorLoader")
+    env.Depends(t, "CastorRuntime")
+    env.Depends(t, "CastorThreadRuntime")
     d = env.Program(t,
                     CPPFLAGS = ["-fpass-plugin=$CASTORPASS"] + env["CPPFLAGS"],
                     LIBS = ["thr"])

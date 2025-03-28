@@ -1,5 +1,7 @@
 
 Import('env')
 
-env.StaticLibrary("libCastorLoader.a", "loader.c")
+rt = env.StaticLibrary("CastorLoader", "loader.c")
+
+env.Alias("CastorLoader", rt)
 

@@ -38,6 +38,7 @@ env_libsys["LINKFLAGS"].append("-Wl,--version-script=lib/Runtime/Version.map")
 
 rt = env_libsys.SharedLibrary("CastorRuntime", src, LIBS = ["execinfo"])
 Depends(rt, "Version.map")
+Depends(rt, "CastorLoader")
 
 env.Alias("CastorRuntime", rt)
 
