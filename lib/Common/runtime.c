@@ -543,14 +543,13 @@ LogDone(int *status)
     pthread_join(gqthr, NULL);
     pthread_join(wpthr, &rt);
 
-    status = (int *)rt;
-
     shm_status = shmdt(rrlog);
     rrlog = NULL;
     if (shm_status == -1) {
 	PERROR("shmdt");
     }
-   shm_status = shmctl(shmid, IPC_RMID, NULL);
+
+    shm_status = shmctl(shmid, IPC_RMID, NULL);
     if (shm_status == -1) {
 	PERROR("shmctl");
     }
@@ -576,9 +575,9 @@ WaitProcess(void *arg)
 	}
 	if (WIFSIGNALED(status)) {
 	    int signum = WTERMSIG(status);
-            WARNING("Child exited unexpectedly, recieved: SIG%s - %s",
-                    sys_signame[signum], strsignal(signum));
-            exit(1);
+	    WARNING("Child exited unexpectedly, recieved: SIG%s - %s",
+		    sys_signame[signum], strsignal(signum));
+	    exit(1);
         }
 
 	RRShared_CleanThread(rrlog, p);
