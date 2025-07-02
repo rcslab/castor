@@ -6,8 +6,8 @@
 #include <unistd.h>
 #include <pthread.h>
 
-pthread_once_t oc1;
-pthread_once_t oc2;
+pthread_once_t oc1 = PTHREAD_ONCE_INIT;
+pthread_once_t oc2 = PTHREAD_ONCE_INIT;
 thread_local intptr_t thrNo;
 
 void

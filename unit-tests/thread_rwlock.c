@@ -5,8 +5,8 @@
 #include <unistd.h>
 
 #define BUFF_SIZE 5 /* total number of slots */
-#define NP	  3 /* total number of producers */
-#define NC	  3 /* total number of consumers */
+#define NP	  1 /* total number of producers */
+#define NC	  1 /* total number of consumers */
 #define NITERS	  4 /* number of items produced/consumed */
 
 typedef struct {
