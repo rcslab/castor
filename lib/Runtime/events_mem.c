@@ -65,7 +65,7 @@ __rr_mmap_log(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
         if (result != MAP_FAILED) {
             void *origAddr = result;
             result = (void *) __rr_syscall_long(SYS_mmap, origAddr, len, prot | 
-                    PROT_WRITE, flags | MAP_ANON, -1, (off_t)0);
+                    PROT_WRITE, flags | MAP_FIXED | MAP_ANON, -1, (off_t)0);
             if (result == MAP_FAILED) {
                 PERROR(strerror(errno));
             }
@@ -149,7 +149,11 @@ __rr_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
     if (flags & MAP_PRIVATE) {
         return __rr_mmap_log(addr, len, prot, flags, fd, offset);
     } else if (flags & MAP_SHARED) {
-        return __rr_mmap_shared(addr, len, prot, flags, fd, offset);
+	if (prot == PROT_READ) {
+	    return __rr_mmap_log(addr, len, prot, flags, fd, offset);
+	} else {
+	    return __rr_mmap_shared(addr, len, prot, flags, fd, offset);
+	}
     } else {
         NOT_IMPLEMENTED();
     }
